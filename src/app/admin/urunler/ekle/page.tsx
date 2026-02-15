@@ -107,7 +107,7 @@ export default function AddProductPage() {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Fiyat *</label>
-              <input type="number" step="0.01" required className="input-field" value={form.priceOriginal} onChange={(e) => update('priceOriginal', parseFloat(e.target.value))} />
+              <input type="number" step="any" required className="input-field" value={form.priceOriginal} onChange={(e) => update('priceOriginal', parseFloat(e.target.value) || 0)} />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Bayi Özel Fiyat (TL)</label>

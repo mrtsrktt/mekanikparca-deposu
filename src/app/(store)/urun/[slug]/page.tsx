@@ -120,7 +120,7 @@ export default async function ProductDetailPage({ params }: Props) {
             )}
             {product.priceCurrency !== 'TRY' && (
               <p className="text-xs text-gray-400 mt-1">
-                Orijinal fiyat: {formatPrice(product.priceOriginal, product.priceCurrency)}
+                Para birimi: {product.priceCurrency}
               </p>
             )}
           </div>
