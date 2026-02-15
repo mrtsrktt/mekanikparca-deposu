@@ -146,7 +146,7 @@ function ProfileTab({ session, isB2B }: { session: any; isB2B: boolean }) {
             </span>
           </div>
           {b2bStatus === 'APPROVED' && (
-            <p className="text-sm text-green-600">Bayi hesabınız aktif. Ürün sayfalarında size özel indirimli fiyatları görebilirsiniz.</p>
+            <p className="text-sm text-green-600">🎉 Tebrikler! Artık bayimizsiniz ve tüm ürünleri bayi fiyatından satın alabilirsiniz.</p>
           )}
         </div>
       )}
