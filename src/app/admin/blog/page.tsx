@@ -1,9 +1,11 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, lazy, Suspense } from 'react'
 import { FiPlus, FiEdit, FiTrash2, FiUpload, FiX } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import slugify from 'slugify'
+
+const RichTextEditor = lazy(() => import('@/components/RichTextEditor'))
 
 export default function AdminBlogPage() {
   const [posts, setPosts] = useState<any[]>([])
@@ -91,7 +93,9 @@ export default function AdminBlogPage() {
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">İçerik *</label>
-            <textarea rows={10} required className="input-field" value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} />
+            <Suspense fallback={<div className="border rounded-lg p-8 text-center text-gray-400">Editör yükleniyor...</div>}>
+              <RichTextEditor content={form.content} onChange={(html) => setForm({ ...form, content: html })} />
+            </Suspense>
           </div>
 
           {/* Kapak Görseli — Dosya Yükleme */}
