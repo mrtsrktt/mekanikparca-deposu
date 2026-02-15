@@ -22,7 +22,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   try {
     const body = await req.json()
     const { name, slug, sku, description, technicalDetails, priceCurrency, priceOriginal, b2bPrice,
-      stock, trackStock, categoryId, brandId, isActive, isFeatured, metaTitle, metaDesc, weight, unit, minOrder, images } = body
+      stock, trackStock, categoryId, brandId, isActive, isFeatured, metaTitle, metaDesc, weight, unit, minOrder, freeShipping, images } = body
 
     let priceTRY = priceOriginal
     if (priceCurrency !== 'TRY') {
@@ -42,6 +42,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         b2bPrice: b2bPrice || null, stock, trackStock: trackStock ?? true,
         categoryId: categoryId || null, brandId: brandId || null,
         isActive, isFeatured, metaTitle, metaDesc, weight, unit, minOrder,
+        freeShipping: freeShipping ?? false,
         images: images?.length ? { create: images.map((img: any, i: number) => ({ url: img.url, alt: img.alt, sortOrder: i })) } : undefined,
       },
       include: { images: true, category: true, brand: true },

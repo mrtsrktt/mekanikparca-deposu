@@ -39,7 +39,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json()
     const { name, slug, sku, description, technicalDetails, priceCurrency, priceOriginal, b2bPrice,
-      stock, trackStock, categoryId, brandId, isActive, isFeatured, metaTitle, metaDesc, weight, unit, minOrder, images } = body
+      stock, trackStock, categoryId, brandId, isActive, isFeatured, metaTitle, metaDesc, weight, unit, minOrder, freeShipping, images } = body
 
     // Calculate TRY price
     let priceTRY = priceOriginal
@@ -54,6 +54,7 @@ export async function POST(req: Request) {
         b2bPrice: b2bPrice || null, stock, trackStock: trackStock ?? true,
         categoryId: categoryId || null, brandId: brandId || null,
         isActive: isActive ?? true, isFeatured: isFeatured ?? false,
+        freeShipping: freeShipping ?? false,
         metaTitle, metaDesc, weight, unit, minOrder: minOrder || 1,
         images: images?.length ? { create: images.map((img: any, i: number) => ({ url: img.url, alt: img.alt, sortOrder: i })) } : undefined,
       },

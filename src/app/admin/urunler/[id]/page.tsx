@@ -20,6 +20,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     stock: 0, trackStock: true, categoryId: '', brandId: '',
     isActive: true, isFeatured: false,
     metaTitle: '', metaDesc: '', weight: 0, unit: 'Adet', minOrder: 1,
+    freeShipping: false,
     images: [] as { url: string; alt: string }[],
   })
 
@@ -41,6 +42,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
         isActive: product.isActive ?? true, isFeatured: product.isFeatured ?? false,
         metaTitle: product.metaTitle || '', metaDesc: product.metaDesc || '',
         weight: product.weight || 0, unit: product.unit || 'Adet', minOrder: product.minOrder || 1,
+        freeShipping: product.freeShipping ?? false,
         images: product.images?.map((img: any) => ({ url: img.url, alt: img.alt || '' })) || [],
       })
       setLoading(false)
@@ -232,6 +234,10 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
             <label className="flex items-center gap-2">
               <input type="checkbox" checked={form.isFeatured} onChange={(e) => update('isFeatured', e.target.checked)} className="rounded" />
               <span className="text-sm">Öne Çıkan</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={form.freeShipping} onChange={(e) => update('freeShipping', e.target.checked)} className="rounded" />
+              <span className="text-sm">Ücretsiz Kargo</span>
             </label>
           </div>
         </div>

@@ -95,6 +95,7 @@ model Product {
   weight          Float?
   unit            String?  @default("Adet")
   minOrder        Int      @default(1)
+  freeShipping    Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   orderItems      OrderItem[]

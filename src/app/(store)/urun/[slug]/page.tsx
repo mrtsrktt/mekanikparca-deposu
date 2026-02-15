@@ -126,13 +126,18 @@ export default async function ProductDetailPage({ params }: Props) {
           </div>
 
           {/* Stock */}
-          <div className="mb-6">
+          <div className="mb-6 flex flex-wrap items-center gap-3">
             {(product as any).trackStock === false ? (
               <span className="badge badge-success">Stokta Var</span>
             ) : product.stock > 0 ? (
               <span className="badge badge-success">Stokta Var ({product.stock} {product.unit})</span>
             ) : (
               <span className="badge badge-danger">Stokta Yok</span>
+            )}
+            {(product as any).freeShipping ? (
+              <span className="inline-flex items-center gap-1 text-sm font-semibold text-green-600 bg-green-50 px-3 py-1 rounded-full">🚚 Ücretsiz Kargo</span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">📦 Kargo: Alıcı Öder</span>
             )}
           </div>
 

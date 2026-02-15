@@ -17,6 +17,7 @@ interface ProductCardProps {
     category?: { name: string } | null
     stock: number
     trackStock?: boolean
+    freeShipping?: boolean
   }
   b2bUserPrice?: number | null
   showB2B?: boolean
@@ -88,6 +89,13 @@ export default function ProductCard({ product, b2bUserPrice, showB2B, hasCampaig
               <span className="text-lg font-bold text-primary-500">
                 {formatPrice(product.priceTRY)}
               </span>
+            )}
+          </div>
+          <div className="mt-1">
+            {(product as any).freeShipping ? (
+              <span className="text-[10px] font-semibold text-green-600">🚚 Ücretsiz Kargo</span>
+            ) : (
+              <span className="text-[10px] text-gray-400">Kargo: Alıcı Öder</span>
             )}
           </div>
           <div className="flex gap-2 mt-3">
