@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /hesabim
+Disallow: /giris
+Disallow: /kayit
+
+Sitemap: https://mekanikparcadeposu.com/sitemap.xml

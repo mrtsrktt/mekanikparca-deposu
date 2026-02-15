@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="420" viewBox="0 0 1400 420">
+  <defs>
+    <linearGradient id="bg1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e40af"/>
+      <stop offset="100%" style="stop-color:#1e3a5f"/>
+    </linearGradient>
+  </defs>
+  <rect width="1400" height="420" fill="url(#bg1)"/>
+  <circle cx="1100" cy="210" r="150" fill="rgba(255,255,255,0.05)"/>
+  <circle cx="1150" cy="180" r="100" fill="rgba(255,255,255,0.05)"/>
+  <rect x="80" y="120" width="600" height="8" rx="4" fill="rgba(255,255,255,0.9)"/>
+  <rect x="80" y="150" width="450" height="8" rx="4" fill="rgba(255,255,255,0.9)"/>
+  <rect x="80" y="190" width="500" height="5" rx="2" fill="rgba(255,255,255,0.4)"/>
+  <rect x="80" y="205" width="420" height="5" rx="2" fill="rgba(255,255,255,0.4)"/>
+  <rect x="80" y="250" width="160" height="45" rx="8" fill="#f59e0b"/>
+  <text x="160" y="278" font-family="Arial,sans-serif" font-size="16" fill="#1e3a5f" text-anchor="middle" font-weight="bold">Ürünleri İncele</text>
+  <!-- Wrench icon -->
+  <g transform="translate(1020,130)" fill="rgba(255,255,255,0.15)">
+    <rect x="0" y="60" width="30" height="120" rx="5" transform="rotate(-45,15,120)"/>
+    <circle cx="15" cy="40" r="35" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="15"/>
+  </g>
+  <text x="80" y="370" font-family="Arial,sans-serif" font-size="12" fill="rgba(255,255,255,0.3)">Demo Görsel 1 - Gerçek görsel ile değiştirilecek</text>
+</svg>

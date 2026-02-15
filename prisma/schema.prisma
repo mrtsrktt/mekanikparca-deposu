@@ -1,0 +1,244 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  name          String
+  phone         String?
+  role          String    @default("CUSTOMER") // ADMIN, CUSTOMER, B2B
+  b2bStatus     String?   // PENDING, APPROVED, REJECTED
+  companyName   String?
+  taxNumber     String?
+  taxOffice     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  orders        Order[]
+  addresses     Address[]
+  quotes        QuoteRequest[]
+}
+
+model Address {
+  id        String  @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  fullName  String
+  phone     String
+  city      String
+  district  String
+  address   String
+  zipCode   String?
+  isDefault Boolean @default(false)
+}
+
+model Category {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  description String?
+  image       String?
+  parentId    String?
+  parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryTree")
+  products    Product[]
+  metaTitle   String?
+  metaDesc    String?
+  sortOrder   Int        @default(0)
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  b2bDiscounts B2BDiscount[]
+}
+
+model Brand {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  logo        String?
+  description String?
+  isActive    Boolean   @default(true)
+  sortOrder   Int       @default(0)
+  products    Product[]
+  b2bDiscounts B2BDiscount[]
+}
+
+
+model Product {
+  id              String   @id @default(cuid())
+  name            String
+  slug            String   @unique
+  sku             String?  @unique
+  description     String?
+  technicalDetails String?
+  priceCurrency   String   @default("TRY") // TRY, USD, EUR
+  priceOriginal   Float    // Price in original currency
+  priceTRY        Float    // Calculated TRY price
+  b2bPrice        Float?   // Product-specific B2B price (highest priority)
+  stock           Int      @default(0)
+  trackStock      Boolean  @default(true)
+  categoryId      String?
+  category        Category? @relation(fields: [categoryId], references: [id])
+  brandId         String?
+  brand           Brand?   @relation(fields: [brandId], references: [id])
+  images          ProductImage[]
+  isActive        Boolean  @default(true)
+  isFeatured      Boolean  @default(false)
+  metaTitle       String?
+  metaDesc        String?
+  weight          Float?
+  unit            String?  @default("Adet")
+  minOrder        Int      @default(1)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  orderItems      OrderItem[]
+  quoteItems      QuoteItem[]
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  alt       String?
+  sortOrder Int     @default(0)
+}
+
+model B2BDiscount {
+  id         String   @id @default(cuid())
+  scopeType  String   // "GENERAL", "BRAND", "CATEGORY"
+  brandId    String?
+  brand      Brand?   @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  discount   Float    // İndirim yüzdesi
+  createdAt  DateTime @default(now())
+  @@unique([scopeType, brandId, categoryId])
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  orderNumber   String      @unique
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+  status        String      @default("PENDING") // PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED
+  totalAmount   Float
+  currency      String      @default("TRY")
+  shippingAddress String?
+  billingAddress  String?
+  notes         String?
+  items         OrderItem[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  unitPrice Float
+  total     Float
+}
+
+model QuoteRequest {
+  id              String      @id @default(cuid())
+  quoteNumber     String      @unique
+  userId          String?
+  user            User?       @relation(fields: [userId], references: [id])
+  customerName    String?     // Manuel teklif için
+  customerEmail   String?
+  customerPhone   String?
+  customerCompany String?
+  message         String?
+  adminNote       String?
+  status          String      @default("PENDING") // PENDING, REVIEWING, QUOTED, ACCEPTED, REJECTED
+  isManual        Boolean     @default(false) // Admin tarafından oluşturuldu mu
+  sentAt          DateTime?   // Admin'in teklifi gönderdiği tarih
+  items           QuoteItem[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model QuoteItem {
+  id         String       @id @default(cuid())
+  quoteId    String
+  quote      QuoteRequest @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product      @relation(fields: [productId], references: [id])
+  quantity   Int
+  unitPrice  Float?       // Admin'in verdiği teklif fiyatı (birim)
+  note       String?      // Ürün bazlı not
+}
+
+model CurrencyRate {
+  id        String   @id @default(cuid())
+  currency  String   @unique // USD, EUR
+  rate      Float    // 1 USD = X TRY
+  updatedAt DateTime @updatedAt
+}
+
+model BlogPost {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  content     String
+  excerpt     String?
+  coverImage  String?
+  isPublished Boolean  @default(false)
+  metaTitle   String?
+  metaDesc    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SiteSetting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}
+
+model Media {
+  id        String   @id @default(cuid())
+  filename  String
+  url       String
+  mimeType  String
+  size      Int
+  alt       String?
+  createdAt DateTime @default(now())
+}
+
+
+model Campaign {
+  id          String         @id @default(cuid())
+  name        String
+  description String?
+  type        String         // "PERCENTAGE" veya "FIXED_PRICE"
+  scopeType   String         // "PRODUCT", "BRAND", "CATEGORY"
+  productId   String?
+  brandId     String?
+  categoryId  String?
+  startDate   DateTime
+  endDate     DateTime
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  tiers       CampaignTier[]
+}
+
+model CampaignTier {
+  id          String   @id @default(cuid())
+  campaignId  String
+  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  minQuantity Int
+  value       Float
+  @@unique([campaignId, minQuantity])
+}
