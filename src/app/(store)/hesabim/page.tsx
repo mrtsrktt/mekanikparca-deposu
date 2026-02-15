@@ -63,11 +63,15 @@ function ProfileTab({ session, isB2B }: { session: any; isB2B: boolean }) {
   const [name, setName] = useState(session.user.name || '')
   const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
+  const [b2bStatus, setB2bStatus] = useState(session.user.b2bStatus || '')
+  const [companyName, setCompanyName] = useState('')
 
   useEffect(() => {
     fetch('/api/account/profile').then(r => r.json()).then(data => {
       if (data.phone) setPhone(data.phone)
       if (data.name) setName(data.name)
+      if (data.b2bStatus) setB2bStatus(data.b2bStatus)
+      if (data.companyName) setCompanyName(data.companyName)
     })
   }, [])
 
@@ -129,13 +133,19 @@ function ProfileTab({ session, isB2B }: { session: any; isB2B: boolean }) {
       {isB2B && (
         <div className="mt-6 pt-6 border-t">
           <h3 className="font-semibold mb-3">Bayi Hesap Bilgileri</h3>
+          {companyName && (
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-sm text-gray-500">Firma:</span>
+              <span className="text-sm font-medium">{companyName}</span>
+            </div>
+          )}
           <div className="flex items-center gap-2 mb-2">
             <span className="text-sm text-gray-500">Durum:</span>
-            <span className={`badge ${session.user.b2bStatus === 'APPROVED' ? 'badge-success' : 'badge-warning'}`}>
-              {session.user.b2bStatus === 'APPROVED' ? 'Onaylı' : 'Beklemede'}
+            <span className={`badge ${b2bStatus === 'APPROVED' ? 'badge-success' : 'badge-warning'}`}>
+              {b2bStatus === 'APPROVED' ? 'Onaylı' : 'Beklemede'}
             </span>
           </div>
-          {session.user.b2bStatus === 'APPROVED' && (
+          {b2bStatus === 'APPROVED' && (
             <p className="text-sm text-green-600">Bayi hesabınız aktif. Ürün sayfalarında size özel indirimli fiyatları görebilirsiniz.</p>
           )}
         </div>
