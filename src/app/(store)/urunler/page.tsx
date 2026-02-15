@@ -19,9 +19,9 @@ export default async function ProductsPage({ searchParams }: Props) {
   const where: any = { isActive: true }
   if (searchParams.q) {
     where.OR = [
-      { name: { contains: searchParams.q } },
-      { description: { contains: searchParams.q } },
-      { sku: { contains: searchParams.q } },
+      { name: { contains: searchParams.q, mode: 'insensitive' } },
+      { description: { contains: searchParams.q, mode: 'insensitive' } },
+      { sku: { contains: searchParams.q, mode: 'insensitive' } },
     ]
   }
   if (searchParams.category) where.category = { slug: searchParams.category }

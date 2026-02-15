@@ -13,8 +13,8 @@ export async function GET(req: Request) {
 
   const where = search ? {
     OR: [
-      { name: { contains: search } },
-      { sku: { contains: search } },
+      { name: { contains: search, mode: 'insensitive' as const } },
+      { sku: { contains: search, mode: 'insensitive' as const } },
     ]
   } : {}
 
