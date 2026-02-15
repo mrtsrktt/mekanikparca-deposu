@@ -45,16 +45,24 @@ export default function AdminBlogPage() {
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (e?: any) => {
+    if (e?.preventDefault) e.preventDefault()
+    if (!form.title.trim()) { toast.error('Başlık zorunludur'); return }
     const url = editing ? `/api/admin/blog/${editing.id}` : '/api/admin/blog'
     const method = editing ? 'PUT' : 'POST'
-    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
-    if (res.ok) {
-      toast.success(editing ? 'Yazı güncellendi!' : 'Yazı eklendi!')
-      setShowForm(false); setEditing(null)
-      setForm({ title: '', slug: '', content: '', excerpt: '', coverImage: '', isPublished: false, metaTitle: '', metaDesc: '' })
-      load()
+    try {
+      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
+      if (res.ok) {
+        toast.success(editing ? 'Yazı güncellendi!' : 'Yazı eklendi!')
+        setShowForm(false); setEditing(null)
+        setForm({ title: '', slug: '', content: '', excerpt: '', coverImage: '', isPublished: false, metaTitle: '', metaDesc: '' })
+        load()
+      } else {
+        const data = await res.json().catch(() => ({}))
+        toast.error(data.error || 'Kaydetme hatası oluştu')
+      }
+    } catch (err) {
+      toast.error('Bağlantı hatası')
     }
   }
 
@@ -79,7 +87,7 @@ export default function AdminBlogPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Başlık *</label>
-              <input type="text" required className="input-field" value={form.title}
+              <input type="text" className="input-field" value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value, slug: slugify(e.target.value, { lower: true, strict: true }) })} />
             </div>
             <div>
@@ -159,7 +167,7 @@ export default function AdminBlogPage() {
             <span className="text-sm">Yayınla</span>
           </label>
           <div className="flex gap-3">
-            <button type="submit" className="btn-primary">{editing ? 'Güncelle' : 'Kaydet'}</button>
+            <button type="button" onClick={handleSubmit} className="btn-primary">{editing ? 'Güncelle' : 'Kaydet'}</button>
             <button type="button" onClick={() => { setShowForm(false); setEditing(null) }} className="btn-secondary">İptal</button>
           </div>
         </form>
