@@ -129,7 +129,7 @@ export default function QuotePage() {
         <div className="text-center py-16">
           <FiFileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <p className="text-gray-500 text-lg mb-4">Teklif listeniz boş.</p>
-          <p className="text-sm text-gray-400 mb-6">Ürün sayfalarından "Teklif Listesine Ekle" butonuyla ürün ekleyebilirsiniz.</p>
+          <p className="text-sm text-gray-400 mb-6">Ürün sayfalarından &ldquo;Teklif Listesine Ekle&rdquo; butonuyla ürün ekleyebilirsiniz.</p>
           <Link href="/urunler" className="btn-primary">Ürünlere Git</Link>
         </div>
       ) : (

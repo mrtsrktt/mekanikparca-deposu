@@ -22,6 +22,7 @@ export default function AdminProductsPage() {
     setLoading(false)
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadProducts() }, [page, search])
 
   const handleDelete = async (id: string) => {
