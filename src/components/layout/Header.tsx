@@ -18,6 +18,8 @@ export default function Header() {
   const [categories, setCategories] = useState<Category[]>([])
   const [brands, setBrands] = useState<Brand[]>([])
   const [quoteCount, setQuoteCount] = useState(0)
+  const [mobileCatOpen, setMobileCatOpen] = useState(false)
+  const [mobileBrandOpen, setMobileBrandOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const catRef = useRef<HTMLLIElement>(null)
   const brandRef = useRef<HTMLLIElement>(null)
@@ -238,19 +240,33 @@ export default function Header() {
             <Link href="/" className="block px-5 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 font-medium transition-colors" onClick={() => setMobileOpen(false)}>Ana Sayfa</Link>
             <Link href="/urunler" className="block px-5 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 font-medium transition-colors" onClick={() => setMobileOpen(false)}>Ürünler</Link>
 
-            <div className="px-5 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-2">Kategoriler</div>
-            {categories.map((cat) => (
-              <Link key={cat.id} href={`/urunler?category=${cat.slug}`} className="block px-7 py-2 text-sm text-gray-600 hover:bg-primary-50 hover:text-primary-600 transition-colors" onClick={() => setMobileOpen(false)}>
-                {cat.name}
-              </Link>
-            ))}
+            <button onClick={() => setMobileCatOpen(!mobileCatOpen)} className="w-full flex items-center justify-between px-5 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 font-medium transition-colors">
+              Kategoriler
+              <FiChevronDown className={`w-4 h-4 transition-transform duration-200 ${mobileCatOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {mobileCatOpen && (
+              <div className="bg-gray-50">
+                {categories.map((cat) => (
+                  <Link key={cat.id} href={`/urunler?category=${cat.slug}`} className="block px-7 py-2 text-sm text-gray-600 hover:bg-primary-50 hover:text-primary-600 transition-colors" onClick={() => setMobileOpen(false)}>
+                    {cat.name}
+                  </Link>
+                ))}
+              </div>
+            )}
 
-            <div className="px-5 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-2">Markalar</div>
-            {brands.map((brand) => (
-              <Link key={brand.id} href={`/urunler?brand=${brand.slug}`} className="block px-7 py-2 text-sm text-gray-600 hover:bg-primary-50 hover:text-primary-600 transition-colors" onClick={() => setMobileOpen(false)}>
-                {brand.name}
-              </Link>
-            ))}
+            <button onClick={() => setMobileBrandOpen(!mobileBrandOpen)} className="w-full flex items-center justify-between px-5 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 font-medium transition-colors">
+              Markalar
+              <FiChevronDown className={`w-4 h-4 transition-transform duration-200 ${mobileBrandOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {mobileBrandOpen && (
+              <div className="bg-gray-50">
+                {brands.map((brand) => (
+                  <Link key={brand.id} href={`/urunler?brand=${brand.slug}`} className="block px-7 py-2 text-sm text-gray-600 hover:bg-primary-50 hover:text-primary-600 transition-colors" onClick={() => setMobileOpen(false)}>
+                    {brand.name}
+                  </Link>
+                ))}
+              </div>
+            )}
 
             <div className="border-t mt-3 pt-3 mx-4">
               <Link href="/kampanyalar" className="block px-5 py-3 text-red-500 hover:bg-red-50 font-semibold rounded-lg transition-colors" onClick={() => setMobileOpen(false)}>🎁 Kampanyalar</Link>
