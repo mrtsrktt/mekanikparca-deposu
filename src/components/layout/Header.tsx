@@ -97,9 +97,9 @@ export default function Header() {
           <div className="flex items-center justify-between gap-6">
             <Link href="/" className="flex-shrink-0 flex items-center gap-3">
               <Image src="/images/logo.png" alt="Mekanik Parça Deposu" width={180} height={50} className="h-12 w-auto" priority />
-              <div className="hidden sm:block">
-                <div className="text-base font-extrabold text-gray-800 leading-tight">Mekanik Parça Deposu</div>
-                <div className="text-xs text-gray-400">Isıtma Sistemleri Uzmanı</div>
+              <div>
+                <div className="text-sm sm:text-base font-extrabold text-gray-800 leading-tight">Mekanik Parça Deposu</div>
+                <div className="text-[10px] sm:text-xs text-gray-400">Isıtma Sistemleri Uzmanı</div>
               </div>
             </Link>
 
