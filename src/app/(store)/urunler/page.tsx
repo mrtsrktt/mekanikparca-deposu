@@ -161,20 +161,22 @@ export default async function ProductsPage({ searchParams }: Props) {
         <div className="flex-1">
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm text-gray-500">{total} ürün bulundu</p>
-            <select
-              defaultValue={sort}
-              className="input-field w-auto text-sm"
-              onChange={(e) => {
-                const url = new URL(window.location.href)
-                url.searchParams.set('sort', e.target.value)
-                window.location.href = url.toString()
-              }}
-            >
-              <option value="newest">En Yeni</option>
-              <option value="price-asc">Fiyat: Düşükten Yükseğe</option>
-              <option value="price-desc">Fiyat: Yüksekten Düşüğe</option>
-              <option value="name">İsim: A-Z</option>
-            </select>
+            <div className="flex gap-1">
+              {[
+                { value: 'newest', label: 'Yeni' },
+                { value: 'price-asc', label: 'Ucuz' },
+                { value: 'price-desc', label: 'Pahalı' },
+                { value: 'name', label: 'A-Z' },
+              ].map((opt) => (
+                <Link
+                  key={opt.value}
+                  href={`/urunler?sort=${opt.value}${searchParams.q ? `&q=${searchParams.q}` : ''}${searchParams.category ? `&category=${searchParams.category}` : ''}${searchParams.brand ? `&brand=${searchParams.brand}` : ''}`}
+                  className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${sort === opt.value ? 'bg-primary-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+                >
+                  {opt.label}
+                </Link>
+              ))}
+            </div>
           </div>
 
           {products.length === 0 ? (
