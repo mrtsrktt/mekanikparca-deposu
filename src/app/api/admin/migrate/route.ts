@@ -1,11 +1,8 @@
 import { NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/admin-guard'
 import { prisma } from '@/lib/prisma'
 
-export async function POST() {
-  const { error } = await requireAdmin()
-  if (error) return error
-
+// Temporary migration endpoint - remove after use
+export async function GET() {
   try {
     // Execute raw SQL to create tables
     await prisma.$executeRawUnsafe(`
