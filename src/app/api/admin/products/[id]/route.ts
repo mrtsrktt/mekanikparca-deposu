@@ -8,7 +8,13 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
   const product = await prisma.product.findUnique({
     where: { id: params.id },
-    include: { category: true, brand: true, images: { orderBy: { sortOrder: 'asc' } } },
+    include: { 
+      category: true, 
+      brand: true, 
+      images: { orderBy: { sortOrder: 'asc' } },
+      videos: { orderBy: { sortOrder: 'asc' } },
+      documents: { orderBy: { sortOrder: 'asc' } },
+    },
   })
 
   if (!product) return NextResponse.json({ error: 'Ürün bulunamadı.' }, { status: 404 })
@@ -22,7 +28,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   try {
     const body = await req.json()
     const { name, slug, sku, description, technicalDetails, priceCurrency, priceOriginal, b2bPrice,
-      stock, trackStock, categoryId, brandId, isActive, isFeatured, metaTitle, metaDesc, weight, unit, minOrder, freeShipping, images } = body
+      stock, trackStock, categoryId, brandId, isActive, isFeatured, metaTitle, metaDesc, weight, unit, minOrder, freeShipping, images, videos, documents } = body
 
     let priceTRY = priceOriginal
     if (priceCurrency !== 'TRY') {
@@ -30,9 +36,15 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       if (rate) priceTRY = priceOriginal * rate.rate
     }
 
-    // Delete old images and create new ones
+    // Delete old media and create new ones
     if (images) {
       await prisma.productImage.deleteMany({ where: { productId: params.id } })
+    }
+    if (videos) {
+      await (prisma as any).productVideo.deleteMany({ where: { productId: params.id } })
+    }
+    if (documents) {
+      await (prisma as any).productDocument.deleteMany({ where: { productId: params.id } })
     }
 
     const product = await prisma.product.update({
@@ -44,8 +56,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         isActive, isFeatured, metaTitle, metaDesc, weight, unit, minOrder,
         freeShipping: freeShipping ?? false,
         images: images?.length ? { create: images.map((img: any, i: number) => ({ url: img.url, alt: img.alt, sortOrder: i })) } : undefined,
+        videos: videos?.length ? { create: videos.map((vid: any, i: number) => ({ url: vid.url, title: vid.title, sortOrder: i })) } : undefined,
+        documents: documents?.length ? { create: documents.map((doc: any, i: number) => ({ url: doc.url, title: doc.title, fileSize: doc.fileSize, sortOrder: i })) } : undefined,
       },
-      include: { images: true, category: true, brand: true },
+      include: { images: true, videos: true, documents: true, category: true, brand: true },
     })
 
     return NextResponse.json(product)

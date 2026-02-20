@@ -39,7 +39,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json()
     const { name, slug, sku, description, technicalDetails, priceCurrency, priceOriginal, b2bPrice,
-      stock, trackStock, categoryId, brandId, isActive, isFeatured, metaTitle, metaDesc, weight, unit, minOrder, freeShipping, images } = body
+      stock, trackStock, categoryId, brandId, isActive, isFeatured, metaTitle, metaDesc, weight, unit, minOrder, freeShipping, images, videos, documents } = body
 
     // Calculate TRY price
     let priceTRY = priceOriginal
@@ -57,8 +57,10 @@ export async function POST(req: Request) {
         freeShipping: freeShipping ?? false,
         metaTitle, metaDesc, weight, unit, minOrder: minOrder || 1,
         images: images?.length ? { create: images.map((img: any, i: number) => ({ url: img.url, alt: img.alt, sortOrder: i })) } : undefined,
+        videos: videos?.length ? { create: videos.map((vid: any, i: number) => ({ url: vid.url, title: vid.title, sortOrder: i })) } : undefined,
+        documents: documents?.length ? { create: documents.map((doc: any, i: number) => ({ url: doc.url, title: doc.title, fileSize: doc.fileSize, sortOrder: i })) } : undefined,
       },
-      include: { images: true, category: true, brand: true },
+      include: { images: true, videos: true, documents: true, category: true, brand: true },
     })
 
     return NextResponse.json(product)

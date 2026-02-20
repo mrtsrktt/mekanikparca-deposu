@@ -4,13 +4,16 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import slugify from 'slugify'
+import { FiX, FiUpload, FiFile, FiVideo } from 'react-icons/fi'
 
 export default function AddProductPage() {
   const router = useRouter()
   const [categories, setCategories] = useState<any[]>([])
   const [brands, setBrands] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
-  const [uploading, setUploading] = useState(false)
+  const [uploadingImages, setUploadingImages] = useState(false)
+  const [uploadingVideos, setUploadingVideos] = useState(false)
+  const [uploadingDocs, setUploadingDocs] = useState(false)
   const [form, setForm] = useState({
     name: '', slug: '', sku: '', description: '', technicalDetails: '',
     priceCurrency: 'TRY', priceOriginal: 0, b2bPrice: 0,
@@ -19,6 +22,8 @@ export default function AddProductPage() {
     metaTitle: '', metaDesc: '', weight: 0, unit: 'Adet', minOrder: 1,
     freeShipping: false,
     images: [] as { url: string; alt: string }[],
+    videos: [] as { url: string; title: string }[],
+    documents: [] as { url: string; title: string; fileSize?: number }[],
   })
 
   useEffect(() => {
@@ -27,11 +32,7 @@ export default function AddProductPage() {
   }, [])
 
   const handleNameChange = (name: string) => {
-    setForm({
-      ...form,
-      name,
-      slug: slugify(name, { lower: true, strict: true }),
-    })
+    setForm({ ...form, name, slug: slugify(name, { lower: true, strict: true }) })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,6 +58,68 @@ export default function AddProductPage() {
   }
 
   const update = (field: string, value: any) => setForm({ ...form, [field]: value })
+
+  const handleImageUpload = async (files: FileList | null) => {
+    if (!files?.length) return
+    setUploadingImages(true)
+    try {
+      const fd = new FormData()
+      Array.from(files).forEach(f => fd.append('files', f))
+      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (res.ok && data.files) {
+        update('images', [...form.images, ...data.files])
+        toast.success(`${data.files.length} görsel yüklendi`)
+      } else {
+        toast.error(data.error || 'Yükleme hatası')
+      }
+    } catch {
+      toast.error('Görsel yüklenirken hata oluştu')
+    }
+    setUploadingImages(false)
+  }
+
+  const handleVideoUpload = async (files: FileList | null) => {
+    if (!files?.length) return
+    setUploadingVideos(true)
+    try {
+      const fd = new FormData()
+      Array.from(files).forEach(f => fd.append('files', f))
+      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (res.ok && data.files) {
+        const videos = data.files.map((f: any) => ({ url: f.url, title: f.alt || 'Video' }))
+        update('videos', [...form.videos, ...videos])
+        toast.success(`${data.files.length} video yüklendi`)
+      } else {
+        toast.error(data.error || 'Yükleme hatası')
+      }
+    } catch {
+      toast.error('Video yüklenirken hata oluştu')
+    }
+    setUploadingVideos(false)
+  }
+
+  const handleDocUpload = async (files: FileList | null) => {
+    if (!files?.length) return
+    setUploadingDocs(true)
+    try {
+      const fd = new FormData()
+      Array.from(files).forEach(f => fd.append('files', f))
+      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (res.ok && data.files) {
+        const docs = data.files.map((f: any) => ({ url: f.url, title: f.alt || 'Döküman', fileSize: f.fileSize }))
+        update('documents', [...form.documents, ...docs])
+        toast.success(`${data.files.length} döküman yüklendi`)
+      } else {
+        toast.error(data.error || 'Yükleme hatası')
+      }
+    } catch {
+      toast.error('Döküman yüklenirken hata oluştu')
+    }
+    setUploadingDocs(false)
+  }
 
   return (
     <div>
@@ -159,71 +222,81 @@ export default function AddProductPage() {
         {/* Images */}
         <div className="card p-6">
           <h2 className="font-semibold text-lg mb-4">Görseller</h2>
-
-          {/* Yüklenen görseller önizleme */}
           {form.images.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-4">
               {form.images.map((img, i) => (
                 <div key={i} className="relative group border rounded-lg overflow-hidden bg-gray-50">
                   <img src={img.url} alt={img.alt} className="w-full h-32 object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => update('images', form.images.filter((_, j) => j !== i))}
-                    className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    ×
-                  </button>
-                  <input
-                    type="text"
-                    placeholder="Alt metin"
-                    className="w-full text-xs px-2 py-1 border-t bg-white"
-                    value={img.alt}
-                    onChange={(e) => {
-                      const imgs = [...form.images]
-                      imgs[i].alt = e.target.value
-                      update('images', imgs)
-                    }}
-                  />
+                  <button type="button" onClick={() => update('images', form.images.filter((_, j) => j !== i))}
+                    className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+                  <input type="text" placeholder="Alt metin" className="w-full text-xs px-2 py-1 border-t bg-white" value={img.alt}
+                    onChange={(e) => { const imgs = [...form.images]; imgs[i].alt = e.target.value; update('images', imgs) }} />
                 </div>
               ))}
             </div>
           )}
-
-          {/* Upload alanı */}
           <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary-400 hover:bg-primary-50/30 transition-colors">
             <div className="flex flex-col items-center text-gray-500">
-              <svg className="w-8 h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 16V4m0 0l-4 4m4-4l4 4M4 20h16" /></svg>
-              <span className="text-sm font-medium">{uploading ? 'Yükleniyor...' : 'Görsel yüklemek için tıklayın'}</span>
+              <FiUpload className="w-8 h-8 mb-1" />
+              <span className="text-sm font-medium">{uploadingImages ? 'Yükleniyor...' : 'Görsel yüklemek için tıklayın'}</span>
               <span className="text-xs text-gray-400 mt-0.5">PNG, JPG, WEBP — Birden fazla seçebilirsiniz</span>
             </div>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              disabled={uploading}
-              onChange={async (e) => {
-                const files = e.target.files
-                if (!files?.length) return
-                setUploading(true)
-                try {
-                  const fd = new FormData()
-                  Array.from(files).forEach(f => fd.append('files', f))
-                  const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
-                  const data = await res.json()
-                  if (res.ok && data.files) {
-                    update('images', [...form.images, ...data.files])
-                    toast.success(`${data.files.length} görsel yüklendi`)
-                  } else {
-                    toast.error(data.error || 'Yükleme hatası')
-                  }
-                } catch {
-                  toast.error('Görsel yüklenirken hata oluştu')
-                }
-                setUploading(false)
-                e.target.value = ''
-              }}
-            />
+            <input type="file" accept="image/*" multiple className="hidden" disabled={uploadingImages}
+              onChange={(e) => { handleImageUpload(e.target.files); e.target.value = '' }} />
+          </label>
+        </div>
+
+        {/* Videos */}
+        <div className="card p-6">
+          <h2 className="font-semibold text-lg mb-4 flex items-center gap-2"><FiVideo /> Videolar</h2>
+          {form.videos.length > 0 && (
+            <div className="space-y-2 mb-4">
+              {form.videos.map((vid, i) => (
+                <div key={i} className="flex items-center gap-2 p-3 border rounded-lg bg-gray-50">
+                  <FiVideo className="w-5 h-5 text-blue-500 flex-shrink-0" />
+                  <input type="text" placeholder="Video başlığı" className="input-field text-sm flex-1" value={vid.title}
+                    onChange={(e) => { const vids = [...form.videos]; vids[i].title = e.target.value; update('videos', vids) }} />
+                  <button type="button" onClick={() => update('videos', form.videos.filter((_, j) => j !== i))}
+                    className="text-red-500 hover:text-red-700"><FiX className="w-5 h-5" /></button>
+                </div>
+              ))}
+            </div>
+          )}
+          <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50/30 transition-colors">
+            <div className="flex flex-col items-center text-gray-500">
+              <FiVideo className="w-6 h-6 mb-1" />
+              <span className="text-sm font-medium">{uploadingVideos ? 'Yükleniyor...' : 'Video yüklemek için tıklayın'}</span>
+              <span className="text-xs text-gray-400">MP4, MOV, AVI</span>
+            </div>
+            <input type="file" accept="video/*" multiple className="hidden" disabled={uploadingVideos}
+              onChange={(e) => { handleVideoUpload(e.target.files); e.target.value = '' }} />
+          </label>
+        </div>
+
+        {/* Documents */}
+        <div className="card p-6">
+          <h2 className="font-semibold text-lg mb-4 flex items-center gap-2"><FiFile /> Teknik Dökümanlar (PDF)</h2>
+          {form.documents.length > 0 && (
+            <div className="space-y-2 mb-4">
+              {form.documents.map((doc, i) => (
+                <div key={i} className="flex items-center gap-2 p-3 border rounded-lg bg-gray-50">
+                  <FiFile className="w-5 h-5 text-red-500 flex-shrink-0" />
+                  <input type="text" placeholder="Döküman başlığı" className="input-field text-sm flex-1" value={doc.title}
+                    onChange={(e) => { const docs = [...form.documents]; docs[i].title = e.target.value; update('documents', docs) }} />
+                  <button type="button" onClick={() => update('documents', form.documents.filter((_, j) => j !== i))}
+                    className="text-red-500 hover:text-red-700"><FiX className="w-5 h-5" /></button>
+                </div>
+              ))}
+            </div>
+          )}
+          <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-red-300 rounded-lg cursor-pointer hover:border-red-500 hover:bg-red-50/30 transition-colors">
+            <div className="flex flex-col items-center text-gray-500">
+              <FiFile className="w-6 h-6 mb-1" />
+              <span className="text-sm font-medium">{uploadingDocs ? 'Yükleniyor...' : 'PDF yüklemek için tıklayın'}</span>
+              <span className="text-xs text-gray-400">PDF dosyaları</span>
+            </div>
+            <input type="file" accept=".pdf,application/pdf" multiple className="hidden" disabled={uploadingDocs}
+              onChange={(e) => { handleDocUpload(e.target.files); e.target.value = '' }} />
           </label>
         </div>
 

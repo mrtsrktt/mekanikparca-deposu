@@ -6,6 +6,7 @@ import { getActiveCampaignsForProduct } from '@/lib/campaignPricing'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import ProductDetailClient from './ProductDetailClient'
+import ProductMediaGallery from '@/components/ProductMediaGallery'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,7 +26,13 @@ export async function generateMetadata({ params }: Props) {
 export default async function ProductDetailPage({ params }: Props) {
   const product = await prisma.product.findUnique({
     where: { slug: params.slug },
-    include: { category: true, brand: true, images: { orderBy: { sortOrder: 'asc' } } },
+    include: { 
+      category: true, 
+      brand: true, 
+      images: { orderBy: { sortOrder: 'asc' } },
+      videos: { orderBy: { sortOrder: 'asc' } },
+      documents: { orderBy: { sortOrder: 'asc' } },
+    },
   })
 
   if (!product) notFound()
@@ -69,25 +76,11 @@ export default async function ProductDetailPage({ params }: Props) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Images */}
-        <div>
-          <div className="card aspect-square flex items-center justify-center bg-gray-50 p-8">
-            <img
-              src={product.images[0]?.url || '/placeholder.jpg'}
-              alt={product.images[0]?.alt || product.name}
-              className="max-w-full max-h-full object-contain"
-            />
-          </div>
-          {product.images.length > 1 && (
-            <div className="grid grid-cols-4 gap-2 mt-2">
-              {product.images.map((img) => (
-                <div key={img.id} className="card aspect-square p-2 cursor-pointer hover:ring-2 ring-primary-500">
-                  <img src={img.url} alt={img.alt || ''} className="w-full h-full object-contain" />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Media Gallery */}
+        <ProductMediaGallery 
+          images={product.images.map(img => ({ url: img.url, alt: img.alt || product.name }))}
+          productName={product.name}
+        />
 
         {/* Product Info */}
         <div>
@@ -167,6 +160,59 @@ export default async function ProductDetailPage({ params }: Props) {
           )}
         </div>
       </div>
+
+      {/* Videos Section */}
+      {(product as any).videos?.length > 0 && (
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold mb-6">Ürün Videoları</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {(product as any).videos.map((video: any) => (
+              <div key={video.id} className="card p-4">
+                <h3 className="font-semibold mb-3">{video.title}</h3>
+                <video controls className="w-full rounded-lg bg-black" preload="metadata">
+                  <source src={video.url} type="video/mp4" />
+                  Tarayıcınız video oynatmayı desteklemiyor.
+                </video>
+                <a href={video.url} download className="btn-secondary text-sm mt-3 w-full text-center">
+                  📥 Videoyu İndir
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Documents Section */}
+      {(product as any).documents?.length > 0 && (
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold mb-6">Teknik Dökümanlar</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {(product as any).documents.map((doc: any) => (
+              <div key={doc.id} className="card p-4 flex items-center gap-3 hover:shadow-lg transition-shadow">
+                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg className="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-sm truncate">{doc.title}</h3>
+                  {doc.fileSize && (
+                    <p className="text-xs text-gray-500">{(doc.fileSize / 1024 / 1024).toFixed(2)} MB</p>
+                  )}
+                  <div className="flex gap-2 mt-2">
+                    <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary-500 hover:underline">
+                      👁️ Görüntüle
+                    </a>
+                    <a href={doc.url} download className="text-xs text-blue-500 hover:underline">
+                      📥 İndir
+                    </a>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
