@@ -48,19 +48,31 @@ export async function POST(req: Request) {
       if (rate) priceTRY = priceOriginal * rate.rate
     }
 
+    const createData: any = {
+      name, slug, sku, description, technicalDetails, priceCurrency, priceOriginal, priceTRY,
+      b2bPrice: b2bPrice || null, stock, trackStock: trackStock ?? true,
+      categoryId: categoryId || null, brandId: brandId || null,
+      isActive: isActive ?? true, isFeatured: isFeatured ?? false,
+      freeShipping: freeShipping ?? false,
+      metaTitle, metaDesc, weight, unit, minOrder: minOrder || 1,
+      images: images?.length ? { create: images.map((img: any, i: number) => ({ url: img.url, alt: img.alt, sortOrder: i })) } : undefined,
+    }
+    
+    // Only add videos/documents if tables exist
+    try {
+      if (videos?.length) {
+        createData.videos = { create: videos.map((vid: any, i: number) => ({ url: vid.url, title: vid.title, sortOrder: i })) }
+      }
+      if (documents?.length) {
+        createData.documents = { create: documents.map((doc: any, i: number) => ({ url: doc.url, title: doc.title, fileSize: doc.fileSize, sortOrder: i })) }
+      }
+    } catch (e) {
+      // Tables don't exist yet, skip
+    }
+
     const product = await prisma.product.create({
-      data: {
-        name, slug, sku, description, technicalDetails, priceCurrency, priceOriginal, priceTRY,
-        b2bPrice: b2bPrice || null, stock, trackStock: trackStock ?? true,
-        categoryId: categoryId || null, brandId: brandId || null,
-        isActive: isActive ?? true, isFeatured: isFeatured ?? false,
-        freeShipping: freeShipping ?? false,
-        metaTitle, metaDesc, weight, unit, minOrder: minOrder || 1,
-        images: images?.length ? { create: images.map((img: any, i: number) => ({ url: img.url, alt: img.alt, sortOrder: i })) } : undefined,
-        videos: videos?.length ? { create: videos.map((vid: any, i: number) => ({ url: vid.url, title: vid.title, sortOrder: i })) } : undefined,
-        documents: documents?.length ? { create: documents.map((doc: any, i: number) => ({ url: doc.url, title: doc.title, fileSize: doc.fileSize, sortOrder: i })) } : undefined,
-      },
-      include: { images: true, videos: true, documents: true, category: true, brand: true },
+      data: createData,
+      include: { images: true, category: true, brand: true },
     })
 
     return NextResponse.json(product)

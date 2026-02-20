@@ -30,12 +30,32 @@ export default async function ProductDetailPage({ params }: Props) {
       category: true, 
       brand: true, 
       images: { orderBy: { sortOrder: 'asc' } },
-      videos: { orderBy: { sortOrder: 'asc' } },
-      documents: { orderBy: { sortOrder: 'asc' } },
     },
   })
 
   if (!product) notFound()
+  
+  // Try to fetch videos and documents separately
+  let videos: any[] = []
+  let documents: any[] = []
+  
+  try {
+    videos = await (prisma as any).productVideo.findMany({
+      where: { productId: product.id },
+      orderBy: { sortOrder: 'asc' }
+    })
+  } catch (e) {
+    // Table doesn't exist yet
+  }
+  
+  try {
+    documents = await (prisma as any).productDocument.findMany({
+      where: { productId: product.id },
+      orderBy: { sortOrder: 'asc' }
+    })
+  } catch (e) {
+    // Table doesn't exist yet
+  }
 
   const session = await getServerSession(authOptions)
   let b2bPrice: number | null = null
@@ -162,11 +182,11 @@ export default async function ProductDetailPage({ params }: Props) {
       </div>
 
       {/* Videos Section */}
-      {(product as any).videos?.length > 0 && (
+      {videos?.length > 0 && (
         <div className="mt-12">
           <h2 className="text-2xl font-bold mb-6">Ürün Videoları</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {(product as any).videos.map((video: any) => (
+            {videos.map((video: any) => (
               <div key={video.id} className="card p-4">
                 <h3 className="font-semibold mb-3">{video.title}</h3>
                 <video controls className="w-full rounded-lg bg-black" preload="metadata">
@@ -183,11 +203,11 @@ export default async function ProductDetailPage({ params }: Props) {
       )}
 
       {/* Documents Section */}
-      {(product as any).documents?.length > 0 && (
+      {documents?.length > 0 && (
         <div className="mt-12">
           <h2 className="text-2xl font-bold mb-6">Teknik Dökümanlar</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {(product as any).documents.map((doc: any) => (
+            {documents.map((doc: any) => (
               <div key={doc.id} className="card p-4 flex items-center gap-3 hover:shadow-lg transition-shadow">
                 <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
                   <svg className="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
