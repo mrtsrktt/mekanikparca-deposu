@@ -27,9 +27,14 @@ export default function AdminProductsPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Bu ürünü silmek istediğinize emin misiniz?')) return
-    await fetch(`/api/admin/products/${id}`, { method: 'DELETE' })
-    toast.success('Ürün silindi.')
-    loadProducts()
+    const res = await fetch(`/api/admin/products/${id}`, { method: 'DELETE' })
+    if (res.ok) {
+      toast.success('Ürün silindi.')
+      loadProducts()
+    } else {
+      const data = await res.json()
+      toast.error(data.error || 'Ürün silinemedi.')
+    }
   }
 
   return (

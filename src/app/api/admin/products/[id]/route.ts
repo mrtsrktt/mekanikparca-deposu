@@ -120,6 +120,16 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
   const { error } = await requireAdmin()
   if (error) return error
 
-  await prisma.product.delete({ where: { id: params.id } })
-  return NextResponse.json({ message: 'Ürün silindi.' })
+  try {
+    await prisma.product.delete({ where: { id: params.id } })
+    return NextResponse.json({ message: 'Ürün silindi.' })
+  } catch (err: any) {
+    console.error('Product delete error:', err)
+    if (err.code === 'P2003') {
+      return NextResponse.json({ 
+        error: 'Bu ürün siparişlerde veya tekliflerde kullanıldığı için silinemiyor. Önce ilgili kayıtları silmelisiniz.' 
+      }, { status: 400 })
+    }
+    return NextResponse.json({ error: err.message || 'Ürün silinemedi' }, { status: 500 })
+  }
 }
