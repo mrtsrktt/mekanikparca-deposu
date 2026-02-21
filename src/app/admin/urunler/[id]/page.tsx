@@ -156,7 +156,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Ürün Adı *</label>
-              <input type="text" required className="input-field" value={form.name} onChange={(e) => { update('name', e.target.value); update('slug', slugify(e.target.value, { lower: true, strict: true })) }} />
+              <input type="text" required className="input-field" value={form.name} onChange={(e) => update('name', e.target.value)} />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Slug</label>
