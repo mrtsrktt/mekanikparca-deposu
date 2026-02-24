@@ -111,6 +111,65 @@ export default function AdminProductsPage() {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      {Math.ceil(total / 20) > 1 && (
+        <div className="flex items-center justify-between mt-4">
+          <p className="text-sm text-gray-500">
+            Toplam {total} ürün — Sayfa {page} / {Math.ceil(total / 20)}
+          </p>
+          <div className="flex gap-1">
+            <button
+              onClick={() => setPage(1)}
+              disabled={page === 1}
+              className="px-3 py-1.5 text-sm border rounded hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              «
+            </button>
+            <button
+              onClick={() => setPage(p => p - 1)}
+              disabled={page === 1}
+              className="px-3 py-1.5 text-sm border rounded hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              ‹ Önceki
+            </button>
+            {Array.from({ length: Math.ceil(total / 20) }, (_, i) => i + 1)
+              .filter(p => p === 1 || p === Math.ceil(total / 20) || Math.abs(p - page) <= 2)
+              .reduce((acc: (number | string)[], p, i, arr) => {
+                if (i > 0 && (p as number) - (arr[i - 1] as number) > 1) acc.push('...')
+                acc.push(p)
+                return acc
+              }, [])
+              .map((p, i) =>
+                p === '...' ? (
+                  <span key={`dots-${i}`} className="px-3 py-1.5 text-sm text-gray-400">...</span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p as number)}
+                    className={`px-3 py-1.5 text-sm border rounded ${page === p ? 'bg-primary-500 text-white border-primary-500' : 'hover:bg-gray-50'}`}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+            <button
+              onClick={() => setPage(p => p + 1)}
+              disabled={page >= Math.ceil(total / 20)}
+              className="px-3 py-1.5 text-sm border rounded hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Sonraki ›
+            </button>
+            <button
+              onClick={() => setPage(Math.ceil(total / 20))}
+              disabled={page >= Math.ceil(total / 20)}
+              className="px-3 py-1.5 text-sm border rounded hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              »
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
