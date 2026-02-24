@@ -64,7 +64,6 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 
   // Create new items (temp items added by admin)
-  const { newItems } = body
   if (newItems && Array.isArray(newItems)) {
     for (const item of newItems) {
       await (prisma as any).quoteItem.create({
