@@ -214,7 +214,7 @@ export default function QuoteDetailPage({ params }: { params: { id: string } }) 
           <div className="print-footer hidden mt-6 pt-4 border-t">
             <p className="text-xs text-gray-500 text-center">
               Bu teklif {new Date(quote.createdAt).toLocaleDateString('tr-TR')} tarihinde düzenlenmiştir. 
-              Fiyatlar KDV hariçtir. Teklif geçerlilik süresi 15 gündür.
+              Fiyatlar KDV hariçtir. Teklif geçerlilik süresi 3 gündür.
             </p>
             <p className="text-xs text-gray-400 text-center mt-1">
               İKİ M İKLİMLENDİRME SİSTEMLERİ TİC. LTD. ŞTİ. | Tel: 0216 232 40 52 | info@2miklimlendirme.com.tr

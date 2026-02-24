@@ -100,42 +100,8 @@ export default function AdminQuoteDetailPage({ params }: { params: { id: string 
     setSaving(false)
   }
 
-  const handleDownloadPdf = async () => {
-    setPdfLoading(true)
-    try {
-      const { generateQuotePdf } = await import('@/lib/quotePdf')
-      const validDate = new Date(quote.createdAt)
-      validDate.setDate(validDate.getDate() + 3)
-      const validUntil = validDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
-
-      const total = quote.items?.reduce((s: number, i: any) => {
-        const price = itemPrices[i.id]?.unitPrice ? parseFloat(itemPrices[i.id].unitPrice) : 0
-        return s + price * i.quantity
-      }, 0) || 0
-
-      generateQuotePdf({
-        quoteNumber: quote.quoteNumber,
-        createdAt: new Date(quote.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }),
-        validUntil,
-        customerName: quote.user?.name || quote.customerName || '',
-        customerEmail: quote.user?.email || quote.customerEmail,
-        customerPhone: quote.user?.phone || quote.customerPhone,
-        customerCompany: quote.user?.companyName || quote.customerCompany,
-        adminNote: adminNote,
-        total,
-        items: quote.items?.map((item: any) => ({
-          productName: item.product?.name || '',
-          brandName: item.product?.brand?.name,
-          sku: item.product?.sku,
-          quantity: item.quantity,
-          unitPrice: itemPrices[item.id]?.unitPrice ? parseFloat(itemPrices[item.id].unitPrice) : 0,
-          note: itemPrices[item.id]?.note,
-        })) || [],
-      })
-    } catch (e) {
-      toast.error('PDF oluşturulamadı')
-    }
-    setPdfLoading(false)
+  const handleDownloadPdf = () => {
+    window.open(`/hesabim/teklifler/${params.id}`, '_blank')
   }
 
   const handleProductSearch = async (q: string) => {
@@ -402,10 +368,9 @@ export default function AdminQuoteDetailPage({ params }: { params: { id: string 
 
             <button
               onClick={handleDownloadPdf}
-              disabled={pdfLoading}
-              className="w-full bg-gray-700 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+              className="w-full bg-gray-700 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 text-sm"
             >
-              <FiDownload className="w-4 h-4" /> {pdfLoading ? 'Hazırlanıyor...' : 'PDF İndir'}
+              <FiDownload className="w-4 h-4" /> PDF Görüntüle / İndir
             </button>
 
             <hr />

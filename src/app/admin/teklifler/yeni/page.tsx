@@ -19,7 +19,6 @@ export default function AdminNewQuotePage() {
   const router = useRouter()
   const [saving, setSaving] = useState(false)
   const [createdQuote, setCreatedQuote] = useState<any>(null)
-  const [pdfLoading, setPdfLoading] = useState(false)
 
   // Müşteri bilgileri
   const [customerName, setCustomerName] = useState('')
@@ -97,39 +96,9 @@ export default function AdminNewQuotePage() {
     return sum + price * p.quantity
   }, 0)
 
-  const handleDownloadPdf = async (quoteData?: any) => {
-    const q = quoteData || createdQuote
-    if (!q) { toast.error('Önce teklifi kaydedin.'); return }
-    setPdfLoading(true)
-    try {
-      const { generateQuotePdf } = await import('@/lib/quotePdf')
-      const validDate = new Date(q.createdAt)
-      validDate.setDate(validDate.getDate() + 3)
-      const validUntil = validDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
-      const total = selectedProducts.reduce((s, p) => s + (parseFloat(p.unitPrice) || 0) * p.quantity, 0)
-      generateQuotePdf({
-        quoteNumber: q.quoteNumber,
-        createdAt: new Date(q.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }),
-        validUntil,
-        customerName,
-        customerEmail: customerEmail || undefined,
-        customerPhone: customerPhone || undefined,
-        customerCompany: customerCompany || undefined,
-        adminNote: adminNote || undefined,
-        total,
-        items: selectedProducts.map(p => ({
-          productName: p.product?.name || '',
-          brandName: p.product?.brand?.name,
-          sku: p.product?.sku,
-          quantity: p.quantity,
-          unitPrice: parseFloat(p.unitPrice) || 0,
-          note: p.note || undefined,
-        })),
-      })
-    } catch {
-      toast.error('PDF oluşturulamadı')
-    }
-    setPdfLoading(false)
+  const handleDownloadPdf = () => {
+    if (!createdQuote) { toast.error('Önce teklifi kaydedin.'); return }
+    window.open(`/hesabim/teklifler/${createdQuote.id}`, '_blank')
   }
 
   const handleSave = async (sendVia?: 'whatsapp' | 'email') => {
@@ -362,11 +331,11 @@ export default function AdminNewQuotePage() {
 
             <button
               onClick={() => handleDownloadPdf()}
-              disabled={pdfLoading || !createdQuote}
+              disabled={!createdQuote}
               className="w-full bg-gray-700 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 text-sm disabled:opacity-50"
               title={!createdQuote ? 'Önce teklifi kaydedin' : ''}
             >
-              <FiDownload className="w-4 h-4" /> {pdfLoading ? 'Hazırlanıyor...' : 'PDF İndir'}
+              <FiDownload className="w-4 h-4" /> PDF Görüntüle / İndir
             </button>
 
             {createdQuote && (
