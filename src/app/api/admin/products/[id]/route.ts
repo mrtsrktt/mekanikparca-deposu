@@ -56,9 +56,13 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       stock, trackStock, categoryId, brandId, isActive, isFeatured, metaTitle, metaDesc, weight, unit, minOrder, freeShipping, images, videos, documents } = body
 
     let priceTRY = priceOriginal
+    let b2bPriceTRY = b2bPrice || null
     if (priceCurrency !== 'TRY') {
       const rate = await prisma.currencyRate.findUnique({ where: { currency: priceCurrency } })
-      if (rate) priceTRY = priceOriginal * rate.rate
+      if (rate) {
+        priceTRY = priceOriginal * rate.rate
+        if (b2bPrice) b2bPriceTRY = b2bPrice * rate.rate
+      }
     }
 
     // Delete old images and create new ones
@@ -85,7 +89,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
     const updateData: any = {
       name, slug, sku, description, technicalDetails, priceCurrency, priceOriginal, priceTRY,
-      b2bPrice: b2bPrice || null, stock, trackStock: trackStock ?? true,
+      b2bPrice: b2bPriceTRY, stock, trackStock: trackStock ?? true,
       categoryId: categoryId || null, brandId: brandId || null,
       isActive, isFeatured, metaTitle, metaDesc, weight, unit, minOrder,
       freeShipping: freeShipping ?? false,

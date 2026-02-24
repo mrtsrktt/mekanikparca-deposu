@@ -36,11 +36,18 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     ]).then(([cats, brs, product]) => {
       setCategories(cats)
       setBrands(brs)
+      // b2bPrice veritabanında TL olarak saklanıyor, USD ürünlerde orijinal değere çevir
+      let b2bPriceDisplay = product.b2bPrice || 0
+      if (product.priceCurrency !== 'TRY' && product.b2bPrice && product.priceOriginal) {
+        // priceTRY / priceOriginal = kur oranı
+        const rate = product.priceTRY / product.priceOriginal
+        if (rate > 0) b2bPriceDisplay = Math.round((product.b2bPrice / rate) * 100) / 100
+      }
       setForm({
         name: product.name || '', slug: product.slug || '', sku: product.sku || '',
         description: product.description || '', technicalDetails: product.technicalDetails || '',
         priceCurrency: product.priceCurrency || 'TRY', priceOriginal: product.priceOriginal || 0,
-        b2bPrice: product.b2bPrice || 0, stock: product.stock || 0,
+        b2bPrice: b2bPriceDisplay, stock: product.stock || 0,
         trackStock: product.trackStock ?? true,
         categoryId: product.categoryId || '', brandId: product.brandId || '',
         isActive: product.isActive ?? true, isFeatured: product.isFeatured ?? false,
@@ -204,7 +211,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
               <input type="number" step="any" required className="input-field" value={form.priceOriginal} onChange={(e) => update('priceOriginal', parseFloat(e.target.value) || 0)} />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Bayi Özel Fiyat (TL)</label>
+              <label className="block text-sm font-medium mb-1">Bayi Özel Fiyat ({form.priceCurrency})</label>
               <input type="number" step="0.01" className="input-field" value={form.b2bPrice} onChange={(e) => update('b2bPrice', parseFloat(e.target.value))} />
               <p className="text-xs text-gray-400 mt-1">Boş bırakılırsa indirim kuralları uygulanır</p>
             </div>

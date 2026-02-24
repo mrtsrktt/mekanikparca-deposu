@@ -43,14 +43,18 @@ export async function POST(req: Request) {
 
     // Calculate TRY price
     let priceTRY = priceOriginal
+    let b2bPriceTRY = b2bPrice || null
     if (priceCurrency !== 'TRY') {
       const rate = await prisma.currencyRate.findUnique({ where: { currency: priceCurrency } })
-      if (rate) priceTRY = priceOriginal * rate.rate
+      if (rate) {
+        priceTRY = priceOriginal * rate.rate
+        if (b2bPrice) b2bPriceTRY = b2bPrice * rate.rate
+      }
     }
 
     const createData: any = {
       name, slug, sku, description, technicalDetails, priceCurrency, priceOriginal, priceTRY,
-      b2bPrice: b2bPrice || null, stock, trackStock: trackStock ?? true,
+      b2bPrice: b2bPriceTRY, stock, trackStock: trackStock ?? true,
       categoryId: categoryId || null, brandId: brandId || null,
       isActive: isActive ?? true, isFeatured: isFeatured ?? false,
       freeShipping: freeShipping ?? false,

@@ -173,7 +173,7 @@ export default function AddProductPage() {
               <input type="number" step="any" required className="input-field" value={form.priceOriginal} onChange={(e) => update('priceOriginal', parseFloat(e.target.value) || 0)} />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Bayi Özel Fiyat (TL)</label>
+              <label className="block text-sm font-medium mb-1">Bayi Özel Fiyat ({form.priceCurrency})</label>
               <input type="number" step="0.01" className="input-field" value={form.b2bPrice} onChange={(e) => update('b2bPrice', parseFloat(e.target.value))} />
               <p className="text-xs text-gray-400 mt-1">Boş bırakılırsa indirim kuralları uygulanır</p>
             </div>
