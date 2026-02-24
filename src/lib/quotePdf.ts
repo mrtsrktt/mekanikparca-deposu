@@ -1,6 +1,18 @@
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
+// Türkçe karakterleri jsPDF'in desteklediği Latin-1 karşılıklarına çevir
+function tr(text: string): string {
+  if (!text) return ''
+  return text
+    .replace(/İ/g, 'I').replace(/ı/g, 'i')
+    .replace(/Ğ/g, 'G').replace(/ğ/g, 'g')
+    .replace(/Ü/g, 'U').replace(/ü/g, 'u')
+    .replace(/Ş/g, 'S').replace(/ş/g, 's')
+    .replace(/Ö/g, 'O').replace(/ö/g, 'o')
+    .replace(/Ç/g, 'C').replace(/ç/g, 'c')
+}
+
 interface QuoteItem {
   productName: string
   brandName?: string
@@ -36,17 +48,17 @@ export function generateQuotePdf(data: QuoteData): void {
   doc.setTextColor(255, 255, 255)
   doc.setFontSize(16)
   doc.setFont('helvetica', 'bold')
-  doc.text('MEKANİK PARÇA DEPOSU', margin, 13)
+  doc.text('MEKANIK PARCA DEPOSU', margin, 13)
 
   doc.setFontSize(8)
   doc.setFont('helvetica', 'normal')
-  doc.text('İKİ M İKLİMLENDİRME SİSTEMLERİ TİCARET LTD. ŞTİ.', margin, 20)
+  doc.text('IKI M IKLIMLENDIRME SISTEMLERI TICARET LTD. STI.', margin, 20)
   doc.text('Tel: 0216 232 40 52  |  GSM: 0532 640 40 86  |  info@2miklimlendirme.com.tr', margin, 26)
 
   // Teklif No (sağ üst)
   doc.setFontSize(10)
   doc.setFont('helvetica', 'bold')
-  doc.text('TEKLİF', pageW - margin, 13, { align: 'right' })
+  doc.text('TEKLIF', pageW - margin, 13, { align: 'right' })
   doc.setFontSize(9)
   doc.text(data.quoteNumber, pageW - margin, 20, { align: 'right' })
   doc.setFont('helvetica', 'normal')
@@ -63,13 +75,13 @@ export function generateQuotePdf(data: QuoteData): void {
   doc.setFontSize(8)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(100, 100, 100)
-  doc.text('MÜŞTERİ BİLGİLERİ', margin + 4, y + 6)
+  doc.text('MUSTERI BILGILERI', margin + 4, y + 6)
 
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(30, 30, 30)
   doc.setFontSize(9)
-  doc.text(data.customerName, margin + 4, y + 13)
-  if (data.customerCompany) doc.text(data.customerCompany, margin + 4, y + 19)
+  doc.text(tr(data.customerName), margin + 4, y + 13)
+  if (data.customerCompany) doc.text(tr(data.customerCompany), margin + 4, y + 19)
   const contactLine = [data.customerPhone, data.customerEmail].filter(Boolean).join('  |  ')
   if (contactLine) doc.text(contactLine, margin + 4, y + (data.customerCompany ? 25 : 19))
 
@@ -77,27 +89,27 @@ export function generateQuotePdf(data: QuoteData): void {
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(8)
   doc.setTextColor(100, 100, 100)
-  doc.text('GEÇERLİLİK SÜRESİ', pageW - margin - 4, y + 6, { align: 'right' })
+  doc.text('GECERLILIK SURESI', pageW - margin - 4, y + 6, { align: 'right' })
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(220, 38, 38)
   doc.setFontSize(9)
-  doc.text(`3 gün (${data.validUntil} tarihine kadar)`, pageW - margin - 4, y + 13, { align: 'right' })
+  doc.text(`3 gun (${tr(data.validUntil)} tarihine kadar)`, pageW - margin - 4, y + 13, { align: 'right' })
 
   y += 34
 
   // ── Ürün Tablosu ────────────────────────────────────────────────────────
   const tableBody = data.items.map((item, i) => [
     String(i + 1),
-    item.productName + (item.brandName ? `\n${item.brandName}` : '') + (item.sku ? ` (${item.sku})` : ''),
+    tr(item.productName) + (item.brandName ? `\n${tr(item.brandName)}` : '') + (item.sku ? ` (${item.sku})` : ''),
     String(item.quantity),
     formatTRY(item.unitPrice),
     formatTRY(item.unitPrice * item.quantity),
-    item.note || '',
+    tr(item.note || ''),
   ])
 
   autoTable(doc, {
     startY: y,
-    head: [['#', 'Ürün', 'Adet', 'Birim Fiyat', 'Toplam', 'Not']],
+    head: [['#', 'Urun', 'Adet', 'Birim Fiyat', 'Toplam', 'Not']],
     body: tableBody,
     margin: { left: margin, right: margin },
     styles: { fontSize: 8, cellPadding: 3, textColor: [30, 30, 30] },
@@ -133,10 +145,10 @@ export function generateQuotePdf(data: QuoteData): void {
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(8)
     doc.setTextColor(120, 80, 0)
-    doc.text('AÇIKLAMA:', margin + 4, noteY + 6)
+    doc.text('ACIKLAMA:', margin + 4, noteY + 6)
     doc.setFont('helvetica', 'normal')
     doc.setTextColor(80, 60, 0)
-    const lines = doc.splitTextToSize(data.adminNote, pageW - margin * 2 - 8)
+    const lines = doc.splitTextToSize(tr(data.adminNote), pageW - margin * 2 - 8)
     doc.text(lines, margin + 4, noteY + 12)
   }
 
@@ -147,11 +159,11 @@ export function generateQuotePdf(data: QuoteData): void {
   doc.setTextColor(120, 120, 120)
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(7)
-  doc.text('mekanikparcadeposu.com  |  Bu teklif bilgi amaçlıdır, fiyatlar değişkenlik gösterebilir.', pageW / 2, pageH - 6, { align: 'center' })
+  doc.text('mekanikparcadeposu.com  |  Bu teklif bilgi amaclidir, fiyatlar degiskenlik gosterebilir.', pageW / 2, pageH - 6, { align: 'center' })
 
   doc.save(`Teklif-${data.quoteNumber}.pdf`)
 }
 
 function formatTRY(amount: number): string {
-  return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', minimumFractionDigits: 2 }).format(amount)
+  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount) + ' TL'
 }
