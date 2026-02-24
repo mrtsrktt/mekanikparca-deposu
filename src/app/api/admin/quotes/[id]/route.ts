@@ -37,7 +37,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 
   const body = await req.json()
-  const { status, adminNote, items, markAsSent } = body
+  const { status, adminNote, items, markAsSent, newItems } = body
 
   const updateData: any = {}
   if (status) updateData.status = status
@@ -49,12 +49,29 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     data: updateData,
   })
 
-  // Update item prices if provided
+  // Update existing item prices
   if (items && Array.isArray(items)) {
-    for (const item of items) {
+    const existingItems = items.filter((item: any) => !item.id.startsWith('temp-'))
+    for (const item of existingItems) {
       await (prisma as any).quoteItem.update({
         where: { id: item.id },
         data: {
+          unitPrice: item.unitPrice ?? null,
+          note: item.note ?? null,
+        },
+      })
+    }
+  }
+
+  // Create new items (temp items added by admin)
+  const { newItems } = body
+  if (newItems && Array.isArray(newItems)) {
+    for (const item of newItems) {
+      await (prisma as any).quoteItem.create({
+        data: {
+          quoteId: params.id,
+          productId: item.productId,
+          quantity: item.quantity || 1,
           unitPrice: item.unitPrice ?? null,
           note: item.note ?? null,
         },

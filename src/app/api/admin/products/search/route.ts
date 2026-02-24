@@ -1,27 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { requireAdmin } from '@/lib/admin-guard'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
 export async function GET(req: NextRequest) {
-  const { error } = await requireAdmin()
-  if (error) return error
+  const session = await getServerSession(authOptions)
+  if (!session || session.user.role !== 'ADMIN') {
+    return NextResponse.json({ error: 'Yetkisiz.' }, { status: 403 })
+  }
 
   const q = req.nextUrl.searchParams.get('q') || ''
   if (q.length < 2) return NextResponse.json([])
 
   const products = await prisma.product.findMany({
     where: {
-      isActive: true,
       OR: [
-        { name: { contains: q } },
-        { sku: { contains: q } },
+        { name: { contains: q, mode: 'insensitive' } },
+        { sku: { contains: q, mode: 'insensitive' } },
+        { brand: { name: { contains: q, mode: 'insensitive' } } },
       ],
+      isActive: true,
     },
     include: {
-      brand: { select: { name: true } },
       images: { take: 1 },
+      brand: { select: { name: true } },
     },
-    take: 10,
+    take: 20,
     orderBy: { name: 'asc' },
   })
 

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { FiArrowLeft, FiSearch, FiPlus, FiTrash2, FiSave, FiSend, FiMessageCircle, FiMail } from 'react-icons/fi'
+import { FiArrowLeft, FiSearch, FiPlus, FiTrash2, FiSave, FiMessageCircle, FiMail, FiDownload } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import { formatPrice } from '@/lib/pricing'
 
@@ -18,13 +18,15 @@ interface SelectedProduct {
 export default function AdminNewQuotePage() {
   const router = useRouter()
   const [saving, setSaving] = useState(false)
+  const [createdQuote, setCreatedQuote] = useState<any>(null)
+  const [pdfLoading, setPdfLoading] = useState(false)
 
   // Müşteri bilgileri
   const [customerName, setCustomerName] = useState('')
   const [customerEmail, setCustomerEmail] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
   const [customerCompany, setCustomerCompany] = useState('')
-  const [adminNote, setAdminNote] = useState('')
+  const [adminNote, setAdminNote] = useState('Bu teklif 3 gün geçerlidir.')
 
   // Ürün arama
   const [searchQuery, setSearchQuery] = useState('')
@@ -95,6 +97,41 @@ export default function AdminNewQuotePage() {
     return sum + price * p.quantity
   }, 0)
 
+  const handleDownloadPdf = async (quoteData?: any) => {
+    const q = quoteData || createdQuote
+    if (!q) { toast.error('Önce teklifi kaydedin.'); return }
+    setPdfLoading(true)
+    try {
+      const { generateQuotePdf } = await import('@/lib/quotePdf')
+      const validDate = new Date(q.createdAt)
+      validDate.setDate(validDate.getDate() + 3)
+      const validUntil = validDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
+      const total = selectedProducts.reduce((s, p) => s + (parseFloat(p.unitPrice) || 0) * p.quantity, 0)
+      generateQuotePdf({
+        quoteNumber: q.quoteNumber,
+        createdAt: new Date(q.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }),
+        validUntil,
+        customerName,
+        customerEmail: customerEmail || undefined,
+        customerPhone: customerPhone || undefined,
+        customerCompany: customerCompany || undefined,
+        adminNote: adminNote || undefined,
+        total,
+        items: selectedProducts.map(p => ({
+          productName: p.product?.name || '',
+          brandName: p.product?.brand?.name,
+          sku: p.product?.sku,
+          quantity: p.quantity,
+          unitPrice: parseFloat(p.unitPrice) || 0,
+          note: p.note || undefined,
+        })),
+      })
+    } catch {
+      toast.error('PDF oluşturulamadı')
+    }
+    setPdfLoading(false)
+  }
+
   const handleSave = async (sendVia?: 'whatsapp' | 'email') => {
     if (!customerName.trim()) { toast.error('Müşteri adı gerekli.'); return }
     if (selectedProducts.length === 0) { toast.error('En az bir ürün ekleyin.'); return }
@@ -122,10 +159,10 @@ export default function AdminNewQuotePage() {
       if (res.ok) {
         const quote = await res.json()
         toast.success('Teklif oluşturuldu!')
+        setCreatedQuote(quote)
 
         if (sendVia === 'whatsapp' && customerPhone) {
           const phone = customerPhone.replace(/\D/g, '')
-          const quoteUrl = `${window.location.origin}/admin/teklifler/${quote.id}`
           const msg = encodeURIComponent(
             `Merhaba ${customerName},\n\n` +
             `${quote.quoteNumber} numaralı teklifiniz hazırlanmıştır.\n\n` +
@@ -142,7 +179,9 @@ export default function AdminNewQuotePage() {
           window.open(`mailto:${customerEmail}?subject=${subject}&body=${body}`, '_blank')
         }
 
-        router.push(`/admin/teklifler/${quote.id}`)
+        if (!sendVia) {
+          router.push(`/admin/teklifler/${quote.id}`)
+        }
       } else {
         const err = await res.json()
         toast.error(err.error || 'Hata oluştu.')
@@ -320,6 +359,24 @@ export default function AdminNewQuotePage() {
             <button onClick={() => handleSave()} disabled={saving} className="btn-primary w-full flex items-center justify-center gap-2">
               <FiSave className="w-4 h-4" /> {saving ? 'Kaydediliyor...' : 'Teklifi Kaydet'}
             </button>
+
+            <button
+              onClick={() => handleDownloadPdf()}
+              disabled={pdfLoading || !createdQuote}
+              className="w-full bg-gray-700 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+              title={!createdQuote ? 'Önce teklifi kaydedin' : ''}
+            >
+              <FiDownload className="w-4 h-4" /> {pdfLoading ? 'Hazırlanıyor...' : 'PDF İndir'}
+            </button>
+
+            {createdQuote && (
+              <button
+                onClick={() => router.push(`/admin/teklifler/${createdQuote.id}`)}
+                className="w-full border border-primary-500 text-primary-500 px-4 py-2.5 rounded-lg font-medium hover:bg-primary-50 transition-colors text-sm"
+              >
+                Teklif Detayına Git →
+              </button>
+            )}
 
             <hr />
 
