@@ -36,10 +36,24 @@ export async function POST(req: NextRequest) {
   let totalAmount = 0
   const orderItems: { productId: string; quantity: number; unitPrice: number; total: number }[] = []
 
+  // Kullanıcı B2B mi kontrol et
+  const isB2B = session.user.role === 'B2B' && (session.user as any).b2bStatus === 'APPROVED'
+
   for (const item of items) {
     const product = products.find((p) => p.id === item.productId)
     if (!product) return NextResponse.json({ error: `Ürün bulunamadı: ${item.productId}` }, { status: 400 })
-    const unitPrice = item.unitPrice ?? product.priceTRY
+    
+    // Fiyatı backend'de hesapla — frontend'den gelen unitPrice'a güvenme
+    let unitPrice = product.priceTRY
+    
+    // B2B fiyatı varsa ve kullanıcı B2B ise
+    if (isB2B && product.b2bPrice && product.b2bPrice < unitPrice) {
+      unitPrice = product.b2bPrice
+    }
+    
+    // Kampanya fiyatı kontrolü (opsiyonel, mevcut kampanya API'si kullanılabilir)
+    // Şimdilik sadece B2B fiyatı
+    
     const total = unitPrice * item.quantity
     totalAmount += total
     orderItems.push({ productId: product.id, quantity: item.quantity, unitPrice, total })
@@ -88,7 +102,7 @@ export async function POST(req: NextRequest) {
   const noInstallment = '0'
   const maxInstallment = '0'
   const currency = 'TL'
-  const testMode = '0'
+  const testMode = process.env.PAYTR_TEST_MODE || '1'
   const lang = 'tr'
 
   const hashStr = `${merchantId}${userIp}${merchantOid}${email}${paymentAmount}${userBasket}${noInstallment}${maxInstallment}${currency}${testMode}`
