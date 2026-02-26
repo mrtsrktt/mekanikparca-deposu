@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
   const shippingAddressStr = `${address.fullName}, ${address.address}, ${address.district}/${address.city} ${address.zipCode || ''} - ${address.phone}`
 
   // DB'ye PENDING sipariş kaydet
-  const order = await prisma.order.create({
+  const order = await (prisma as any).order.create({
     data: {
       orderNumber,
       userId: session.user.id,
@@ -127,7 +127,7 @@ export async function POST(req: NextRequest) {
 
   if (paytrData.status !== 'success') {
     // Token alınamazsa siparişi sil
-    await prisma.order.delete({ where: { id: order.id } })
+    await (prisma as any).order.delete({ where: { id: order.id } })
     return NextResponse.json({ error: paytrData.reason || 'PayTR token alınamadı.' }, { status: 500 })
   }
 
