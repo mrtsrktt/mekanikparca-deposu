@@ -14,7 +14,7 @@ export default function AdminOrdersPage() {
 
   const load = () => {
     setLoading(true)
-    fetch('/api/admin/orders').then(r => r.json()).then(d => { setOrders(d.orders); setLoading(false) })
+    fetch('/api/admin/orders?paymentStatus=PAID').then(r => r.json()).then(d => { setOrders(d.orders || []); setLoading(false) })
   }
   useEffect(() => { load() }, [])
 

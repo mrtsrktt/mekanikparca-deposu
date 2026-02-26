@@ -10,7 +10,7 @@ export async function GET() {
   if (!session?.user?.id) return NextResponse.json({ error: 'Yetkisiz' }, { status: 401 })
 
   const orders = await prisma.order.findMany({
-    where: { userId: session.user.id },
+    where: { userId: session.user.id, paymentStatus: 'PAID' },
     include: { items: { include: { product: { include: { images: { take: 1 } } } } } },
     orderBy: { createdAt: 'desc' },
   })

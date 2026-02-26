@@ -10,8 +10,11 @@ export async function GET(req: Request) {
   const page = parseInt(searchParams.get('page') || '1')
   const limit = parseInt(searchParams.get('limit') || '20')
   const status = searchParams.get('status')
+  const paymentStatus = searchParams.get('paymentStatus')
 
-  const where = status ? { status } : {}
+  const where: any = {}
+  if (status) where.status = status
+  if (paymentStatus) where.paymentStatus = paymentStatus
 
   const [orders, total] = await Promise.all([
     prisma.order.findMany({

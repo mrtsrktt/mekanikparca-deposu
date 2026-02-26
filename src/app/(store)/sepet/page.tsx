@@ -227,7 +227,7 @@ export default function CartPage() {
                 <span className="text-primary-500">{formatPrice(subtotal)}</span>
               </div>
             </div>
-            <button className="btn-primary w-full mt-6">Siparişi Tamamla</button>
+            <Link href="/odeme" className="btn-primary w-full mt-6 block text-center">Siparişi Tamamla</Link>
           </div>
         </div>
       )}
