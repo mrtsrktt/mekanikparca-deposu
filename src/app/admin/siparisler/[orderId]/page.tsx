@@ -124,8 +124,18 @@ export default function AdminOrderDetailPage() {
       return
     }
 
-    // Telefon numarasını temizle: sadece rakamları al, başındaki 0'ı kaldır, başına 90 ekle
-    const phone = order.user.phone.replace(/\D/g, '').replace(/^0/, '90')
+    // Telefon numarasını temizle: tüm rakam olmayan karakterleri kaldır
+    let phone = (order.user?.phone || '').replace(/\D/g, '')
+    
+    // Başında 0 varsa kaldır
+    if (phone.startsWith('0')) {
+      phone = phone.substring(1)
+    }
+    
+    // Başında 90 yoksa ekle
+    if (!phone.startsWith('90')) {
+      phone = '90' + phone
+    }
     
     const message = `Sayın ${order.user?.name || 'Müşteri'}, #${order.orderNumber} numaralı siparişiniz kargoya verilmiştir.
 
