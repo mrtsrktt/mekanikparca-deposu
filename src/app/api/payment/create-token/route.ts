@@ -57,9 +57,11 @@ export async function POST(req: NextRequest) {
       orderItems.push({ productId: product.id, quantity: item.quantity, unitPrice, total })
     }
 
-    // Sipariş numarası oluştur
-    const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`
-    const merchantOid = `${orderNumber}`
+    // Sipariş numarası oluştur (PayTR için alfanumerik olmalı)
+    const timestamp = Date.now()
+    const random = Math.floor(Math.random() * 1000)
+    const orderNumber = `ORD${timestamp}${random}`
+    const merchantOid = orderNumber // Zaten alfanumerik
 
     const shippingAddressStr = `${address.fullName}, ${address.address}, ${address.district}/${address.city} ${address.zipCode || ''} - ${address.phone}`
 
