@@ -115,18 +115,26 @@ export default function AdminOrderDetailPage() {
   ]
 
   const handleWhatsAppNotification = () => {
-    if (!order?.user?.phone || !order.trackingNumber || !order.cargoCompany) {
+    // formData'dan kargo bilgilerini al (düzenleme modunda olabilir)
+    const cargoCompany = formData.cargoCompany || order?.cargoCompany
+    const trackingNumber = formData.trackingNumber || order?.trackingNumber
+    
+    if (!order?.user?.phone || !trackingNumber || !cargoCompany) {
       toast.error('Kargo bilgileri eksik!')
       return
     }
 
-    // Telefon numarasını temizle: başındaki 0'ı kaldır, başına 90 ekle
-    const phone = order.user.phone.replace(/^0/, '').replace(/\D/g, '')
-    const whatsappNumber = `90${phone}`
-
-    const message = `Sayın ${order.user.name}, #${order.orderNumber} numaralı siparişiniz kargoya verilmiştir.%0A%0AKargo Firması: ${order.cargoCompany}%0AKargo Takip No: ${order.trackingNumber}%0A%0AMekanik Parça Deposu`
+    // Telefon numarasını temizle: sadece rakamları al, başındaki 0'ı kaldır, başına 90 ekle
+    const phone = order.user.phone.replace(/\D/g, '').replace(/^0/, '90')
     
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`
+    const message = `Sayın ${order.user?.name || 'Müşteri'}, #${order.orderNumber} numaralı siparişiniz kargoya verilmiştir.
+
+Kargo Firması: ${cargoCompany}
+Kargo Takip No: ${trackingNumber}
+
+Mekanik Parça Deposu`
+    
+    const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
     window.open(whatsappUrl, '_blank')
   }
 
@@ -259,7 +267,9 @@ export default function AdminOrderDetailPage() {
               </div>
 
               {/* WhatsApp Notification Button */}
-              {order.status === 'SHIPPED' && order.trackingNumber && order.cargoCompany && (
+              {(order.status === 'SHIPPED' || formData.status === 'SHIPPED') && 
+               (formData.trackingNumber || order.trackingNumber) && 
+               (formData.cargoCompany || order.cargoCompany) && (
                 <div className="mt-4">
                   <button
                     onClick={handleWhatsAppNotification}
