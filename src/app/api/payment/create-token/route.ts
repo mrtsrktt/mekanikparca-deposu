@@ -117,40 +117,50 @@ export async function POST(req: NextRequest) {
     const testMode = process.env.PAYTR_TEST_MODE || '1'
     const lang = 'tr'
 
-    const hashStr = `${merchantId}${userIp}${merchantOid}${email}${paymentAmount}${userBasket}${noInstallment}${maxInstallment}${currency}${testMode}`
+    // PayTR hash oluşturma (dokümantasyon sırası: merchant_id + user_ip + merchant_oid + email + payment_amount + user_basket + no_installment + max_installment + currency + test_mode + merchant_salt)
+    const hashStr = `${merchantId}${userIp}${merchantOid}${email}${paymentAmount}${userBasket}${noInstallment}${maxInstallment}${currency}${testMode}${merchantSalt}`
     const paytrToken = crypto
-      .createHmac('sha256', merchantKey + merchantSalt)
+      .createHmac('sha256', merchantKey)
       .update(hashStr)
       .digest('base64')
 
-    const params = new URLSearchParams({
-      merchant_id: merchantId,
-      user_ip: userIp,
-      merchant_oid: merchantOid,
-      email,
-      payment_amount: paymentAmount.toString(),
-      paytr_token: paytrToken,
-      user_basket: userBasket,
-      debug_on: '0',
-      no_installment: noInstallment,
-      max_installment: maxInstallment,
-      user_name: session.user.name || '',
-      user_address: shippingAddressStr,
-      user_phone: address.phone,
-      merchant_ok_url: `${process.env.NEXTAUTH_URL}/odeme/basarili`,
-      merchant_fail_url: `${process.env.NEXTAUTH_URL}/odeme/basarisiz`,
-      currency,
-      test_mode: testMode,
-      lang,
-    })
+    // PayTR'ye application/x-www-form-urlencoded formatında istek
+    const params = new URLSearchParams()
+    params.append('merchant_id', merchantId)
+    params.append('user_ip', userIp)
+    params.append('merchant_oid', merchantOid)
+    params.append('email', email)
+    params.append('payment_amount', paymentAmount.toString())
+    params.append('paytr_token', paytrToken)
+    params.append('user_basket', userBasket)
+    params.append('debug_on', '1') // Hata detayı için
+    params.append('no_installment', noInstallment)
+    params.append('max_installment', maxInstallment)
+    params.append('user_name', session.user.name || '')
+    params.append('user_address', shippingAddressStr)
+    params.append('user_phone', address.phone)
+    params.append('merchant_ok_url', `${process.env.NEXTAUTH_URL || 'https://mekanikparcadeposu.com'}/odeme/basarili`)
+    params.append('merchant_fail_url', `${process.env.NEXTAUTH_URL || 'https://mekanikparcadeposu.com'}/odeme/basarisiz`)
+    params.append('timeout_limit', '30')
+    params.append('currency', currency)
+    params.append('test_mode', testMode)
+    params.append('lang', lang)
+
+    console.log('PayTR request params:', Object.fromEntries(params))
+    console.log('Hash string for debug:', hashStr)
+    console.log('Paytr token generated:', paytrToken)
 
     const paytrRes = await fetch('https://www.paytr.com/odeme/api/get-token', {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
       body: params,
     })
 
     const responseText = await paytrRes.text()
     console.log('PayTR raw response:', responseText)
+    console.log('PayTR response status:', paytrRes.status)
     
     let paytrData
     try {
@@ -158,13 +168,21 @@ export async function POST(req: NextRequest) {
     } catch (e) {
       console.error('PayTR response JSON parse error:', e, 'Raw:', responseText)
       await (prisma as any).order.delete({ where: { id: order.id } })
-      return NextResponse.json({ error: 'PayTR yanıtı geçersiz JSON formatında.' }, { status: 500 })
+      return NextResponse.json({ 
+        error: 'PayTR yanıtı geçersiz JSON formatında.', 
+        rawResponse: responseText,
+        requestParams: Object.fromEntries(params)
+      }, { status: 500 })
     }
 
     if (paytrData.status !== 'success') {
       // Token alınamazsa siparişi sil
       await (prisma as any).order.delete({ where: { id: order.id } })
-      return NextResponse.json({ error: paytrData.reason || 'PayTR token alınamadı.' }, { status: 500 })
+      return NextResponse.json({ 
+        error: paytrData.reason || 'PayTR token alınamadı.', 
+        rawResponse: responseText,
+        paytrData: paytrData
+      }, { status: 500 })
     }
 
     return NextResponse.json({ token: paytrData.token, orderId: order.id })
