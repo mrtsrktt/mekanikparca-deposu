@@ -3,7 +3,7 @@
 import { useSession } from 'next-auth/react'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { FiArrowLeft, FiPackage, FiTruck, FiCheckCircle, FiClock, FiXCircle } from 'react-icons/fi'
+import { FiArrowLeft, FiPackage, FiTruck, FiCheckCircle, FiClock, FiXCircle, FiBox } from 'react-icons/fi'
 import { formatPrice } from '@/lib/pricing'
 import Link from 'next/link'
 
@@ -195,6 +195,35 @@ export default function OrderDetailPage() {
               </div>
             </div>
           </div>
+
+          {/* Cargo Info (if shipped) */}
+          {(order.status === 'SHIPPED' || order.status === 'DELIVERED') && (
+            <div className="card p-6">
+              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <FiBox className="text-primary-500" /> Kargo Bilgileri
+              </h2>
+              <div className="space-y-3 text-sm">
+                {order.cargoCompany && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Kargo Firması:</span>
+                    <span className="font-medium">{order.cargoCompany}</span>
+                  </div>
+                )}
+                {order.trackingNumber && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Takip Numarası:</span>
+                    <span className="font-medium">{order.trackingNumber}</span>
+                  </div>
+                )}
+                {order.status === 'DELIVERED' && (
+                  <div className="mt-2 p-2 bg-green-50 text-green-700 rounded text-center">
+                    <FiPackage className="inline mr-2" />
+                    Siparişiniz teslim edilmiştir.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Order Notes */}
           {order.notes && (

@@ -77,7 +77,7 @@ export async function PUT(
 
     const orderId = params.id
     const body = await request.json()
-    const { status, trackingNumber, notes } = body
+    const { status, trackingNumber, adminNotes, cargoCompany } = body
 
     const order = await prisma.order.findUnique({
       where: { id: orderId }
@@ -92,8 +92,9 @@ export async function PUT(
 
     const updateData: any = {}
     if (status) updateData.status = status
-    if (trackingNumber) updateData.trackingNumber = trackingNumber
-    if (notes) updateData.adminNotes = notes
+    if (trackingNumber !== undefined) updateData.trackingNumber = trackingNumber
+    if (adminNotes !== undefined) updateData.adminNotes = adminNotes
+    if (cargoCompany !== undefined) updateData.cargoCompany = cargoCompany
 
     const updatedOrder = await prisma.order.update({
       where: { id: orderId },

@@ -3,7 +3,7 @@
 import { useSession } from 'next-auth/react'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { FiArrowLeft, FiPackage, FiTruck, FiCheckCircle, FiClock, FiXCircle, FiUser, FiMail, FiPhone, FiEdit, FiSave } from 'react-icons/fi'
+import { FiArrowLeft, FiPackage, FiTruck, FiCheckCircle, FiClock, FiXCircle, FiUser, FiMail, FiPhone, FiEdit, FiSave, FiMessageSquare } from 'react-icons/fi'
 import { formatPrice } from '@/lib/pricing'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
@@ -28,7 +28,8 @@ export default function AdminOrderDetailPage() {
   const [formData, setFormData] = useState({
     status: '',
     trackingNumber: '',
-    adminNotes: ''
+    adminNotes: '',
+    cargoCompany: ''
   })
 
   useEffect(() => {
@@ -56,7 +57,8 @@ export default function AdminOrderDetailPage() {
         setFormData({
           status: data.status,
           trackingNumber: data.trackingNumber || '',
-          adminNotes: data.adminNotes || ''
+          adminNotes: data.adminNotes || '',
+          cargoCompany: data.cargoCompany || ''
         })
       } else {
         console.error('Sipariş bulunamadı')
@@ -94,6 +96,38 @@ export default function AdminOrderDetailPage() {
 
   const getStatusInfo = (status: string) => {
     return statusOptions.find(opt => opt.value === status) || statusOptions[0]
+  }
+
+  const cargoCompanies = [
+    'Aras Kargo',
+    'Yurtiçi Kargo',
+    'MNG Kargo',
+    'Sürat Kargo',
+    'PTT Kargo',
+    'HepsiJet',
+    'UPS',
+    'DHL',
+    'FedEx',
+    'Horoz Lojistik',
+    'Ekol Lojistik',
+    'Ceva Lojistik',
+    'Diğer'
+  ]
+
+  const handleWhatsAppNotification = () => {
+    if (!order?.user?.phone || !order.trackingNumber || !order.cargoCompany) {
+      toast.error('Kargo bilgileri eksik!')
+      return
+    }
+
+    // Telefon numarasını temizle: başındaki 0'ı kaldır, başına 90 ekle
+    const phone = order.user.phone.replace(/^0/, '').replace(/\D/g, '')
+    const whatsappNumber = `90${phone}`
+
+    const message = `Sayın ${order.user.name}, #${order.orderNumber} numaralı siparişiniz kargoya verilmiştir.%0A%0AKargo Firması: ${order.cargoCompany}%0AKargo Takip No: ${order.trackingNumber}%0A%0AMekanik Parça Deposu`
+    
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`
+    window.open(whatsappUrl, '_blank')
   }
 
   if (status === 'loading' || loading) {
@@ -189,19 +223,55 @@ export default function AdminOrderDetailPage() {
               </div>
             </div>
 
-            {/* Tracking Number */}
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Kargo Takip Numarası</label>
-              {editing ? (
-                <input
-                  type="text"
-                  value={formData.trackingNumber}
-                  onChange={(e) => setFormData({ ...formData, trackingNumber: e.target.value })}
-                  className="input-field"
-                  placeholder="Takip numarası girin"
-                />
-              ) : (
-                <p className="text-sm">{order.trackingNumber || 'Belirtilmemiş'}</p>
+            {/* Cargo Information */}
+            <div className="mt-4 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Kargo Firması</label>
+                {editing ? (
+                  <select
+                    value={formData.cargoCompany}
+                    onChange={(e) => setFormData({ ...formData, cargoCompany: e.target.value })}
+                    className="input-field"
+                  >
+                    <option value="">Seçiniz</option>
+                    {cargoCompanies.map(company => (
+                      <option key={company} value={company}>{company}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <p className="text-sm">{order.cargoCompany || 'Belirtilmemiş'}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Kargo Takip Numarası</label>
+                {editing ? (
+                  <input
+                    type="text"
+                    value={formData.trackingNumber}
+                    onChange={(e) => setFormData({ ...formData, trackingNumber: e.target.value })}
+                    className="input-field"
+                    placeholder="Takip numarası girin"
+                  />
+                ) : (
+                  <p className="text-sm">{order.trackingNumber || 'Belirtilmemiş'}</p>
+                )}
+              </div>
+
+              {/* WhatsApp Notification Button */}
+              {order.status === 'SHIPPED' && order.trackingNumber && order.cargoCompany && (
+                <div className="mt-4">
+                  <button
+                    onClick={handleWhatsAppNotification}
+                    className="btn-success w-full flex items-center justify-center gap-2"
+                  >
+                    <FiMessageSquare className="w-5 h-5" />
+                    📱 WhatsApp ile Müşteriye Bildir
+                  </button>
+                  <p className="text-xs text-gray-500 mt-2 text-center">
+                    Müşteriye kargo bilgilerini WhatsApp üzerinden gönderir
+                  </p>
+                </div>
               )}
             </div>
 
