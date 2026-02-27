@@ -95,14 +95,21 @@ export async function POST(req: NextRequest) {
 
     const userIp = req.headers.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1'
     const email = session.user.email!
-    const paymentAmount = Math.round(totalAmount * 100) // kuruş cinsinden
+    // PayTR kuruş cinsinden integer bekler, nokta/ondalık olmamalı
+    const paymentAmount = Math.round(totalAmount * 100)
+    if (paymentAmount <= 0) {
+      await (prisma as any).order.delete({ where: { id: order.id } })
+      return NextResponse.json({ error: 'Geçersiz ödeme tutarı.' }, { status: 400 })
+    }
 
-    // Sepet içeriği (PayTR formatı)
+    // Sepet içeriği (PayTR formatı) — [["Ürün Adı", "birim_fiyat_kuruş", "adet"], ...]
     const basketItems = orderItems.map((item) => {
       const product = products.find((p) => p.id === item.productId)!
-      return [product.name, (item.unitPrice * 100).toFixed(0), item.quantity.toString()]
+      const unitPriceKurus = Math.round(item.unitPrice * 100)
+      return [product.name, unitPriceKurus.toString(), item.quantity.toString()]
     })
     const userBasket = Buffer.from(JSON.stringify(basketItems)).toString('base64')
+    console.log('Basket items:', basketItems, 'Base64:', userBasket)
 
     const noInstallment = '0'
     const maxInstallment = '0'
@@ -142,7 +149,17 @@ export async function POST(req: NextRequest) {
       body: params,
     })
 
-    const paytrData = await paytrRes.json()
+    const responseText = await paytrRes.text()
+    console.log('PayTR raw response:', responseText)
+    
+    let paytrData
+    try {
+      paytrData = JSON.parse(responseText)
+    } catch (e) {
+      console.error('PayTR response JSON parse error:', e, 'Raw:', responseText)
+      await (prisma as any).order.delete({ where: { id: order.id } })
+      return NextResponse.json({ error: 'PayTR yanıtı geçersiz JSON formatında.' }, { status: 500 })
+    }
 
     if (paytrData.status !== 'success') {
       // Token alınamazsa siparişi sil
