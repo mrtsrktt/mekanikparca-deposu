@@ -56,8 +56,8 @@ export default function IadePolitikasiPage() {
                   <div>
                     <h3 className="font-semibold">İade Talebi Oluşturma</h3>
                     <p className="text-sm text-gray-600">
-                      Hesabınızda "Siparişlerim" bölümünden iade etmek istediğiniz siparişi seçin 
-                      ve "İade Talebi Oluştur" butonuna tıklayın.
+                      Hesabınızda &quot;Siparişlerim&quot; bölümünden iade etmek istediğiniz siparişi seçin 
+                      ve &quot;İade Talebi Oluştur&quot; butonuna tıklayın.
                     </p>
                   </div>
                 </div>
