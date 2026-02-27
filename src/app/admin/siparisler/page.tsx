@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { formatPrice } from '@/lib/pricing'
 import toast from 'react-hot-toast'
 
