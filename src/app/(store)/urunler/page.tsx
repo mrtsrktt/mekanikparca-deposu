@@ -1,11 +1,27 @@
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { calculateB2BPrice } from '@/lib/pricing'
+import { calculateB2BPrice, calculateTRYPrice } from '@/lib/pricing'
 import ProductCard from '@/components/ProductCard'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
+
+async function getExchangeRates() {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/exchange-rates`, {
+      next: { revalidate: 3600 } // 1 saat cache
+    })
+    if (!response.ok) {
+      throw new Error('Exchange rates fetch failed')
+    }
+    return await response.json()
+  } catch (error) {
+    console.error('Failed to fetch exchange rates:', error)
+    // Fallback rates
+    return { USD: 44.0, EUR: 55.0, TRY: 1 }
+  }
+}
 
 interface Props {
   searchParams: { q?: string; category?: string; brand?: string; page?: string; sort?: string }
@@ -32,7 +48,8 @@ export default async function ProductsPage({ searchParams }: Props) {
     : sort === 'name' ? { name: 'asc' }
     : { createdAt: 'desc' }
 
-  const [products, total, categories, brands] = await Promise.all([
+  const [exchangeRates, products, total, categories, brands] = await Promise.all([
+    getExchangeRates(),
     prisma.product.findMany({
       where,
       include: { brand: true, category: true, images: { take: 1 } },
@@ -44,6 +61,12 @@ export default async function ProductsPage({ searchParams }: Props) {
     prisma.category.findMany({ where: { isActive: true }, orderBy: { name: 'asc' } }),
     prisma.brand.findMany({ where: { isActive: true }, orderBy: { name: 'asc' } }),
   ])
+
+  // Fiyatları TL'ye çevir
+  const productsWithConvertedPrices = products.map(product => ({
+    ...product,
+    priceTRY: calculateTRYPrice(product.priceOriginal, product.priceCurrency, exchangeRates)
+  }))
 
   const totalPages = Math.ceil(total / limit)
 
@@ -95,7 +118,7 @@ export default async function ProductsPage({ searchParams }: Props) {
     const user = await prisma.user.findUnique({ where: { id: (session.user as any).id } })
     if (user && user.b2bStatus === 'APPROVED') {
       const prices = await Promise.all(
-        products.map(async (p) => ({
+        productsWithConvertedPrices.map(async (p) => ({
           id: p.id,
           b2bPrice: await calculateB2BPrice(p),
           originalPrice: p.priceTRY,
@@ -186,7 +209,7 @@ export default async function ProductsPage({ searchParams }: Props) {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {products.map((product) => (
+              {productsWithConvertedPrices.map((product) => (
                 <ProductCard key={product.id} product={product} hasCampaign={hasCampaign(product)} campaignLowestPrice={getCampaignLowestPrice(product)} b2bUserPrice={b2bPriceMap[product.id]} showB2B={isB2B} />
               ))}
             </div>

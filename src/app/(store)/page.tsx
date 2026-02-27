@@ -2,12 +2,28 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { calculateB2BPrice } from '@/lib/pricing'
+import { calculateB2BPrice, calculateTRYPrice } from '@/lib/pricing'
 import ProductCard from '@/components/ProductCard'
 import HeroSlider from '@/components/HeroSlider'
 import { FiTruck, FiShield, FiHeadphones, FiAward } from 'react-icons/fi'
 
 export const dynamic = 'force-dynamic'
+
+async function getExchangeRates() {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/exchange-rates`, {
+      next: { revalidate: 3600 } // 1 saat cache
+    })
+    if (!response.ok) {
+      throw new Error('Exchange rates fetch failed')
+    }
+    return await response.json()
+  } catch (error) {
+    console.error('Failed to fetch exchange rates:', error)
+    // Fallback rates
+    return { USD: 44.0, EUR: 55.0, TRY: 1 }
+  }
+}
 
 const brandColors: Record<string, { bg: string; text: string; dot: string; accent: string }> = {
   'taifu': { bg: 'from-blue-600 to-blue-800', text: 'text-blue-700', dot: 'bg-blue-500', accent: 'from-blue-500 to-blue-600' },
@@ -21,7 +37,8 @@ const brandColors: Record<string, { bg: string; text: string; dot: string; accen
 }
 
 export default async function HomePage() {
-  const [featuredProducts, categories, brandsWithProducts] = await Promise.all([
+  const [exchangeRates, featuredProducts, categories, brandsWithProducts] = await Promise.all([
+    getExchangeRates(),
     prisma.product.findMany({
       where: { isActive: true, isFeatured: true },
       include: { brand: true, category: true, images: { take: 1 } },
@@ -46,6 +63,23 @@ export default async function HomePage() {
       },
     }),
   ])
+
+  // Fiyatları TL'ye çevir
+  const convertProductPrices = (products: any[]) => {
+    return products.map(product => {
+      const priceTRY = calculateTRYPrice(
+        product.priceOriginal,
+        product.priceCurrency,
+        exchangeRates
+      )
+      return {
+        ...product,
+        priceTRY
+      }
+    })
+  }
+
+  const featuredProductsConverted = convertProductPrices(featuredProducts)
 
   const now = new Date()
   const activeCampaigns = await (prisma as any).campaign.findMany({
@@ -88,7 +122,7 @@ export default async function HomePage() {
     const prods = await prisma.product.findMany({ where: { categoryId: { in: Array.from(ccIds) as string[] }, isActive: true }, include: { brand: true, category: true, images: { take: 1 } }, take: 12 })
     prods.forEach(p => { if (!campaignProductIds.has(p.id)) { campaignProductIds.add(p.id); allCampaignProducts.push(p) } })
   }
-  const homeCampaignProducts = allCampaignProducts.slice(0, 6)
+  const homeCampaignProducts = convertProductPrices(allCampaignProducts.slice(0, 6))
 
   const session = await getServerSession(authOptions)
   const isB2B = session?.user && (session.user as any).role === 'B2B'
@@ -96,12 +130,18 @@ export default async function HomePage() {
   if (isB2B) {
     const user = await prisma.user.findUnique({ where: { id: (session.user as any).id } })
     if (user && user.b2bStatus === 'APPROVED') {
-      const allProducts = [...featuredProducts, ...homeCampaignProducts, ...brandsWithProducts.flatMap(b => b.products)]
+      const allProducts = [...featuredProductsConverted, ...homeCampaignProducts, ...brandsWithProducts.flatMap(b => b.products)]
       const uniqueProducts = Array.from(new Map(allProducts.map(p => [p.id, p])).values())
       const prices = await Promise.all(uniqueProducts.map(async (p) => ({ id: p.id, b2bPrice: await calculateB2BPrice(p), originalPrice: p.priceTRY })))
       for (const p of prices) { if (p.b2bPrice < p.originalPrice) b2bPriceMap[p.id] = p.b2bPrice }
     }
   }
+
+  // Marka ürünlerini de döviz kurlarına göre düzelt
+  const brandsWithProductsConverted = brandsWithProducts.map(brand => ({
+    ...brand,
+    products: convertProductPrices(brand.products)
+  }))
 
   return (
     <div>
@@ -198,7 +238,7 @@ export default async function HomePage() {
               <Link href="/urunler" className="text-primary-500 hover:text-primary-600 text-sm font-semibold transition-colors">Tümünü Gör →</Link>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {featuredProducts.map((product) => (
+              {featuredProductsConverted.map((product) => (
                 <ProductCard key={product.id} product={product} hasCampaign={hasCampaign(product)} campaignLowestPrice={getCampaignLowestPrice(product)} b2bUserPrice={b2bPriceMap[product.id]} showB2B={isB2B} />
               ))}
             </div>
@@ -207,7 +247,7 @@ export default async function HomePage() {
       )}
 
       {/* Marka Bölümleri */}
-      {brandsWithProducts.filter(b => b.products.length > 0).map((brand, idx) => {
+      {brandsWithProductsConverted.filter(b => b.products.length > 0).map((brand, idx) => {
         const colors = brandColors[brand.slug] || { bg: 'from-gray-600 to-gray-800', text: 'text-gray-700', dot: 'bg-gray-500', accent: 'from-gray-500 to-gray-600' }
         const isEven = idx % 2 === 0
 
