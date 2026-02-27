@@ -12,6 +12,8 @@ interface CartItem {
   quantity: number
   product?: any
   unitPrice?: number
+  campaignPrice?: any
+  b2bPrice?: number | null
 }
 
 interface Address {
@@ -55,7 +57,47 @@ export default function OdemePage() {
         return item
       })
     )
-    setItems(enriched.filter((i: CartItem) => i.product))
+    const validItems = enriched.filter((i: CartItem) => i.product)
+
+    // Fetch campaign prices
+    if (validItems.length > 0) {
+      try {
+        const res = await fetch('/api/campaigns/calculate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: validItems.map(i => ({ productId: i.productId, quantity: i.quantity }))
+          }),
+        })
+        if (res.ok) {
+          const prices = await res.json()
+          for (const item of validItems) {
+            const price = prices.find((p: any) => p.productId === item.productId)
+            if (price) item.campaignPrice = price
+          }
+        }
+      } catch {}
+    }
+
+    // Fetch B2B prices
+    if (validItems.length > 0) {
+      try {
+        const res = await fetch('/api/b2b/prices', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productIds: validItems.map(i => i.productId) }),
+        })
+        if (res.ok) {
+          const b2bPrices = await res.json()
+          for (const item of validItems) {
+            const bp = b2bPrices.find((p: any) => p.productId === item.productId)
+            if (bp?.hasDiscount) item.b2bPrice = bp.b2bPrice
+          }
+        }
+      } catch {}
+    }
+
+    setItems(validItems)
 
     const addrRes = await fetch('/api/account/addresses')
     if (addrRes.ok) {
@@ -96,6 +138,28 @@ export default function OdemePage() {
     }
   }
 
+  const getUnitPrice = (item: CartItem) => {
+    // Kampanya fiyatı varsa öncelikli
+    if (item.campaignPrice?.appliedCampaign) return item.campaignPrice.discountedPrice
+    // B2B fiyatı varsa
+    if (item.b2bPrice && item.b2bPrice < (item.product?.priceTRY || 0)) return item.b2bPrice
+    return item.product?.priceTRY || 0
+  }
+
+  const getDiscountLabel = (item: CartItem): { type: 'campaign' | 'b2b' | null; label: string } => {
+    if (item.campaignPrice?.appliedCampaign) {
+      return {
+        type: 'campaign',
+        label: `🎁 ${item.campaignPrice.appliedCampaign.name}${item.campaignPrice.appliedTier ? ` (${item.campaignPrice.appliedTier.minQuantity}+ adet)` : ''}`,
+      }
+    }
+    if (item.b2bPrice && item.b2bPrice < (item.product?.priceTRY || 0)) {
+      const pct = Math.round((1 - item.b2bPrice / item.product.priceTRY) * 100)
+      return { type: 'b2b', label: `Bayi İndirimi (%${pct})` }
+    }
+    return { type: null, label: '' }
+  }
+
   const handlePayment = async () => {
     if (!selectedAddressId) { toast.error('Lütfen bir adres seçin.'); return }
     if (items.length === 0) { toast.error('Sepetiniz boş.'); return }
@@ -106,7 +170,7 @@ export default function OdemePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: items.map(i => ({ productId: i.productId, quantity: i.quantity, unitPrice: i.unitPrice })),
+          items: items.map(i => ({ productId: i.productId, quantity: i.quantity, unitPrice: getUnitPrice(i) })),
           addressId: selectedAddressId,
           notes,
         }),
@@ -120,7 +184,9 @@ export default function OdemePage() {
     }
   }
 
-  const total = items.reduce((sum, i) => sum + (i.unitPrice ?? i.product?.priceTRY ?? 0) * i.quantity, 0)
+  const subtotal = items.reduce((sum, item) => sum + getUnitPrice(item) * item.quantity, 0)
+  const originalTotal = items.reduce((sum, item) => sum + (item.product?.priceTRY || 0) * item.quantity, 0)
+  const totalDiscount = originalTotal - subtotal
 
   if (loading || status === 'loading') {
     return <div className="max-w-4xl mx-auto px-4 py-16 text-center">Yükleniyor...</div>
@@ -198,20 +264,50 @@ export default function OdemePage() {
         <div className="card p-6 h-fit sticky top-24">
           <h2 className="font-semibold mb-4">Sipariş Özeti</h2>
           <div className="space-y-2 text-sm mb-4">
-            {items.map(item => (
-              <div key={item.productId} className="flex justify-between">
-                <span className="text-gray-600 truncate max-w-[160px]">{item.product?.name} x{item.quantity}</span>
-                <span>{formatPrice((item.unitPrice ?? item.product?.priceTRY ?? 0) * item.quantity)}</span>
-              </div>
-            ))}
+            {items.map(item => {
+              const unitPrice = getUnitPrice(item)
+              const discount = getDiscountLabel(item)
+              const hasDiscount = discount.type !== null
+              return (
+                <div key={item.productId} className="mb-2 pb-2 border-b last:border-0">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 truncate max-w-[140px]">{item.product?.name} x{item.quantity}</span>
+                    <span className="font-medium">{formatPrice(unitPrice * item.quantity)}</span>
+                  </div>
+                  {hasDiscount && (
+                    <div className="flex justify-between text-xs mt-0.5">
+                      <span className={`${discount.type === 'campaign' ? 'text-red-500' : 'text-orange-500'}`}>
+                        {discount.label}
+                      </span>
+                      <span className="text-gray-400 line-through">
+                        {formatPrice((item.product?.priceTRY || 0) * item.quantity)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
             <hr />
-            <div className="flex justify-between">
-              <span className="text-gray-500">Kargo</span>
-              <span className="text-green-600">Ücretsiz</span>
-            </div>
-            <div className="flex justify-between text-base font-bold">
-              <span>Toplam</span>
-              <span className="text-primary-500">{formatPrice(total)}</span>
+            <div className="space-y-1">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Ara Toplam</span>
+                <span>{formatPrice(originalTotal)}</span>
+              </div>
+              {totalDiscount > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span>{session?.user && (session.user as any).role === 'B2B' ? 'Bayi İndirimi' : 'İndirim'}</span>
+                  <span>-{formatPrice(totalDiscount)}</span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span className="text-gray-500">Kargo</span>
+                <span className="text-green-600">Ücretsiz</span>
+              </div>
+              <hr />
+              <div className="flex justify-between text-base font-bold">
+                <span>Toplam</span>
+                <span className="text-primary-500">{formatPrice(subtotal)}</span>
+              </div>
             </div>
           </div>
           <button
