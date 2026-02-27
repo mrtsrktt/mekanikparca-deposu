@@ -45,8 +45,16 @@ export default function AdminOrdersPage() {
           <tbody>
             {orders.map((o) => (
               <tr key={o.id} className="border-t hover:bg-gray-50">
-                <td className="p-3 font-medium">{o.orderNumber}</td>
-                <td className="p-3">{o.user?.name}<br/><span className="text-xs text-gray-400">{o.user?.email}</span></td>
+                <td className="p-3 font-medium">
+                  <Link href={`/admin/siparisler/${o.id}`} className="text-primary-600 hover:underline">
+                    {o.orderNumber}
+                  </Link>
+                </td>
+                <td className="p-3">
+                  <Link href={`/admin/siparisler/${o.id}`} className="hover:underline">
+                    {o.user?.name}<br/><span className="text-xs text-gray-400">{o.user?.email}</span>
+                  </Link>
+                </td>
                 <td className="p-3"><span className={`badge ${o.user?.role === 'B2B' ? 'badge-warning' : 'badge-info'}`}>{o.user?.role}</span></td>
                 <td className="p-3 font-medium">{formatPrice(o.totalAmount)}</td>
                 <td className="p-3"><span className={`badge ${o.status === 'DELIVERED' ? 'badge-success' : o.status === 'CANCELLED' ? 'badge-danger' : 'badge-warning'}`}>{statusLabels[o.status]}</span></td>

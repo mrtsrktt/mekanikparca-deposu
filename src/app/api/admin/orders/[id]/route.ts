@@ -3,41 +3,129 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
-export async function PUT(
-  req: NextRequest,
+export async function GET(
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user || session.user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { id } = params
-    const { status } = await req.json()
-
-    if (!status) {
-      return NextResponse.json({ error: 'Status is required' }, { status: 400 })
-    }
+    const orderId = params.id
 
     const order = await prisma.order.findUnique({
-      where: { id }
+      where: { id: orderId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            companyName: true,
+            taxNumber: true,
+            taxOffice: true,
+            role: true
+          }
+        },
+        items: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                sku: true,
+                images: {
+                  take: 1,
+                  select: { url: true }
+                }
+              }
+            }
+          }
+        }
+      }
     })
 
     if (!order) {
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: 'Sipariş bulunamadı' },
+        { status: 404 }
+      )
     }
 
+    return NextResponse.json(order)
+  } catch (error) {
+    console.error('Sipariş detayı getirilirken hata:', error)
+    return NextResponse.json(
+      { error: 'Sipariş detayı alınamadı' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user || session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const orderId = params.id
+    const body = await request.json()
+    const { status, trackingNumber, notes } = body
+
+    const order = await prisma.order.findUnique({
+      where: { id: orderId }
+    })
+
+    if (!order) {
+      return NextResponse.json(
+        { error: 'Sipariş bulunamadı' },
+        { status: 404 }
+      )
+    }
+
+    const updateData: any = {}
+    if (status) updateData.status = status
+    if (trackingNumber) updateData.trackingNumber = trackingNumber
+    if (notes) updateData.adminNotes = notes
+
     const updatedOrder = await prisma.order.update({
-      where: { id },
-      data: { status }
+      where: { id: orderId },
+      data: updateData,
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true
+          }
+        },
+        items: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                sku: true
+              }
+            }
+          }
+        }
+      }
     })
 
     return NextResponse.json(updatedOrder)
   } catch (error) {
-    console.error('Error updating order:', error)
+    console.error('Sipariş güncellenirken hata:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Sipariş güncellenirken hata oluştu' },
       { status: 500 }
     )
   }

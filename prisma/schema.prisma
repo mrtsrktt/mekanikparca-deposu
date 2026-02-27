@@ -156,7 +156,9 @@ model Order {
   currency         String      @default("TRY")
   shippingAddress  String?
   billingAddress   String?
-  notes            String?
+  notes            String?     // Müşteri notu
+  adminNotes       String?     // Admin notu
+  trackingNumber   String?     // Kargo takip numarası
   items            OrderItem[]
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt

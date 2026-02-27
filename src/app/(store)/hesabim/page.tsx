@@ -184,7 +184,11 @@ function OrdersTab() {
       ) : (
         <div className="space-y-4">
           {orders.map((order: any) => (
-            <div key={order.id} className="border rounded-lg p-4">
+            <Link 
+              key={order.id} 
+              href={`/hesabim/siparislerim/${order.id}`}
+              className="block border rounded-lg p-4 hover:border-primary-300 hover:shadow-sm transition-all"
+            >
               <div className="flex items-center justify-between mb-2">
                 <span className="font-medium text-sm">#{order.orderNumber}</span>
                 <span className={`badge ${statusMap[order.status]?.cls || 'badge-info'}`}>{statusMap[order.status]?.label || order.status}</span>
@@ -194,7 +198,7 @@ function OrdersTab() {
               {order.items?.length > 0 && (
                 <div className="mt-2 text-xs text-gray-500">{order.items.length} ürün</div>
               )}
-            </div>
+            </Link>
           ))}
         </div>
       )}
