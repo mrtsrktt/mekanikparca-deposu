@@ -5,7 +5,6 @@ import { authOptions } from '@/lib/auth'
 import { calculateB2BPrice, calculateTRYPrice } from '@/lib/pricing'
 import ProductCard from '@/components/ProductCard'
 import HeroSlider from '@/components/HeroSlider'
-import { FiTruck, FiShield, FiHeadphones, FiAward } from 'react-icons/fi'
 
 export const dynamic = 'force-dynamic'
 
@@ -149,24 +148,193 @@ export default async function HomePage() {
 
       {/* Features Bar */}
       <section className="bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { icon: FiTruck, title: 'Hızlı Kargo', desc: 'Aynı gün kargo', color: 'from-blue-500 to-blue-600' },
-              { icon: FiShield, title: 'Güvenli Alışveriş', desc: '256-bit SSL', color: 'from-emerald-500 to-emerald-600' },
-              { icon: FiHeadphones, title: 'Teknik Destek', desc: 'Uzman ekip', color: 'from-purple-500 to-purple-600' },
-              { icon: FiAward, title: 'Orijinal Parça', desc: 'Garantili ürünler', color: 'from-amber-500 to-amber-600' },
-            ].map((f, i) => (
-              <div key={i} className="flex items-center gap-3 group">
-                <div className={`p-3 bg-gradient-to-br ${f.color} rounded-xl shadow-sm group-hover:scale-110 group-hover:shadow-md transition-all duration-300`}>
-                  <f.icon className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-sm text-gray-800">{f.title}</h3>
-                  <p className="text-xs text-gray-400">{f.desc}</p>
-                </div>
+        <div className="max-w-7xl mx-auto px-4 py-10">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+            {/* Hızlı Kargo */}
+            <div className="group flex flex-col items-center text-center gap-3 p-4 rounded-2xl hover:bg-blue-50 transition-all duration-300 cursor-default">
+              <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-lg">
+                <defs>
+                  <linearGradient id="truckGrad" x1="0" y1="0" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stopColor="#3b82f6"/>
+                    <stop offset="100%" stopColor="#1d4ed8"/>
+                  </linearGradient>
+                  <linearGradient id="truckBodyGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#60a5fa"/>
+                    <stop offset="100%" stopColor="#2563eb"/>
+                  </linearGradient>
+                </defs>
+                {/* Speed lines */}
+                <line x1="4" y1="30" x2="18" y2="30" stroke="#93c5fd" strokeWidth="2.5" strokeLinecap="round">
+                  <animate attributeName="opacity" values="0;1;0" dur="1.2s" repeatCount="indefinite" begin="0s"/>
+                </line>
+                <line x1="4" y1="38" x2="14" y2="38" stroke="#93c5fd" strokeWidth="2" strokeLinecap="round">
+                  <animate attributeName="opacity" values="0;1;0" dur="1.2s" repeatCount="indefinite" begin="0.2s"/>
+                </line>
+                <line x1="4" y1="46" x2="20" y2="46" stroke="#93c5fd" strokeWidth="2.5" strokeLinecap="round">
+                  <animate attributeName="opacity" values="0;1;0" dur="1.2s" repeatCount="indefinite" begin="0.4s"/>
+                </line>
+                {/* Truck body */}
+                <rect x="20" y="28" width="38" height="24" rx="3" fill="url(#truckBodyGrad)"/>
+                {/* Cargo box */}
+                <rect x="20" y="24" width="26" height="28" rx="2" fill="url(#truckGrad)"/>
+                {/* Cab */}
+                <path d="M46 32 L58 32 L62 40 L62 52 L46 52 Z" fill="url(#truckBodyGrad)"/>
+                {/* Window */}
+                <path d="M48 34 L57 34 L60 40 L48 40 Z" fill="#bfdbfe" opacity="0.9"/>
+                {/* Headlight pulse */}
+                <circle cx="62" cy="48" r="3" fill="#fbbf24">
+                  <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/>
+                </circle>
+                {/* Wheel back */}
+                <circle cx="30" cy="54" r="7" fill="#1e3a8a" stroke="#93c5fd" strokeWidth="1.5"/>
+                <circle cx="30" cy="54" r="3.5" fill="#60a5fa"/>
+                <animateTransform attributeName="transform" type="rotate" from="0 30 54" to="360 30 54" dur="1s" repeatCount="indefinite" additive="sum"/>
+                {/* Wheel front */}
+                <circle cx="54" cy="54" r="7" fill="#1e3a8a" stroke="#93c5fd" strokeWidth="1.5"/>
+                <circle cx="54" cy="54" r="3.5" fill="#60a5fa"/>
+              </svg>
+              <div>
+                <h3 className="font-semibold text-sm text-gray-800 group-hover:text-blue-600 transition-colors">Hızlı Kargo</h3>
+                <p className="text-xs text-gray-400 mt-0.5">Aynı gün kargo</p>
               </div>
-            ))}
+            </div>
+
+            {/* Güvenli Alışveriş */}
+            <div className="group flex flex-col items-center text-center gap-3 p-4 rounded-2xl hover:bg-emerald-50 transition-all duration-300 cursor-default">
+              <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-lg">
+                <defs>
+                  <linearGradient id="shieldGrad" x1="0" y1="0" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stopColor="#10b981"/>
+                    <stop offset="100%" stopColor="#047857"/>
+                  </linearGradient>
+                </defs>
+                {/* Outer ring expand */}
+                <circle cx="40" cy="40" r="34" stroke="#6ee7b7" strokeWidth="1.5" fill="none">
+                  <animate attributeName="r" values="30;36;30" dur="2s" repeatCount="indefinite"/>
+                  <animate attributeName="opacity" values="0.8;0;0.8" dur="2s" repeatCount="indefinite"/>
+                </circle>
+                {/* Shield */}
+                <path d="M40 12 L62 22 L62 42 C62 54 52 63 40 68 C28 63 18 54 18 42 L18 22 Z" fill="url(#shieldGrad)"/>
+                <path d="M40 16 L58 25 L58 42 C58 52 50 60 40 64 C30 60 22 52 22 42 L22 25 Z" fill="#34d399" opacity="0.3"/>
+                {/* Checkmark draw animation */}
+                <polyline points="29,40 37,49 52,32" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" fill="none"
+                  strokeDasharray="35" strokeDashoffset="35">
+                  <animate attributeName="strokeDashoffset" values="35;0;35" dur="2.5s" repeatCount="indefinite" begin="0.3s"/>
+                </polyline>
+                {/* Sparkle dots */}
+                <circle cx="16" cy="20" r="2.5" fill="#6ee7b7">
+                  <animate attributeName="opacity" values="0;1;0" dur="1.8s" repeatCount="indefinite" begin="0s"/>
+                </circle>
+                <circle cx="64" cy="18" r="2" fill="#6ee7b7">
+                  <animate attributeName="opacity" values="0;1;0" dur="1.8s" repeatCount="indefinite" begin="0.6s"/>
+                </circle>
+                <circle cx="68" cy="50" r="2.5" fill="#6ee7b7">
+                  <animate attributeName="opacity" values="0;1;0" dur="1.8s" repeatCount="indefinite" begin="1.2s"/>
+                </circle>
+              </svg>
+              <div>
+                <h3 className="font-semibold text-sm text-gray-800 group-hover:text-emerald-600 transition-colors">Güvenli Alışveriş</h3>
+                <p className="text-xs text-gray-400 mt-0.5">256-bit SSL</p>
+              </div>
+            </div>
+
+            {/* Teknik Destek */}
+            <div className="group flex flex-col items-center text-center gap-3 p-4 rounded-2xl hover:bg-purple-50 transition-all duration-300 cursor-default">
+              <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-lg">
+                <defs>
+                  <linearGradient id="headsetGrad" x1="0" y1="0" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stopColor="#a855f7"/>
+                    <stop offset="100%" stopColor="#7c3aed"/>
+                  </linearGradient>
+                </defs>
+                {/* Sound waves */}
+                <path d="M14 36 Q10 40 14 44" stroke="#c4b5fd" strokeWidth="2.5" strokeLinecap="round" fill="none">
+                  <animate attributeName="opacity" values="1;0.2;1" dur="1.4s" repeatCount="indefinite" begin="0s"/>
+                </path>
+                <path d="M9 30 Q3 40 9 50" stroke="#c4b5fd" strokeWidth="2" strokeLinecap="round" fill="none">
+                  <animate attributeName="opacity" values="1;0.2;1" dur="1.4s" repeatCount="indefinite" begin="0.2s"/>
+                </path>
+                <path d="M66 36 Q70 40 66 44" stroke="#c4b5fd" strokeWidth="2.5" strokeLinecap="round" fill="none">
+                  <animate attributeName="opacity" values="1;0.2;1" dur="1.4s" repeatCount="indefinite" begin="0.1s"/>
+                </path>
+                <path d="M71 30 Q77 40 71 50" stroke="#c4b5fd" strokeWidth="2" strokeLinecap="round" fill="none">
+                  <animate attributeName="opacity" values="1;0.2;1" dur="1.4s" repeatCount="indefinite" begin="0.3s"/>
+                </path>
+                {/* Headband arc */}
+                <path d="M20 42 C20 24 60 24 60 42" stroke="url(#headsetGrad)" strokeWidth="5" strokeLinecap="round" fill="none"/>
+                {/* Left ear cup */}
+                <rect x="14" y="40" width="12" height="18" rx="6" fill="url(#headsetGrad)"/>
+                {/* Right ear cup */}
+                <rect x="54" y="40" width="12" height="18" rx="6" fill="url(#headsetGrad)"/>
+                {/* Mic arm */}
+                <path d="M20 56 Q20 66 30 68" stroke="url(#headsetGrad)" strokeWidth="3" strokeLinecap="round" fill="none"/>
+                <circle cx="30" cy="68" r="4" fill="#a855f7"/>
+                {/* Bouncing dots */}
+                <circle cx="33" cy="16" r="3" fill="#c4b5fd">
+                  <animate attributeName="cy" values="16;10;16" dur="1s" repeatCount="indefinite" begin="0s"/>
+                  <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" begin="0s"/>
+                </circle>
+                <circle cx="40" cy="14" r="3" fill="#a855f7">
+                  <animate attributeName="cy" values="14;8;14" dur="1s" repeatCount="indefinite" begin="0.15s"/>
+                  <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" begin="0.15s"/>
+                </circle>
+                <circle cx="47" cy="16" r="3" fill="#c4b5fd">
+                  <animate attributeName="cy" values="16;10;16" dur="1s" repeatCount="indefinite" begin="0.3s"/>
+                  <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" begin="0.3s"/>
+                </circle>
+              </svg>
+              <div>
+                <h3 className="font-semibold text-sm text-gray-800 group-hover:text-purple-600 transition-colors">Teknik Destek</h3>
+                <p className="text-xs text-gray-400 mt-0.5">Uzman ekip</p>
+              </div>
+            </div>
+
+            {/* Orijinal Parça */}
+            <div className="group flex flex-col items-center text-center gap-3 p-4 rounded-2xl hover:bg-amber-50 transition-all duration-300 cursor-default">
+              <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-lg">
+                <defs>
+                  <linearGradient id="medalGrad" x1="0" y1="0" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stopColor="#f59e0b"/>
+                    <stop offset="100%" stopColor="#d97706"/>
+                  </linearGradient>
+                  <linearGradient id="medalShine" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#fde68a"/>
+                    <stop offset="100%" stopColor="#f59e0b"/>
+                  </linearGradient>
+                </defs>
+                {/* Outer glow ring */}
+                <circle cx="40" cy="48" r="26" stroke="#fcd34d" strokeWidth="1.5" fill="none">
+                  <animate attributeName="r" values="24;28;24" dur="2s" repeatCount="indefinite"/>
+                  <animate attributeName="opacity" values="0.6;0;0.6" dur="2s" repeatCount="indefinite"/>
+                </circle>
+                {/* Radiating light lines — staggered */}
+                {[0,45,90,135,180,225,270,315].map((angle, i) => {
+                  const rad = (angle * Math.PI) / 180
+                  const x1 = 40 + Math.cos(rad) * 28
+                  const y1 = 48 + Math.sin(rad) * 28
+                  const x2 = 40 + Math.cos(rad) * 34
+                  const y2 = 48 + Math.sin(rad) * 34
+                  return (
+                    <line key={angle} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#fcd34d" strokeWidth="2" strokeLinecap="round">
+                      <animate attributeName="opacity" values="0;1;0" dur="1.6s" repeatCount="indefinite" begin={`${i * 0.2}s`}/>
+                    </line>
+                  )
+                })}
+                {/* Ribbon left */}
+                <path d="M32 30 L28 14 L36 20 L40 12 L44 20 L52 14 L48 30" fill="#f59e0b"/>
+                {/* Medal circle */}
+                <circle cx="40" cy="48" r="22" fill="url(#medalGrad)"/>
+                <circle cx="40" cy="48" r="18" fill="url(#medalShine)" opacity="0.6"/>
+                {/* Star */}
+                <path d="M40 32 L42.9 41.1 L52.4 41.1 L44.8 46.8 L47.6 55.9 L40 50.2 L32.4 55.9 L35.2 46.8 L27.6 41.1 L37.1 41.1 Z" fill="white" opacity="0.95"/>
+              </svg>
+              <div>
+                <h3 className="font-semibold text-sm text-gray-800 group-hover:text-amber-600 transition-colors">Orijinal Parça</h3>
+                <p className="text-xs text-gray-400 mt-0.5">Garantili ürünler</p>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
