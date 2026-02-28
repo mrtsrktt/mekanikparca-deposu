@@ -59,6 +59,11 @@ export default async function HomePage() {
       where: { isActive: true },
       orderBy: { sortOrder: 'asc' },
       take: 8,
+      include: {
+        _count: {
+          select: { products: { where: { isActive: true } } }
+        }
+      }
     }),
     prisma.brand.findMany({
       where: { isActive: true },
@@ -152,6 +157,17 @@ export default async function HomePage() {
     ...brand,
     products: convertProductPrices(brand.products)
   }))
+
+  const catStyles = [
+    { bg: 'from-blue-50 to-blue-100/50', border: 'border-blue-200 hover:border-blue-300', iconBg: 'bg-blue-100/80 border-blue-200/50', text: 'text-blue-900', count: 'bg-blue-100 text-blue-700', arrow: 'bg-blue-600', shadow: 'hover:shadow-blue-100' },
+    { bg: 'from-emerald-50 to-emerald-100/50', border: 'border-emerald-200 hover:border-emerald-300', iconBg: 'bg-emerald-100/80 border-emerald-200/50', text: 'text-emerald-900', count: 'bg-emerald-100 text-emerald-700', arrow: 'bg-emerald-600', shadow: 'hover:shadow-emerald-100' },
+    { bg: 'from-orange-50 to-orange-100/50', border: 'border-orange-200 hover:border-orange-300', iconBg: 'bg-orange-100/80 border-orange-200/50', text: 'text-orange-900', count: 'bg-orange-100 text-orange-700', arrow: 'bg-orange-600', shadow: 'hover:shadow-orange-100' },
+    { bg: 'from-purple-50 to-purple-100/50', border: 'border-purple-200 hover:border-purple-300', iconBg: 'bg-purple-100/80 border-purple-200/50', text: 'text-purple-900', count: 'bg-purple-100 text-purple-700', arrow: 'bg-purple-600', shadow: 'hover:shadow-purple-100' },
+    { bg: 'from-red-50 to-red-100/50', border: 'border-red-200 hover:border-red-300', iconBg: 'bg-red-100/80 border-red-200/50', text: 'text-red-900', count: 'bg-red-100 text-red-700', arrow: 'bg-red-600', shadow: 'hover:shadow-red-100' },
+    { bg: 'from-cyan-50 to-cyan-100/50', border: 'border-cyan-200 hover:border-cyan-300', iconBg: 'bg-cyan-100/80 border-cyan-200/50', text: 'text-cyan-900', count: 'bg-cyan-100 text-cyan-700', arrow: 'bg-cyan-600', shadow: 'hover:shadow-cyan-100' },
+    { bg: 'from-amber-50 to-amber-100/50', border: 'border-amber-200 hover:border-amber-300', iconBg: 'bg-amber-100/80 border-amber-200/50', text: 'text-amber-900', count: 'bg-amber-100 text-amber-700', arrow: 'bg-amber-600', shadow: 'hover:shadow-amber-100' },
+    { bg: 'from-indigo-50 to-indigo-100/50', border: 'border-indigo-200 hover:border-indigo-300', iconBg: 'bg-indigo-100/80 border-indigo-200/50', text: 'text-indigo-900', count: 'bg-indigo-100 text-indigo-700', arrow: 'bg-indigo-700', shadow: 'hover:shadow-indigo-100' },
+  ]
 
   return (
     <div>
@@ -365,15 +381,25 @@ export default async function HomePage() {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {categories.map((cat, i) => {
-              const color = catColors[i % catColors.length]
+              const s = catStyles[i % catStyles.length]
               return (
                 <Link key={cat.id} href={`/urunler?category=${cat.slug}`}
-                  className={`group relative bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl ${color.hover} hover:-translate-y-1 transition-all duration-300`}>
-                  <div className={`h-24 bg-gradient-to-br ${color.bg} flex items-center justify-center`}>
-                    <span className="text-4xl group-hover:scale-125 transition-transform duration-300">{color.icon}</span>
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-bold text-sm text-gray-800 group-hover:text-gray-900 leading-snug text-center">{cat.name}</h3>
+                  className={`group relative bg-gradient-to-br ${s.bg} rounded-2xl border ${s.border} overflow-hidden hover:-translate-y-1.5 hover:scale-[1.02] hover:shadow-xl ${s.shadow} transition-all duration-300`}>
+                  <div className="p-6">
+                    <div className={`w-14 h-14 ${s.iconBg} border rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300`}>
+                      <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="6" y="8" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="2" className={s.text}/>
+                        <path d="M10 8V6C10 5.4 10.4 5 11 5H19C19.6 5 20 5.4 20 6V8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                        <path d="M10 16H20M10 19H16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                      </svg>
+                    </div>
+                    <h3 className={`font-bold text-sm ${s.text} leading-snug min-h-[38px]`}>{cat.name}</h3>
+                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-black/5">
+                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${s.count}`}>
+                        {(cat as any)._count.products} ürün
+                      </span>
+                      <div className={`w-7 h-7 ${s.arrow} rounded-full flex items-center justify-center text-white text-xs font-bold opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all duration-300`}>→</div>
+                    </div>
                   </div>
                 </Link>
               )
