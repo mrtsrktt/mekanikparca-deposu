@@ -24,6 +24,17 @@ async function getExchangeRates() {
   }
 }
 
+const catColors = [
+  { bg: 'from-blue-500 to-blue-700', hover: 'hover:shadow-blue-200', icon: '🧪' },
+  { bg: 'from-emerald-500 to-emerald-700', hover: 'hover:shadow-emerald-200', icon: '🔍' },
+  { bg: 'from-orange-500 to-orange-700', hover: 'hover:shadow-orange-200', icon: '🌡️' },
+  { bg: 'from-purple-500 to-purple-700', hover: 'hover:shadow-purple-200', icon: '🔧' },
+  { bg: 'from-red-500 to-red-700', hover: 'hover:shadow-red-200', icon: '💧' },
+  { bg: 'from-cyan-500 to-cyan-700', hover: 'hover:shadow-cyan-200', icon: '❄️' },
+  { bg: 'from-amber-500 to-amber-700', hover: 'hover:shadow-amber-200', icon: '⚡' },
+  { bg: 'from-pink-500 to-pink-700', hover: 'hover:shadow-pink-200', icon: '🛡️' },
+]
+
 const brandColors: Record<string, { bg: string; text: string; dot: string; accent: string }> = {
   'taifu': { bg: 'from-blue-600 to-blue-800', text: 'text-blue-700', dot: 'bg-blue-500', accent: 'from-blue-500 to-blue-600' },
   'general-life-west-therm': { bg: 'from-orange-500 to-orange-700', text: 'text-orange-700', dot: 'bg-orange-500', accent: 'from-orange-500 to-orange-600' },
@@ -353,16 +364,20 @@ export default async function HomePage() {
             </Link>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {categories.map((cat, i) => (
-              <Link key={cat.id} href={`/urunler?category=${cat.slug}`}
-                className="group bg-white rounded-2xl p-6 text-center border border-gray-100 hover:border-primary-200 hover:shadow-lg hover:shadow-primary-500/5 transition-all duration-300"
-                style={{ animationDelay: `${i * 0.05}s` }}>
-                <div className="w-14 h-14 bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 group-hover:from-primary-100 group-hover:to-primary-200 transition-all duration-300">
-                  <span className="text-xl">🔧</span>
-                </div>
-                <h3 className="font-semibold text-sm text-gray-700 group-hover:text-primary-600 transition-colors">{cat.name}</h3>
-              </Link>
-            ))}
+            {categories.map((cat, i) => {
+              const color = catColors[i % catColors.length]
+              return (
+                <Link key={cat.id} href={`/urunler?category=${cat.slug}`}
+                  className={`group relative bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl ${color.hover} hover:-translate-y-1 transition-all duration-300`}>
+                  <div className={`h-24 bg-gradient-to-br ${color.bg} flex items-center justify-center`}>
+                    <span className="text-4xl group-hover:scale-125 transition-transform duration-300">{color.icon}</span>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-bold text-sm text-gray-800 group-hover:text-gray-900 leading-snug text-center">{cat.name}</h3>
+                  </div>
+                </Link>
+              )
+            })}
           </div>
         </section>
       )}
