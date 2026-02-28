@@ -164,35 +164,36 @@ export default async function HomePage() {
                     <stop offset="100%" stopColor="#2563eb"/>
                   </linearGradient>
                 </defs>
-                {/* Speed lines */}
+                {/* Speed lines — static position, pulse opacity */}
                 <line x1="4" y1="30" x2="18" y2="30" stroke="#93c5fd" strokeWidth="2.5" strokeLinecap="round">
-                  <animate attributeName="opacity" values="0;1;0" dur="1.2s" repeatCount="indefinite" begin="0s"/>
+                  <animate attributeName="opacity" values="0;1;0" dur="1.5s" repeatCount="indefinite" begin="0s"/>
                 </line>
                 <line x1="4" y1="38" x2="14" y2="38" stroke="#93c5fd" strokeWidth="2" strokeLinecap="round">
-                  <animate attributeName="opacity" values="0;1;0" dur="1.2s" repeatCount="indefinite" begin="0.2s"/>
+                  <animate attributeName="opacity" values="0;1;0" dur="1.5s" repeatCount="indefinite" begin="0.25s"/>
                 </line>
                 <line x1="4" y1="46" x2="20" y2="46" stroke="#93c5fd" strokeWidth="2.5" strokeLinecap="round">
-                  <animate attributeName="opacity" values="0;1;0" dur="1.2s" repeatCount="indefinite" begin="0.4s"/>
+                  <animate attributeName="opacity" values="0;1;0" dur="1.5s" repeatCount="indefinite" begin="0.5s"/>
                 </line>
-                {/* Truck body */}
-                <rect x="20" y="28" width="38" height="24" rx="3" fill="url(#truckBodyGrad)"/>
-                {/* Cargo box */}
-                <rect x="20" y="24" width="26" height="28" rx="2" fill="url(#truckGrad)"/>
-                {/* Cab */}
-                <path d="M46 32 L58 32 L62 40 L62 52 L46 52 Z" fill="url(#truckBodyGrad)"/>
-                {/* Window */}
-                <path d="M48 34 L57 34 L60 40 L48 40 Z" fill="#bfdbfe" opacity="0.9"/>
-                {/* Headlight pulse */}
-                <circle cx="62" cy="48" r="3" fill="#fbbf24">
-                  <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/>
-                </circle>
-                {/* Wheel back */}
-                <circle cx="30" cy="54" r="7" fill="#1e3a8a" stroke="#93c5fd" strokeWidth="1.5"/>
-                <circle cx="30" cy="54" r="3.5" fill="#60a5fa"/>
-                <animateTransform attributeName="transform" type="rotate" from="0 30 54" to="360 30 54" dur="1s" repeatCount="indefinite" additive="sum"/>
-                {/* Wheel front */}
-                <circle cx="54" cy="54" r="7" fill="#1e3a8a" stroke="#93c5fd" strokeWidth="1.5"/>
-                <circle cx="54" cy="54" r="3.5" fill="#60a5fa"/>
+                {/* Truck group — drives left to right */}
+                <g>
+                  <animateTransform attributeName="transform" type="translate" from="-20 0" to="20 0" dur="1.5s" repeatCount="indefinite" additive="sum"/>
+                  {/* Cargo box */}
+                  <rect x="20" y="24" width="26" height="28" rx="2" fill="url(#truckGrad)"/>
+                  {/* Cab */}
+                  <path d="M46 32 L58 32 L62 40 L62 52 L46 52 Z" fill="url(#truckBodyGrad)"/>
+                  {/* Window */}
+                  <path d="M48 34 L57 34 L60 40 L48 40 Z" fill="#bfdbfe" opacity="0.9"/>
+                  {/* Headlight pulse */}
+                  <circle cx="62" cy="48" r="3" fill="#fbbf24">
+                    <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/>
+                  </circle>
+                  {/* Wheel back — static */}
+                  <circle cx="30" cy="54" r="7" fill="#1e3a8a" stroke="#93c5fd" strokeWidth="1.5"/>
+                  <circle cx="30" cy="54" r="3.5" fill="#60a5fa"/>
+                  {/* Wheel front — static */}
+                  <circle cx="54" cy="54" r="7" fill="#1e3a8a" stroke="#93c5fd" strokeWidth="1.5"/>
+                  <circle cx="54" cy="54" r="3.5" fill="#60a5fa"/>
+                </g>
               </svg>
               <div>
                 <h3 className="font-semibold text-sm text-gray-800 group-hover:text-blue-600 transition-colors">Hızlı Kargo</h3>
