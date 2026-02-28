@@ -27,6 +27,7 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false)
   const catRef = useRef<HTMLLIElement>(null)
   const brandRef = useRef<HTMLLIElement>(null)
+  const [cartCount, setCartCount] = useState(0)
 
   const isB2B = session?.user?.role === 'B2B'
 
@@ -40,10 +41,19 @@ export default function Header() {
     updateQuoteCount()
     window.addEventListener('quote-cart-updated', updateQuoteCount)
 
+    const updateCartCount = () => {
+      const cart = JSON.parse(localStorage.getItem('cart') || '[]')
+      const totalItems = cart.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0)
+      setCartCount(totalItems)
+    }
+    updateCartCount()
+    window.addEventListener('cart-updated', updateCartCount)
+
     const handleScroll = () => setScrolled(window.scrollY > 10)
     window.addEventListener('scroll', handleScroll)
     return () => {
       window.removeEventListener('quote-cart-updated', updateQuoteCount)
+      window.removeEventListener('cart-updated', updateCartCount)
       window.removeEventListener('scroll', handleScroll)
     }
   }, [])
@@ -171,6 +181,11 @@ export default function Header() {
               </Link>
               <Link href="/sepet" className="relative p-2.5 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-full transition-all duration-200" title="Sepet">
                 <FiShoppingCart className="w-5 h-5" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-sm animate-pulse">
+                    {cartCount}
+                  </span>
+                )}
               </Link>
               <button className="md:hidden p-2.5 text-gray-500 hover:bg-gray-100 rounded-full transition-colors" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Menü">
                 {mobileOpen ? <FiX className="w-5 h-5" /> : <FiMenu className="w-5 h-5" />}
