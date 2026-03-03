@@ -53,6 +53,7 @@ export default function Footer() {
                 { href: '/satis-politikasi', label: 'Satış Politikası' },
                 { href: '/gizlilik-politikasi', label: 'Gizlilik Politikası' },
                 { href: '/kvkk-aydinlatma-metni', label: 'KVKK Aydınlatma Metni' },
+                { href: '/cerez-politikasi', label: 'Çerez Politikası' },
               ].map(item => (
                 <li key={item.href}>
                   <Link href={item.href} className="flex items-center gap-1.5 text-sm hover:text-white transition-colors group">
