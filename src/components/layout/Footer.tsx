@@ -52,6 +52,7 @@ export default function Footer() {
                 { href: '/iade-politikasi', label: 'İade Politikası' },
                 { href: '/satis-politikasi', label: 'Satış Politikası' },
                 { href: '/gizlilik-politikasi', label: 'Gizlilik Politikası' },
+                { href: '/kvkk-aydinlatma-metni', label: 'KVKK Aydınlatma Metni' },
               ].map(item => (
                 <li key={item.href}>
                   <Link href={item.href} className="flex items-center gap-1.5 text-sm hover:text-white transition-colors group">
