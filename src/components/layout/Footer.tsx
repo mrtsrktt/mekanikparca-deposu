@@ -52,6 +52,7 @@ export default function Footer() {
                 { href: '/iade-politikasi', label: 'İade Politikası' },
                 { href: '/satis-politikasi', label: 'Satış Politikası' },
                 { href: '/gizlilik-politikasi', label: 'Gizlilik Politikası' },
+                { href: '/on-bilgilendirme-formu', label: 'Ön Bilgilendirme Formu' },
                 { href: '/kvkk-aydinlatma-metni', label: 'KVKK Aydınlatma Metni' },
                 { href: '/cerez-politikasi', label: 'Çerez Politikası' },
               ].map(item => (

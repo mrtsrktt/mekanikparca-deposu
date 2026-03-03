@@ -318,6 +318,13 @@ export default function OdemePage() {
             {submitting ? 'Yönlendiriliyor...' : 'Ödemeye Geç'}
           </button>
           <p className="text-xs text-gray-400 text-center mt-2">256-bit SSL ile güvenli ödeme</p>
+          <p className="text-xs text-gray-400 text-center mt-1">
+            Siparişi tamamlayarak{' '}
+            <a href="/on-bilgilendirme-formu" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-300">
+              Ön Bilgilendirme Formu
+            </a>
+            &apos;nu okuduğunuzu kabul etmiş olursunuz.
+          </p>
         </div>
       </div>
     </div>
