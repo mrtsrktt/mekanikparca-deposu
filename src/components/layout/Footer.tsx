@@ -50,6 +50,7 @@ export default function Footer() {
                 { href: '/sikca-sorulan-sorular', label: 'S.S.S.' },
                 { href: '/teslimat-kosullari', label: 'Teslimat Koşulları' },
                 { href: '/iade-politikasi', label: 'İade Politikası' },
+                { href: '/satis-politikasi', label: 'Satış Politikası' },
                 { href: '/gizlilik-politikasi', label: 'Gizlilik Politikası' },
               ].map(item => (
                 <li key={item.href}>
