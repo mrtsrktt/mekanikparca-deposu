@@ -48,6 +48,7 @@ export default function Footer() {
                 { href: '/hakkimizda', label: 'Hakkımızda' },
                 { href: '/iletisim', label: 'İletişim' },
                 { href: '/sikca-sorulan-sorular', label: 'S.S.S.' },
+                { href: '/teslimat-kosullari', label: 'Teslimat Koşulları' },
                 { href: '/iade-politikasi', label: 'İade Politikası' },
                 { href: '/gizlilik-politikasi', label: 'Gizlilik Politikası' },
               ].map(item => (
