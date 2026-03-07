@@ -405,10 +405,6 @@ export default function AddProductPage() {
               <input type="checkbox" checked={form.isFeatured} onChange={(e) => update('isFeatured', e.target.checked)} className="rounded" />
               <span className="text-sm">Öne Çıkan</span>
             </label>
-            <label className="flex items-center gap-2">
-              <input type="checkbox" checked={form.freeShipping} onChange={(e) => update('freeShipping', e.target.checked)} className="rounded" />
-              <span className="text-sm">Ücretsiz Kargo</span>
-            </label>
           </div>
         </div>
 

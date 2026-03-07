@@ -287,8 +287,17 @@ export default function OdemePage() {
               )}
               <div className="flex justify-between">
                 <span className="text-gray-500">Kargo</span>
-                <span className="text-green-600">Ücretsiz</span>
+                {subtotal >= 5000 ? (
+                  <span className="text-green-600 font-semibold">Ücretsiz</span>
+                ) : (
+                  <span className="text-orange-600 text-sm font-medium">Alıcı Öder</span>
+                )}
               </div>
+              {subtotal < 5000 && (
+                <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-xs text-green-700">
+                  🚚 {formatPrice(5000 - subtotal)} daha ekleyin, <strong>kargo bedava</strong> olsun!
+                </div>
+              )}
               <hr />
               <div className="flex justify-between text-base font-bold">
                 <span>Toplam</span>
