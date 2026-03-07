@@ -107,12 +107,11 @@ export async function POST(req: NextRequest) {
       return [product.name, unitPriceKurus.toString(), item.quantity.toString()]
     })
     const userBasket = Buffer.from(JSON.stringify(basketItems)).toString('base64')
-    console.log('Basket items:', basketItems, 'Base64:', userBasket)
 
     const noInstallment = '0'
     const maxInstallment = '0'
     const currency = 'TL'
-    const testMode = process.env.PAYTR_TEST_MODE || '1'
+    const testMode = process.env.PAYTR_TEST_MODE || '0'
     const lang = 'tr'
 
     // PayTR hash oluşturma (dokümantasyon sırası: merchant_id + user_ip + merchant_oid + email + payment_amount + user_basket + no_installment + max_installment + currency + test_mode + merchant_salt)
@@ -131,7 +130,7 @@ export async function POST(req: NextRequest) {
     params.append('payment_amount', paymentAmount.toString())
     params.append('paytr_token', paytrToken)
     params.append('user_basket', userBasket)
-    params.append('debug_on', '1') // Hata detayı için
+    params.append('debug_on', process.env.PAYTR_DEBUG || '0')
     params.append('no_installment', noInstallment)
     params.append('max_installment', maxInstallment)
     params.append('user_name', session.user.name || '')
@@ -144,9 +143,10 @@ export async function POST(req: NextRequest) {
     params.append('test_mode', testMode)
     params.append('lang', lang)
 
-    console.log('PayTR request params:', Object.fromEntries(params))
-    console.log('Hash string for debug:', hashStr)
-    console.log('Paytr token generated:', paytrToken)
+    // Production'da hassas bilgileri loglama
+    if (process.env.PAYTR_DEBUG === '1') {
+      console.log('PayTR request params:', Object.fromEntries(params))
+    }
 
     const paytrRes = await fetch('https://www.paytr.com/odeme/api/get-token', {
       method: 'POST',
