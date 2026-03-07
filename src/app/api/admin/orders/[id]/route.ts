@@ -24,9 +24,6 @@ export async function GET(
             name: true,
             email: true,
             phone: true,
-            companyName: true,
-            taxNumber: true,
-            taxOffice: true,
             role: true
           }
         },

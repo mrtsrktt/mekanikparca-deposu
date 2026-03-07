@@ -28,7 +28,6 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           role: user.role,
-          b2bStatus: user.b2bStatus,
         }
       }
     })
@@ -37,7 +36,6 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.role = (user as any).role
-        token.b2bStatus = (user as any).b2bStatus
         token.id = user.id
       }
       return token
@@ -45,7 +43,6 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         (session.user as any).role = token.role
-        ;(session.user as any).b2bStatus = token.b2bStatus
         ;(session.user as any).id = token.id
       }
       return session

@@ -57,7 +57,6 @@ export default function LoginPage() {
         </form>
         <div className="mt-6 text-center text-sm text-gray-500">
           <p>Hesabınız yok mu? <Link href="/kayit" className="text-primary-500 hover:underline">Kayıt Ol</Link></p>
-          <p className="mt-2">Toptan alım? <Link href="/b2b-basvuru" className="text-accent-500 hover:underline">Bayi Başvuru</Link></p>
         </div>
       </div>
     </div>

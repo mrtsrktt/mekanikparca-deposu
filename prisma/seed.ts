@@ -12,11 +12,6 @@ async function main() {
     where: { email: 'admin@mekanikparcadeposu.com' }, update: {},
     create: { email: 'admin@mekanikparcadeposu.com', password: adminPassword, name: 'Admin', role: 'ADMIN' },
   })
-  const b2bPassword = await bcrypt.hash('b2b123', 12)
-  const b2bUser = await prisma.user.upsert({
-    where: { email: 'b2b@test.com' }, update: {},
-    create: { email: 'b2b@test.com', password: b2bPassword, name: 'Test B2B Kullanıcı', role: 'B2B', b2bStatus: 'APPROVED', companyName: 'Test Tesisat Ltd.', taxNumber: '1234567890', taxOffice: 'İstanbul' },
-  })
 
   // ===================== DÖVİZ KURLARI =====================
   await prisma.currencyRate.upsert({ where: { currency: 'USD' }, update: { rate: 32.50 }, create: { currency: 'USD', rate: 32.50 } })
@@ -169,21 +164,6 @@ async function main() {
     })
   }
   console.log(`${products.length} ürün oluşturuldu.`)
-
-  // ===================== B2B İNDİRİMLER (GLOBAL) =====================
-  // Genel bayi indirimi %10
-  await (prisma as any).b2BDiscount.create({
-    data: { scopeType: 'GENERAL', discount: 10 },
-  })
-  // Fernox markasına %20 indirim (tüm bayiler)
-  await (prisma as any).b2BDiscount.create({
-    data: { scopeType: 'BRAND', brandId: brands['fernox'].id, discount: 20 },
-  })
-  // Testo markasına %15 indirim (tüm bayiler)
-  await (prisma as any).b2BDiscount.create({
-    data: { scopeType: 'BRAND', brandId: brands['testo'].id, discount: 15 },
-  })
-  console.log('B2B indirimleri oluşturuldu.')
 
   // ===================== SİTE AYARLARI =====================
   const settings = [

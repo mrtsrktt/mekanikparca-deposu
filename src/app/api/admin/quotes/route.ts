@@ -12,7 +12,7 @@ export async function GET() {
 
   const quotes = await (prisma as any).quoteRequest.findMany({
     include: {
-      user: { select: { id: true, name: true, email: true, phone: true, companyName: true } },
+      user: { select: { id: true, name: true, email: true, phone: true } },
       items: {
         include: {
           product: { include: { images: { take: 1 }, brand: true } }

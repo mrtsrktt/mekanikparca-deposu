@@ -52,16 +52,14 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
   try {
     const body = await req.json()
-    const { name, slug, sku, description, technicalDetails, priceCurrency, priceOriginal, b2bPrice,
+    const { name, slug, sku, description, technicalDetails, priceCurrency, priceOriginal,
       stock, trackStock, categoryId, brandId, isActive, isFeatured, metaTitle, metaDesc, weight, unit, minOrder, freeShipping, images, videos, documents } = body
 
     let priceTRY = priceOriginal
-    let b2bPriceTRY = b2bPrice || null
     if (priceCurrency !== 'TRY') {
       const rate = await prisma.currencyRate.findUnique({ where: { currency: priceCurrency } })
       if (rate) {
         priceTRY = priceOriginal * rate.rate
-        if (b2bPrice) b2bPriceTRY = b2bPrice * rate.rate
       }
     }
 
@@ -89,7 +87,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
     const updateData: any = {
       name, slug, sku, description, technicalDetails, priceCurrency, priceOriginal, priceTRY,
-      b2bPrice: b2bPriceTRY, stock, trackStock: trackStock ?? true,
+      stock, trackStock: trackStock ?? true,
       categoryId: categoryId || null, brandId: brandId || null,
       isActive, isFeatured, metaTitle, metaDesc, weight, unit, minOrder,
       freeShipping: freeShipping ?? false,

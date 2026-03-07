@@ -16,8 +16,6 @@ export default function AccountPage() {
   if (status === 'loading') return <div className="max-w-7xl mx-auto px-4 py-16 text-center">Yükleniyor...</div>
   if (!session) redirect('/giris')
 
-  const isB2B = session.user.role === 'B2B'
-
   const tabs = [
     { id: 'profile' as Tab, label: 'Profil Bilgileri', icon: FiUser, color: 'text-primary-500' },
     { id: 'orders' as Tab, label: 'Siparişlerim', icon: FiShoppingCart, color: 'text-green-500' },
@@ -41,7 +39,7 @@ export default function AccountPage() {
       </div>
 
       {/* Tab Content */}
-      {activeTab === 'profile' && <ProfileTab session={session} isB2B={isB2B} />}
+      {activeTab === 'profile' && <ProfileTab session={session} />}
       {activeTab === 'orders' && <OrdersTab />}
       {activeTab === 'addresses' && <AddressesTab />}
       {activeTab === 'quotes' && (
@@ -58,20 +56,16 @@ export default function AccountPage() {
 }
 
 
-function ProfileTab({ session, isB2B }: { session: any; isB2B: boolean }) {
+function ProfileTab({ session }: { session: any }) {
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState(session.user.name || '')
   const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
-  const [b2bStatus, setB2bStatus] = useState(session.user.b2bStatus || '')
-  const [companyName, setCompanyName] = useState('')
 
   useEffect(() => {
     fetch('/api/account/profile').then(r => r.json()).then(data => {
       if (data.phone) setPhone(data.phone)
       if (data.name) setName(data.name)
-      if (data.b2bStatus) setB2bStatus(data.b2bStatus)
-      if (data.companyName) setCompanyName(data.companyName)
     })
   }, [])
 
@@ -126,28 +120,7 @@ function ProfileTab({ session, isB2B }: { session: any; isB2B: boolean }) {
           <div className="flex gap-2"><span className="text-gray-500 w-24 text-sm">Ad Soyad:</span><span className="text-sm font-medium">{name}</span></div>
           <div className="flex gap-2"><span className="text-gray-500 w-24 text-sm">E-posta:</span><span className="text-sm font-medium">{session.user.email}</span></div>
           <div className="flex gap-2"><span className="text-gray-500 w-24 text-sm">Telefon:</span><span className="text-sm font-medium">{phone || '-'}</span></div>
-          <div className="flex gap-2"><span className="text-gray-500 w-24 text-sm">Rol:</span><span className="text-sm font-medium">{session.user.role === 'ADMIN' ? 'Admin' : isB2B ? 'Bayi' : 'Müşteri'}</span></div>
-        </div>
-      )}
-
-      {isB2B && (
-        <div className="mt-6 pt-6 border-t">
-          <h3 className="font-semibold mb-3">Bayi Hesap Bilgileri</h3>
-          {companyName && (
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm text-gray-500">Firma:</span>
-              <span className="text-sm font-medium">{companyName}</span>
-            </div>
-          )}
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-sm text-gray-500">Durum:</span>
-            <span className={`badge ${b2bStatus === 'APPROVED' ? 'badge-success' : 'badge-warning'}`}>
-              {b2bStatus === 'APPROVED' ? 'Onaylı' : 'Beklemede'}
-            </span>
-          </div>
-          {b2bStatus === 'APPROVED' && (
-            <p className="text-sm text-green-600">🎉 Tebrikler! Artık bayimizsiniz ve tüm ürünleri bayi fiyatından satın alabilirsiniz.</p>
-          )}
+          <div className="flex gap-2"><span className="text-gray-500 w-24 text-sm">Rol:</span><span className="text-sm font-medium">{session.user.role === 'ADMIN' ? 'Admin' : 'Müşteri'}</span></div>
         </div>
       )}
     </div>

@@ -397,16 +397,10 @@ Mekanik Parça Deposu`
                   <p className="font-medium">{order.user?.phone || '-'}</p>
                 </div>
               </div>
-              {order.user?.companyName && (
-                <div>
-                  <p className="text-sm text-gray-500">Firma</p>
-                  <p className="font-medium">{order.user.companyName}</p>
-                </div>
-              )}
               <div>
                 <p className="text-sm text-gray-500">Müşteri Tipi</p>
-                <span className={`badge ${order.user?.role === 'B2B' ? 'badge-warning' : 'badge-info'}`}>
-                  {order.user?.role === 'B2B' ? 'Bayi' : 'Bireysel'}
+                <span className="badge badge-info">
+                  {order.user?.role === 'ADMIN' ? 'Admin' : 'Müşteri'}
                 </span>
               </div>
             </div>

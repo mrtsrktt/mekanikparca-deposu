@@ -18,7 +18,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
           product: { include: { images: { take: 1 }, brand: true, category: true } }
         }
       },
-      user: { select: { name: true, email: true, phone: true, companyName: true } },
+      user: { select: { name: true, email: true, phone: true } },
     },
   })
 

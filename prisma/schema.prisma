@@ -13,11 +13,7 @@ model User {
   password      String
   name          String
   phone         String?
-  role          String    @default("CUSTOMER") // ADMIN, CUSTOMER, B2B
-  b2bStatus     String?   // PENDING, APPROVED, REJECTED
-  companyName   String?
-  taxNumber     String?
-  taxOffice     String?
+  role          String    @default("CUSTOMER") // ADMIN, CUSTOMER
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   orders        Order[]
@@ -54,7 +50,6 @@ model Category {
   sortOrder   Int        @default(0)
   isActive    Boolean    @default(true)
   createdAt   DateTime   @default(now())
-  b2bDiscounts B2BDiscount[]
 }
 
 model Brand {
@@ -66,9 +61,7 @@ model Brand {
   isActive    Boolean   @default(true)
   sortOrder   Int       @default(0)
   products    Product[]
-  b2bDiscounts B2BDiscount[]
 }
-
 
 model Product {
   id              String   @id @default(cuid())
@@ -80,7 +73,6 @@ model Product {
   priceCurrency   String   @default("TRY") // TRY, USD, EUR
   priceOriginal   Float    // Price in original currency
   priceTRY        Float    // Calculated TRY price
-  b2bPrice        Float?   // Product-specific B2B price (highest priority)
   stock           Int      @default(0)
   trackStock      Boolean  @default(true)
   categoryId      String?
@@ -130,18 +122,6 @@ model ProductDocument {
   title     String
   fileSize  Int?    // in bytes
   sortOrder Int     @default(0)
-}
-
-model B2BDiscount {
-  id         String   @id @default(cuid())
-  scopeType  String   // "GENERAL", "BRAND", "CATEGORY"
-  brandId    String?
-  brand      Brand?   @relation(fields: [brandId], references: [id], onDelete: Cascade)
-  categoryId String?
-  category   Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  discount   Float    // İndirim yüzdesi
-  createdAt  DateTime @default(now())
-  @@unique([scopeType, brandId, categoryId])
 }
 
 model Order {

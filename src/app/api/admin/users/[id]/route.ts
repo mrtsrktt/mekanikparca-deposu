@@ -8,7 +8,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   if (error) return error
 
   const body = await req.json()
-  const { name, email, password, phone, role, companyName, taxNumber, taxOffice, b2bStatus } = body
+  const { name, email, password, phone, role } = body
 
   if (!name || !email) {
     return NextResponse.json({ error: 'Ad ve e-posta zorunludur' }, { status: 400 })
@@ -25,10 +25,6 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     email,
     phone: phone || null,
     role: role || 'CUSTOMER',
-    companyName: role === 'B2B' ? (companyName || null) : null,
-    taxNumber: role === 'B2B' ? (taxNumber || null) : null,
-    taxOffice: role === 'B2B' ? (taxOffice || null) : null,
-    b2bStatus: role === 'B2B' ? (b2bStatus || 'PENDING') : null,
   }
 
   // Only update password if provided

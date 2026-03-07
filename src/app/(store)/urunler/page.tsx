@@ -1,7 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { calculateB2BPrice, calculateTRYPrice } from '@/lib/pricing'
+import { calculateTRYPrice } from '@/lib/pricing'
 import ProductCard from '@/components/ProductCard'
 import Link from 'next/link'
 
@@ -109,27 +107,6 @@ export default async function ProductsPage({ searchParams }: Props) {
     return lowest < p.priceTRY ? lowest : null
   }
 
-  // B2B fiyat hesaplama
-  const session = await getServerSession(authOptions)
-  const isB2B = session?.user && (session.user as any).role === 'B2B'
-  let b2bPriceMap: Record<string, number> = {}
-
-  if (isB2B) {
-    const user = await prisma.user.findUnique({ where: { id: (session.user as any).id } })
-    if (user && user.b2bStatus === 'APPROVED') {
-      const prices = await Promise.all(
-        productsWithConvertedPrices.map(async (p) => ({
-          id: p.id,
-          b2bPrice: await calculateB2BPrice(p),
-          originalPrice: p.priceTRY,
-        }))
-      )
-      for (const p of prices) {
-        if (p.b2bPrice < p.originalPrice) b2bPriceMap[p.id] = p.b2bPrice
-      }
-    }
-  }
-
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
@@ -210,7 +187,7 @@ export default async function ProductsPage({ searchParams }: Props) {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {productsWithConvertedPrices.map((product) => (
-                <ProductCard key={product.id} product={product} hasCampaign={hasCampaign(product)} campaignLowestPrice={getCampaignLowestPrice(product)} b2bUserPrice={b2bPriceMap[product.id]} showB2B={isB2B} />
+                <ProductCard key={product.id} product={product} hasCampaign={hasCampaign(product)} campaignLowestPrice={getCampaignLowestPrice(product)} />
               ))}
             </div>
           )}

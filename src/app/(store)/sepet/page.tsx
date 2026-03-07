@@ -11,14 +11,11 @@ interface CartItem {
   quantity: number
   product?: any
   campaignPrice?: any
-  b2bPrice?: number | null
 }
 
 export default function CartPage() {
-  const { data: session } = useSession()
   const [items, setItems] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
-  const isB2B = session?.user && (session.user as any).role === 'B2B'
 
   const loadCart = useCallback(async () => {
     const cart = JSON.parse(localStorage.getItem('cart') || '[]')
@@ -54,24 +51,6 @@ export default function CartPage() {
           for (const item of validItems) {
             const price = prices.find((p: any) => p.productId === item.productId)
             if (price) item.campaignPrice = price
-          }
-        }
-      } catch {}
-    }
-
-    // Fetch B2B prices
-    if (validItems.length > 0) {
-      try {
-        const res = await fetch('/api/b2b/prices', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productIds: validItems.map(i => i.productId) }),
-        })
-        if (res.ok) {
-          const b2bPrices = await res.json()
-          for (const item of validItems) {
-            const bp = b2bPrices.find((p: any) => p.productId === item.productId)
-            if (bp?.hasDiscount) item.b2bPrice = bp.b2bPrice
           }
         }
       } catch {}
@@ -115,23 +94,16 @@ export default function CartPage() {
   }
 
   const getUnitPrice = (item: CartItem) => {
-    // Kampanya fiyatı varsa öncelikli
     if (item.campaignPrice?.appliedCampaign) return item.campaignPrice.discountedPrice
-    // B2B fiyatı varsa
-    if (item.b2bPrice && item.b2bPrice < (item.product?.priceTRY || 0)) return item.b2bPrice
     return item.product?.priceTRY || 0
   }
 
-  const getDiscountLabel = (item: CartItem): { type: 'campaign' | 'b2b' | null; label: string } => {
+  const getDiscountLabel = (item: CartItem): { type: 'campaign' | null; label: string } => {
     if (item.campaignPrice?.appliedCampaign) {
       return {
         type: 'campaign',
         label: `🎁 ${item.campaignPrice.appliedCampaign.name}${item.campaignPrice.appliedTier ? ` (${item.campaignPrice.appliedTier.minQuantity}+ adet)` : ''}`,
       }
-    }
-    if (item.b2bPrice && item.b2bPrice < (item.product?.priceTRY || 0)) {
-      const pct = Math.round((1 - item.b2bPrice / item.product.priceTRY) * 100)
-      return { type: 'b2b', label: `Bayi İndirimi (%${pct})` }
     }
     return { type: null, label: '' }
   }
@@ -213,7 +185,7 @@ export default function CartPage() {
               </div>
               {totalDiscount > 0 && (
                 <div className="flex justify-between text-green-600">
-                  <span>{isB2B ? 'Bayi İndirimi' : 'İndirim'}</span>
+                  <span>İndirim</span>
                   <span>-{formatPrice(totalDiscount)}</span>
                 </div>
               )}

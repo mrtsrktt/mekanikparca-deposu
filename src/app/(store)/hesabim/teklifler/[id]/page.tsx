@@ -102,7 +102,6 @@ export default function QuoteDetailPage({ params }: { params: { id: string } }) 
             <div className="border rounded-lg p-3 bg-gray-50">
               <p className="text-xs font-semibold text-gray-500 mb-1">Müşteri Bilgileri</p>
               <p className="text-sm font-semibold">{quote.user?.name}</p>
-              {quote.user?.companyName && <p className="text-sm text-gray-600">{quote.user.companyName}</p>}
               <p className="text-xs text-gray-500">{quote.user?.email}</p>
               {quote.user?.phone && <p className="text-xs text-gray-500">Tel: {quote.user.phone}</p>}
             </div>

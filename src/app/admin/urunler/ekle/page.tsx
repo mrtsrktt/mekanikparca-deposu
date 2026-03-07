@@ -16,7 +16,7 @@ export default function AddProductPage() {
   const [uploadingDocs, setUploadingDocs] = useState(false)
   const [form, setForm] = useState({
     name: '', slug: '', sku: '', description: '', technicalDetails: '',
-    priceCurrency: 'TRY', priceOriginal: 0, b2bPrice: 0,
+    priceCurrency: 'TRY', priceOriginal: 0,
     stock: 0, trackStock: true, categoryId: '', brandId: '',
     isActive: true, isFeatured: false,
     metaTitle: '', metaDesc: '', weight: 0, unit: 'Adet', minOrder: 1,
@@ -171,11 +171,6 @@ export default function AddProductPage() {
             <div>
               <label className="block text-sm font-medium mb-1">Fiyat *</label>
               <input type="number" step="any" required className="input-field" value={form.priceOriginal} onChange={(e) => update('priceOriginal', parseFloat(e.target.value) || 0)} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Bayi Özel Fiyat ({form.priceCurrency})</label>
-              <input type="number" step="0.01" className="input-field" value={form.b2bPrice} onChange={(e) => update('b2bPrice', parseFloat(e.target.value))} />
-              <p className="text-xs text-gray-400 mt-1">Boş bırakılırsa indirim kuralları uygulanır</p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">

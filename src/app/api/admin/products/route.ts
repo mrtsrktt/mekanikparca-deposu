@@ -38,23 +38,21 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json()
-    const { name, slug, sku, description, technicalDetails, priceCurrency, priceOriginal, b2bPrice,
+    const { name, slug, sku, description, technicalDetails, priceCurrency, priceOriginal,
       stock, trackStock, categoryId, brandId, isActive, isFeatured, metaTitle, metaDesc, weight, unit, minOrder, freeShipping, images, videos, documents } = body
 
     // Calculate TRY price
     let priceTRY = priceOriginal
-    let b2bPriceTRY = b2bPrice || null
     if (priceCurrency !== 'TRY') {
       const rate = await prisma.currencyRate.findUnique({ where: { currency: priceCurrency } })
       if (rate) {
         priceTRY = priceOriginal * rate.rate
-        if (b2bPrice) b2bPriceTRY = b2bPrice * rate.rate
       }
     }
 
     const createData: any = {
       name, slug, sku, description, technicalDetails, priceCurrency, priceOriginal, priceTRY,
-      b2bPrice: b2bPriceTRY, stock, trackStock: trackStock ?? true,
+      stock, trackStock: trackStock ?? true,
       categoryId: categoryId || null, brandId: brandId || null,
       isActive: isActive ?? true, isFeatured: isFeatured ?? false,
       freeShipping: freeShipping ?? false,

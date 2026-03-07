@@ -25,9 +25,7 @@ export default function AdminDashboard() {
     { label: 'Toplam Ürün', value: stats.totalProducts, icon: FiPackage, color: 'bg-blue-500' },
     { label: 'Toplam Sipariş', value: stats.totalOrders, icon: FiShoppingCart, color: 'bg-green-500' },
     { label: 'Toplam Gelir', value: formatPrice(stats.totalRevenue), icon: FiDollarSign, color: 'bg-yellow-500' },
-    { label: 'B2C Müşteri', value: stats.totalUsers, icon: FiUsers, color: 'bg-purple-500' },
-    { label: 'B2B Müşteri', value: stats.totalB2BUsers, icon: FiUsers, color: 'bg-indigo-500' },
-    { label: 'Bekleyen B2B', value: stats.pendingB2B, icon: FiAlertCircle, color: 'bg-orange-500' },
+    { label: 'Müşteri', value: stats.totalUsers, icon: FiUsers, color: 'bg-purple-500' },
     { label: 'Bekleyen Sipariş', value: stats.pendingOrders, icon: FiClock, color: 'bg-red-500' },
     { label: 'Bekleyen Teklif', value: stats.pendingQuotes, icon: FiFileText, color: 'bg-teal-500' },
   ]
@@ -79,7 +77,7 @@ export default function AdminDashboard() {
                   <tr key={q.id} className="border-t hover:bg-gray-50">
                     <td className="p-3 font-semibold text-primary-500">{q.quoteNumber}</td>
                     <td className="p-3">{q.user?.name}<br/><span className="text-xs text-gray-400">{q.user?.email}</span></td>
-                    <td className="p-3 text-gray-500">{q.user?.companyName || '-'}</td>
+                    <td className="p-3 text-gray-500">{q.customerCompany || '-'}</td>
                     <td className="p-3 text-center">{q.items?.length} ürün</td>
                     <td className="p-3 text-gray-500 text-xs">{new Date(q.createdAt).toLocaleDateString('tr-TR')}</td>
                     <td className="p-3">
@@ -104,7 +102,6 @@ export default function AdminDashboard() {
               <tr>
                 <th className="text-left p-3">Sipariş No</th>
                 <th className="text-left p-3">Müşteri</th>
-                <th className="text-left p-3">Tip</th>
                 <th className="text-left p-3">Tutar</th>
                 <th className="text-left p-3">Durum</th>
                 <th className="text-left p-3">Tarih</th>
@@ -115,11 +112,6 @@ export default function AdminDashboard() {
                 <tr key={order.id} className="border-t hover:bg-gray-50">
                   <td className="p-3 font-medium">{order.orderNumber}</td>
                   <td className="p-3">{order.user?.name}</td>
-                  <td className="p-3">
-                    <span className={`badge ${order.user?.role === 'B2B' ? 'badge-warning' : 'badge-info'}`}>
-                      {order.user?.role}
-                    </span>
-                  </td>
                   <td className="p-3 font-medium">{formatPrice(order.totalAmount)}</td>
                   <td className="p-3">
                     <span className={`badge ${

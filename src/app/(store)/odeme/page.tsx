@@ -13,7 +13,6 @@ interface CartItem {
   product?: any
   unitPrice?: number
   campaignPrice?: any
-  b2bPrice?: number | null
 }
 
 interface Address {
@@ -79,24 +78,6 @@ export default function OdemePage() {
       } catch {}
     }
 
-    // Fetch B2B prices
-    if (validItems.length > 0) {
-      try {
-        const res = await fetch('/api/b2b/prices', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productIds: validItems.map(i => i.productId) }),
-        })
-        if (res.ok) {
-          const b2bPrices = await res.json()
-          for (const item of validItems) {
-            const bp = b2bPrices.find((p: any) => p.productId === item.productId)
-            if (bp?.hasDiscount) item.b2bPrice = bp.b2bPrice
-          }
-        }
-      } catch {}
-    }
-
     setItems(validItems)
 
     const addrRes = await fetch('/api/account/addresses')
@@ -139,23 +120,16 @@ export default function OdemePage() {
   }
 
   const getUnitPrice = (item: CartItem) => {
-    // Kampanya fiyatı varsa öncelikli
     if (item.campaignPrice?.appliedCampaign) return item.campaignPrice.discountedPrice
-    // B2B fiyatı varsa
-    if (item.b2bPrice && item.b2bPrice < (item.product?.priceTRY || 0)) return item.b2bPrice
     return item.product?.priceTRY || 0
   }
 
-  const getDiscountLabel = (item: CartItem): { type: 'campaign' | 'b2b' | null; label: string } => {
+  const getDiscountLabel = (item: CartItem): { type: 'campaign' | null; label: string } => {
     if (item.campaignPrice?.appliedCampaign) {
       return {
         type: 'campaign',
         label: `🎁 ${item.campaignPrice.appliedCampaign.name}${item.campaignPrice.appliedTier ? ` (${item.campaignPrice.appliedTier.minQuantity}+ adet)` : ''}`,
       }
-    }
-    if (item.b2bPrice && item.b2bPrice < (item.product?.priceTRY || 0)) {
-      const pct = Math.round((1 - item.b2bPrice / item.product.priceTRY) * 100)
-      return { type: 'b2b', label: `Bayi İndirimi (%${pct})` }
     }
     return { type: null, label: '' }
   }
@@ -295,7 +269,7 @@ export default function OdemePage() {
               </div>
               {totalDiscount > 0 && (
                 <div className="flex justify-between text-green-600">
-                  <span>{session?.user && (session.user as any).role === 'B2B' ? 'Bayi İndirimi' : 'İndirim'}</span>
+                  <span>İndirim</span>
                   <span>-{formatPrice(totalDiscount)}</span>
                 </div>
               )}

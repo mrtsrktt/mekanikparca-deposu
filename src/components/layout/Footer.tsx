@@ -27,7 +27,6 @@ export default function Footer() {
                 { href: '/kategoriler', label: 'Kategoriler' },
                 { href: '/markalar', label: 'Markalar' },
                 { href: '/kampanyalar', label: 'Kampanyalar', accent: true },
-                { href: '/b2b-basvuru', label: 'Bayi Başvuru' },
                 { href: '/blog', label: 'Blog' },
               ].map(item => (
                 <li key={item.href}>

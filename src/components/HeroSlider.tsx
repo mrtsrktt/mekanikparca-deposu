@@ -5,14 +5,6 @@ import Link from 'next/link'
 
 const slides = [
   {
-    image: '/images/toptanci.png',
-    title: '',
-    desc: '',
-    btnText: '',
-    btnLink: '/b2b-basvuru',
-    hasOverlay: false,
-  },
-  {
     image: '/images/fernox.png',
     title: '',
     desc: '',
@@ -145,18 +137,13 @@ export default function HeroSlider() {
         </div>
       </div>
 
-      {/* Slide 1: tıklanabilir → bayi başvuru */}
+      {/* Slide 1: tıklanabilir → Fernox ürünleri */}
       {active === 0 && (
-        <Link href="/b2b-basvuru" className="absolute inset-0 z-20 cursor-pointer" aria-label="Hemen Kaydol - Bayi Başvuru" />
-      )}
-
-      {/* Slide 2: tıklanabilir → Fernox ürünleri */}
-      {active === 1 && (
         <Link href="/urunler?brand=fernox" className="absolute inset-0 z-20 cursor-pointer" aria-label="Fernox Ürünlerini Gör" />
       )}
 
-      {/* Slide 4: tıklanabilir → Ürünler */}
-      {active === 3 && (
+      {/* Slide 3: tıklanabilir → Ürünler */}
+      {active === 2 && (
         <Link href="/urunler" className="absolute inset-0 z-20 cursor-pointer" aria-label="Ürünleri İncele" />
       )}
 

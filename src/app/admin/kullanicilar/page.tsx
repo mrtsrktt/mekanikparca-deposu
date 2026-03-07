@@ -10,15 +10,11 @@ interface UserForm {
   password: string
   phone: string
   role: string
-  companyName: string
-  taxNumber: string
-  taxOffice: string
-  b2bStatus: string
 }
 
 const emptyForm: UserForm = {
   name: '', email: '', password: '', phone: '',
-  role: 'CUSTOMER', companyName: '', taxNumber: '', taxOffice: '', b2bStatus: 'APPROVED',
+  role: 'CUSTOMER',
 }
 
 export default function AdminUsersPage() {
@@ -37,8 +33,7 @@ export default function AdminUsersPage() {
 
   const filtered = users.filter(u =>
     u.name?.toLowerCase().includes(search.toLowerCase()) ||
-    u.email?.toLowerCase().includes(search.toLowerCase()) ||
-    u.companyName?.toLowerCase().includes(search.toLowerCase())
+    u.email?.toLowerCase().includes(search.toLowerCase())
   )
 
   const openAdd = () => {
@@ -55,10 +50,6 @@ export default function AdminUsersPage() {
       password: '',
       phone: u.phone || '',
       role: u.role || 'CUSTOMER',
-      companyName: u.companyName || '',
-      taxNumber: u.taxNumber || '',
-      taxOffice: u.taxOffice || '',
-      b2bStatus: u.b2bStatus || 'APPROVED',
     })
     setShowModal(true)
   }
@@ -109,13 +100,11 @@ export default function AdminUsersPage() {
 
   const roleLabel = (role: string) => {
     if (role === 'ADMIN') return 'Admin'
-    if (role === 'B2B') return 'Bayi'
     return 'Müşteri'
   }
 
   const roleBadge = (role: string) => {
     if (role === 'ADMIN') return 'badge-danger'
-    if (role === 'B2B') return 'badge-warning'
     return 'badge-info'
   }
 
@@ -133,7 +122,7 @@ export default function AdminUsersPage() {
         <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
         <input
           type="text"
-          placeholder="Ad, e-posta veya firma ara..."
+          placeholder="Ad veya e-posta ara..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="input-field pl-9 text-sm"
@@ -149,7 +138,6 @@ export default function AdminUsersPage() {
               <th className="text-left p-3">E-posta</th>
               <th className="text-left p-3">Telefon</th>
               <th className="text-left p-3">Rol</th>
-              <th className="text-left p-3">Firma</th>
               <th className="text-left p-3">Sipariş</th>
               <th className="text-left p-3">Kayıt Tarihi</th>
               <th className="text-left p-3">İşlem</th>
@@ -163,13 +151,7 @@ export default function AdminUsersPage() {
                 <td className="p-3 text-gray-500">{u.phone || '-'}</td>
                 <td className="p-3">
                   <span className={`badge ${roleBadge(u.role)}`}>{roleLabel(u.role)}</span>
-                  {u.role === 'B2B' && u.b2bStatus && (
-                    <span className={`badge ml-1 ${u.b2bStatus === 'APPROVED' ? 'badge-success' : u.b2bStatus === 'REJECTED' ? 'badge-danger' : 'badge-warning'}`}>
-                      {u.b2bStatus === 'APPROVED' ? 'Onaylı' : u.b2bStatus === 'REJECTED' ? 'Reddedildi' : 'Beklemede'}
-                    </span>
-                  )}
                 </td>
-                <td className="p-3">{u.companyName || '-'}</td>
                 <td className="p-3">{u._count?.orders || 0}</td>
                 <td className="p-3 text-gray-500">{new Date(u.createdAt).toLocaleDateString('tr-TR')}</td>
                 <td className="p-3">
@@ -229,38 +211,9 @@ export default function AdminUsersPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Rol *</label>
                 <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className="input-field text-sm">
                   <option value="CUSTOMER">Müşteri</option>
-                  <option value="B2B">Bayi</option>
                   <option value="ADMIN">Admin</option>
                 </select>
               </div>
-
-              {form.role === 'B2B' && (
-                <div className="border rounded-lg p-4 bg-orange-50/50 space-y-3">
-                  <h3 className="text-sm font-semibold text-orange-700">Bayi Bilgileri</h3>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Firma Adı</label>
-                    <input type="text" value={form.companyName} onChange={(e) => setForm({ ...form, companyName: e.target.value })} className="input-field text-sm" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Vergi No</label>
-                      <input type="text" value={form.taxNumber} onChange={(e) => setForm({ ...form, taxNumber: e.target.value })} className="input-field text-sm" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Vergi Dairesi</label>
-                      <input type="text" value={form.taxOffice} onChange={(e) => setForm({ ...form, taxOffice: e.target.value })} className="input-field text-sm" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Bayi Durumu</label>
-                    <select value={form.b2bStatus} onChange={(e) => setForm({ ...form, b2bStatus: e.target.value })} className="input-field text-sm">
-                      <option value="APPROVED">Onaylı</option>
-                      <option value="PENDING">Beklemede</option>
-                      <option value="REJECTED">Reddedildi</option>
-                    </select>
-                  </div>
-                </div>
-              )}
             </div>
             <div className="flex justify-end gap-2 p-4 border-t">
               <button onClick={() => setShowModal(false)} className="btn-secondary text-sm">İptal</button>

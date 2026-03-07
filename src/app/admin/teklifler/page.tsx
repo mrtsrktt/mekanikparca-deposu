@@ -63,7 +63,7 @@ export default function AdminQuotesPage() {
                       {q.user?.name || q.customerName}
                       <br /><span className="text-xs text-gray-400">{q.user?.email || q.customerEmail}</span>
                     </td>
-                    <td className="p-3 text-gray-500">{q.user?.companyName || q.customerCompany || '-'}</td>
+                    <td className="p-3 text-gray-500">{q.customerCompany || '-'}</td>
                     <td className="p-3 text-center">{q.items?.length} ürün</td>
                     <td className="p-3 text-center"><span className={`badge ${st.class}`}>{st.label}</span></td>
                     <td className="p-3 text-gray-500 text-xs">

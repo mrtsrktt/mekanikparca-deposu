@@ -36,7 +36,6 @@ export default function AdminOrdersPage() {
             <tr>
               <th className="text-left p-3">Sipariş No</th>
               <th className="text-left p-3">Müşteri</th>
-              <th className="text-left p-3">Tip</th>
               <th className="text-left p-3">Tutar</th>
               <th className="text-left p-3">Durum</th>
               <th className="text-left p-3">Tarih</th>
@@ -56,7 +55,6 @@ export default function AdminOrdersPage() {
                     {o.user?.name}<br/><span className="text-xs text-gray-400">{o.user?.email}</span>
                   </Link>
                 </td>
-                <td className="p-3"><span className={`badge ${o.user?.role === 'B2B' ? 'badge-warning' : 'badge-info'}`}>{o.user?.role}</span></td>
                 <td className="p-3 font-medium">{formatPrice(o.totalAmount)}</td>
                 <td className="p-3"><span className={`badge ${o.status === 'DELIVERED' ? 'badge-success' : o.status === 'CANCELLED' ? 'badge-danger' : 'badge-warning'}`}>{statusLabels[o.status]}</span></td>
                 <td className="p-3 text-gray-500">{new Date(o.createdAt).toLocaleDateString('tr-TR')}</td>
@@ -68,7 +66,7 @@ export default function AdminOrdersPage() {
               </tr>
             ))}
             {!loading && orders.length === 0 && (
-              <tr><td colSpan={7} className="p-8 text-center text-gray-500">Henüz sipariş yok.</td></tr>
+              <tr><td colSpan={6} className="p-8 text-center text-gray-500">Henüz sipariş yok.</td></tr>
             )}
           </tbody>
         </table>

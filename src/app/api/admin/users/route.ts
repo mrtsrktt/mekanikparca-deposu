@@ -7,7 +7,7 @@ export async function GET() {
   const { error } = await requireAdmin()
   if (error) return error
   const users = await prisma.user.findMany({
-    select: { id: true, email: true, name: true, phone: true, role: true, b2bStatus: true, companyName: true, taxNumber: true, taxOffice: true, createdAt: true, _count: { select: { orders: true } } },
+    select: { id: true, email: true, name: true, phone: true, role: true, createdAt: true, _count: { select: { orders: true } } },
     orderBy: { createdAt: 'desc' },
   })
   return NextResponse.json(users)
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   if (error) return error
 
   const body = await req.json()
-  const { name, email, password, phone, role, companyName, taxNumber, taxOffice, b2bStatus } = body
+  const { name, email, password, phone, role } = body
 
   if (!name || !email || !password) {
     return NextResponse.json({ error: 'Ad, e-posta ve şifre zorunludur' }, { status: 400 })
@@ -38,10 +38,6 @@ export async function POST(req: Request) {
       password: hashedPassword,
       phone: phone || null,
       role: role || 'CUSTOMER',
-      companyName: role === 'B2B' ? (companyName || null) : null,
-      taxNumber: role === 'B2B' ? (taxNumber || null) : null,
-      taxOffice: role === 'B2B' ? (taxOffice || null) : null,
-      b2bStatus: role === 'B2B' ? (b2bStatus || 'APPROVED') : null,
     },
   })
 

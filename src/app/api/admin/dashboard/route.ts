@@ -16,8 +16,6 @@ export async function GET(req: NextRequest) {
       totalOrders,
       totalRevenueResult,
       totalUsers,
-      totalB2BUsers,
-      pendingB2B,
       pendingOrders,
       pendingQuotes,
       recentOrders,
@@ -25,28 +23,22 @@ export async function GET(req: NextRequest) {
     ] = await Promise.all([
       // Toplam ürün
       (prisma as any).product.count({ where: { isActive: true } }),
-      
+
       // Toplam sipariş (sadece ödenmiş)
       (prisma as any).order.count({ where: { paymentStatus: 'PAID' } }),
-      
+
       // Toplam gelir (sadece ödenmiş siparişler)
       (prisma as any).order.aggregate({
         where: { paymentStatus: 'PAID' },
         _sum: { totalAmount: true }
       }),
-      
-      // Toplam B2C müşteri
+
+      // Toplam müşteri
       (prisma as any).user.count({ where: { role: 'CUSTOMER' } }),
-      
-      // Toplam B2B müşteri
-      (prisma as any).user.count({ where: { role: 'B2B', b2bStatus: 'APPROVED' } }),
-      
-      // Bekleyen B2B başvuruları
-      (prisma as any).user.count({ where: { role: 'B2B', b2bStatus: 'PENDING' } }),
-      
+
       // Bekleyen siparişler (PENDING status)
       (prisma as any).order.count({ where: { status: 'PENDING', paymentStatus: 'PAID' } }),
-      
+
       // Bekleyen teklif talepleri
       (prisma as any).quoteRequest.count({ where: { status: 'PENDING' } }),
       
@@ -67,7 +59,7 @@ export async function GET(req: NextRequest) {
         where: { status: 'PENDING' },
         include: {
           user: {
-            select: { id: true, name: true, email: true, companyName: true }
+            select: { id: true, name: true, email: true }
           },
           items: {
             select: { id: true }
@@ -83,8 +75,6 @@ export async function GET(req: NextRequest) {
       totalOrders,
       totalRevenue: totalRevenueResult._sum.totalAmount || 0,
       totalUsers,
-      totalB2BUsers,
-      pendingB2B,
       pendingOrders,
       pendingQuotes
     }

@@ -13,7 +13,6 @@ interface ProductCardProps {
     name: string
     slug: string
     priceTRY: number
-    b2bPrice?: number | null
     images: { url: string; alt?: string | null }[]
     brand?: { name: string } | null
     category?: { name: string } | null
@@ -21,17 +20,14 @@ interface ProductCardProps {
     trackStock?: boolean
     freeShipping?: boolean
   }
-  b2bUserPrice?: number | null
-  showB2B?: boolean
   hasCampaign?: boolean
   campaignLowestPrice?: number | null
 }
 
-export default function ProductCard({ product, b2bUserPrice, showB2B, hasCampaign, campaignLowestPrice }: ProductCardProps) {
+export default function ProductCard({ product, hasCampaign, campaignLowestPrice }: ProductCardProps) {
   const [isAdding, setIsAdding] = useState(false)
   const [added, setAdded] = useState(false)
   const imageUrl = product.images[0]?.url || '/placeholder.jpg'
-  const hasB2BDiscount = showB2B && b2bUserPrice && b2bUserPrice < product.priceTRY
   const hasCampaignDiscount = hasCampaign && campaignLowestPrice && campaignLowestPrice < product.priceTRY
 
   return (
@@ -49,11 +45,6 @@ export default function ProductCard({ product, b2bUserPrice, showB2B, hasCampaig
             </div>
           )}
           {hasCampaign && <CampaignBadge />}
-          {hasB2BDiscount && (
-            <span className="absolute top-2.5 left-2.5 bg-gradient-to-r from-amber-400 to-amber-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm">
-              Bayi Fiyat
-            </span>
-          )}
         </div>
       </Link>
 
@@ -78,15 +69,6 @@ export default function ProductCard({ product, b2bUserPrice, showB2B, hasCampaig
                 </span>
                 <span className="text-sm font-bold text-red-500">
                   {formatPrice(campaignLowestPrice)} <span className="text-[10px] font-normal text-red-400">&#39;den başlayan</span>
-                </span>
-              </>
-            ) : hasB2BDiscount ? (
-              <>
-                <span className="text-xs text-gray-400 line-through block">
-                  {formatPrice(product.priceTRY)}
-                </span>
-                <span className="text-lg font-bold text-primary-500">
-                  {formatPrice(b2bUserPrice!)}
                 </span>
               </>
             ) : (

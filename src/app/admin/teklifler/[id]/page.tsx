@@ -217,7 +217,7 @@ export default function AdminQuoteDetailPage({ params }: { params: { id: string 
               <div><span className="text-gray-400 block">Müşteri</span><span className="font-medium">{quote.user?.name || quote.customerName}</span></div>
               <div><span className="text-gray-400 block">E-posta</span><span className="font-medium">{quote.user?.email || quote.customerEmail || '-'}</span></div>
               <div><span className="text-gray-400 block">Telefon</span><span className="font-medium">{quote.user?.phone || quote.customerPhone || '-'}</span></div>
-              <div><span className="text-gray-400 block">Firma</span><span className="font-medium">{quote.user?.companyName || quote.customerCompany || '-'}</span></div>
+              <div><span className="text-gray-400 block">Firma</span><span className="font-medium">{quote.customerCompany || '-'}</span></div>
             </div>
             {quote.isManual && (
               <div className="bg-blue-50 rounded-lg p-3 mb-4 text-xs text-blue-600">

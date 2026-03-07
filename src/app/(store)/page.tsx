@@ -1,8 +1,6 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { calculateB2BPrice, calculateTRYPrice } from '@/lib/pricing'
+import { calculateTRYPrice } from '@/lib/pricing'
 import ProductCard from '@/components/ProductCard'
 import HeroSlider from '@/components/HeroSlider'
 
@@ -138,19 +136,6 @@ export default async function HomePage() {
     prods.forEach(p => { if (!campaignProductIds.has(p.id)) { campaignProductIds.add(p.id); allCampaignProducts.push(p) } })
   }
   const homeCampaignProducts = convertProductPrices(allCampaignProducts.slice(0, 6))
-
-  const session = await getServerSession(authOptions)
-  const isB2B = session?.user && (session.user as any).role === 'B2B'
-  let b2bPriceMap: Record<string, number> = {}
-  if (isB2B) {
-    const user = await prisma.user.findUnique({ where: { id: (session.user as any).id } })
-    if (user && user.b2bStatus === 'APPROVED') {
-      const allProducts = [...featuredProductsConverted, ...homeCampaignProducts, ...brandsWithProducts.flatMap(b => b.products)]
-      const uniqueProducts = Array.from(new Map(allProducts.map(p => [p.id, p])).values())
-      const prices = await Promise.all(uniqueProducts.map(async (p) => ({ id: p.id, b2bPrice: await calculateB2BPrice(p), originalPrice: p.priceTRY })))
-      for (const p of prices) { if (p.b2bPrice < p.originalPrice) b2bPriceMap[p.id] = p.b2bPrice }
-    }
-  }
 
   // Marka ürünlerini de döviz kurlarına göre düzelt
   const brandsWithProductsConverted = brandsWithProducts.map(brand => ({
@@ -429,7 +414,7 @@ export default async function HomePage() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               {homeCampaignProducts.map((product: any) => (
-                <ProductCard key={product.id} product={product} hasCampaign campaignLowestPrice={getCampaignLowestPrice(product)} b2bUserPrice={b2bPriceMap[product.id]} showB2B={isB2B} />
+                <ProductCard key={product.id} product={product} hasCampaign campaignLowestPrice={getCampaignLowestPrice(product)} />
               ))}
             </div>
           </div>
@@ -449,7 +434,7 @@ export default async function HomePage() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {featuredProductsConverted.map((product) => (
-                <ProductCard key={product.id} product={product} hasCampaign={hasCampaign(product)} campaignLowestPrice={getCampaignLowestPrice(product)} b2bUserPrice={b2bPriceMap[product.id]} showB2B={isB2B} />
+                <ProductCard key={product.id} product={product} hasCampaign={hasCampaign(product)} campaignLowestPrice={getCampaignLowestPrice(product)} />
               ))}
             </div>
           </div>
@@ -481,7 +466,7 @@ export default async function HomePage() {
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 {brand.products.map((product) => (
-                  <ProductCard key={product.id} product={product} hasCampaign={hasCampaign(product)} campaignLowestPrice={getCampaignLowestPrice(product)} b2bUserPrice={b2bPriceMap[product.id]} showB2B={isB2B} />
+                  <ProductCard key={product.id} product={product} hasCampaign={hasCampaign(product)} campaignLowestPrice={getCampaignLowestPrice(product)} />
                 ))}
               </div>
             </div>
@@ -489,23 +474,6 @@ export default async function HomePage() {
         )
       })}
 
-      {/* Bayi CTA */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary-800 via-primary-700 to-corporate-dark" />
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(245,158,11,0.3) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(59,130,246,0.2) 0%, transparent 50%)' }} />
-        <div className="relative max-w-7xl mx-auto px-4 py-20 text-center">
-          <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-4 tracking-tight">
-            Toptan Alım İçin <span className="text-accent-400">Bayi Hesabı</span> Açın
-          </h2>
-          <p className="text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
-            Bayi müşterilerimize özel indirimli fiyatlar, toptan alım avantajları ve
-            öncelikli teknik destek hizmetimizden yararlanın.
-          </p>
-          <Link href="/b2b-basvuru" className="btn-accent text-lg px-10 py-3.5 rounded-xl shadow-lg shadow-accent-500/25 hover:shadow-xl hover:shadow-accent-500/30">
-            Bayi Başvuru Yap
-          </Link>
-        </div>
-      </section>
     </div>
   )
 }

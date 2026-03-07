@@ -1,7 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { calculateB2BPrice, formatPrice, calculateTRYPrice } from '@/lib/pricing'
+import { formatPrice, calculateTRYPrice } from '@/lib/pricing'
 import { getActiveCampaignsForProduct } from '@/lib/campaignPricing'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -83,16 +81,6 @@ export default async function ProductDetailPage({ params }: Props) {
     // Table doesn't exist yet
   }
 
-  const session = await getServerSession(authOptions)
-  let b2bPrice: number | null = null
-
-  if (session?.user?.role === 'B2B') {
-    const user = await prisma.user.findUnique({ where: { id: session.user.id } })
-    if (user && user.b2bStatus === 'APPROVED') {
-      b2bPrice = await calculateB2BPrice(productWithConvertedPrice)
-    }
-  }
-
   // Fetch active campaigns for this product
   const campaigns = await getActiveCampaignsForProduct(product.id)
   const campaignsData = campaigns.map(c => ({
@@ -143,20 +131,7 @@ export default async function ProductDetailPage({ params }: Props) {
 
           {/* Pricing */}
           <div className="bg-gray-50 rounded-xl p-6 mb-6">
-            {b2bPrice && b2bPrice < productWithConvertedPrice.priceTRY ? (
-              <div>
-                <span className="badge badge-warning mb-2">Bayi Özel Fiyat</span>
-                <div className="flex items-end gap-3">
-                  <span className="text-3xl font-bold text-primary-500">{formatPrice(b2bPrice)}</span>
-                  <span className="text-lg text-gray-400 line-through">{formatPrice(productWithConvertedPrice.priceTRY)}</span>
-                </div>
-                <p className="text-sm text-green-600 mt-1">
-                  %{Math.round((1 - b2bPrice / productWithConvertedPrice.priceTRY) * 100)} bayi indirimi
-                </p>
-              </div>
-            ) : (
-              <span className="text-3xl font-bold text-primary-500">{formatPrice(productWithConvertedPrice.priceTRY)}</span>
-            )}
+            <span className="text-3xl font-bold text-primary-500">{formatPrice(productWithConvertedPrice.priceTRY)}</span>
             {productWithConvertedPrice.priceCurrency !== 'TRY' && (
               <p className="text-xs text-gray-400 mt-1">
                 Para birimi: {productWithConvertedPrice.priceCurrency}

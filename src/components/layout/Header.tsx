@@ -29,8 +29,6 @@ export default function Header() {
   const brandRef = useRef<HTMLLIElement>(null)
   const [cartCount, setCartCount] = useState(0)
 
-  const isB2B = session?.user?.role === 'B2B'
-
   useEffect(() => {
     fetch('/api/public/categories').then(r => r.json()).then(setCategories).catch(() => {})
     fetch('/api/public/brands').then(r => r.json()).then(setBrands).catch(() => {})
@@ -94,7 +92,6 @@ export default function Header() {
             </a>
           </div>
           <div className="flex items-center gap-3">
-            {isB2B && <span className="badge badge-warning text-[10px]">Bayi</span>}
             {session ? (
               <div className="flex items-center gap-3">
                 <Link href="/hesabim" className="flex items-center gap-1 hover:text-white transition-colors">
@@ -110,8 +107,6 @@ export default function Header() {
                 <Link href="/giris" className="hover:text-white transition-colors">Giriş</Link>
                 <span className="text-gray-600">|</span>
                 <Link href="/kayit" className="hover:text-white transition-colors">Kayıt</Link>
-                <span className="text-gray-600">|</span>
-                <Link href="/b2b-basvuru" className="text-accent-400 hover:text-accent-500 font-semibold transition-colors">Bayi Ol</Link>
               </div>
             )}
           </div>
