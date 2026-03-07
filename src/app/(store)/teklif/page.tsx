@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { FiTrash2, FiFileText, FiPlus, FiMinus, FiSend } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import { formatPrice } from '@/lib/pricing'
+import { getStorageArray } from '@/lib/safeStorage'
 
 interface QuoteCartItem {
   productId: string
@@ -22,7 +23,7 @@ export default function QuotePage() {
   const [submitted, setSubmitted] = useState<any>(null)
 
   const loadQuoteCart = useCallback(async () => {
-    const cart = JSON.parse(localStorage.getItem('quoteCart') || '[]')
+    const cart = getStorageArray('quoteCart')
     if (cart.length === 0) { setItems([]); setLoading(false); return }
 
     const enriched = await Promise.all(

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { formatPrice } from '@/lib/pricing'
 import { FiShoppingCart, FiEye, FiCheck } from 'react-icons/fi'
 import CampaignBadge from './CampaignBadge'
+import { getStorageArray } from '@/lib/safeStorage'
 import toast from 'react-hot-toast'
 
 interface ProductCardProps {
@@ -107,7 +108,7 @@ export default function ProductCard({ product, hasCampaign, campaignLowestPrice,
                 setIsAdding(true)
                 
                 // Sepete ekle
-                const cart = JSON.parse(localStorage.getItem('cart') || '[]')
+                const cart = getStorageArray('cart')
                 const existing = cart.find((item: any) => item.productId === product.id)
                 if (existing) { 
                   existing.quantity += 1 

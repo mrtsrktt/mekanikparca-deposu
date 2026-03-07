@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { FiTrash2, FiShoppingBag } from 'react-icons/fi'
 import { formatPrice } from '@/lib/pricing'
+import { getStorageArray } from '@/lib/safeStorage'
 
 interface CartItem {
   productId: string
@@ -18,7 +19,7 @@ export default function CartPage() {
   const [loading, setLoading] = useState(true)
 
   const loadCart = useCallback(async () => {
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]')
+    const cart = getStorageArray('cart')
     if (cart.length === 0) { setItems([]); setLoading(false); return }
 
     // Fetch product details

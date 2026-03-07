@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { useSession, signOut } from 'next-auth/react'
 import { useState, useEffect, useRef } from 'react'
 import { FiMenu, FiX, FiShoppingCart, FiPhone, FiMail, FiSearch, FiChevronDown, FiFileText, FiUser } from 'react-icons/fi'
+import { getStorageArray } from '@/lib/safeStorage'
 
 interface Category { id: string; name: string; slug: string }
 interface Brand { id: string; name: string; slug: string }
@@ -33,14 +34,14 @@ export default function Header() {
     fetch('/api/public/categories').then(r => r.json()).then(setCategories).catch(() => {})
     fetch('/api/public/brands').then(r => r.json()).then(setBrands).catch(() => {})
     const updateQuoteCount = () => {
-      const qc = JSON.parse(localStorage.getItem('quoteCart') || '[]')
+      const qc = getStorageArray('quoteCart')
       setQuoteCount(qc.length)
     }
     updateQuoteCount()
     window.addEventListener('quote-cart-updated', updateQuoteCount)
 
     const updateCartCount = () => {
-      const cart = JSON.parse(localStorage.getItem('cart') || '[]')
+      const cart = getStorageArray('cart')
       const totalItems = cart.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0)
       setCartCount(totalItems)
     }

@@ -7,6 +7,7 @@ import { FiShoppingCart, FiMessageCircle, FiFileText, FiCheck } from 'react-icon
 import toast from 'react-hot-toast'
 import CampaignTierTable from '@/components/CampaignTierTable'
 import PriceTierTable from '@/components/PriceTierTable'
+import { getStorageArray } from '@/lib/safeStorage'
 import Link from 'next/link'
 
 interface CampaignTier {
@@ -50,7 +51,7 @@ export default function ProductDetailClient({ productId, productName, stock, tra
     setIsAddingToCart(true)
     
     // Sepete ekle
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]')
+    const cart = getStorageArray('cart')
     const existing = cart.find((item: any) => item.productId === productId)
     if (existing) {
       existing.quantity += quantity
@@ -107,7 +108,7 @@ export default function ProductDetailClient({ productId, productName, stock, tra
       router.push('/giris')
       return
     }
-    const quoteCart = JSON.parse(localStorage.getItem('quoteCart') || '[]')
+    const quoteCart = getStorageArray('quoteCart')
     const existing = quoteCart.find((item: any) => item.productId === productId)
     if (existing) {
       existing.quantity = quantity

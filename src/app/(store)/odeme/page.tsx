@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { formatPrice } from '@/lib/pricing'
+import { getStorageArray } from '@/lib/safeStorage'
 import toast from 'react-hot-toast'
 import { FiMapPin, FiPlus, FiCheck } from 'react-icons/fi'
 
@@ -41,7 +42,7 @@ export default function OdemePage() {
   const [newAddr, setNewAddr] = useState({ title: '', fullName: '', phone: '', city: '', district: '', address: '', zipCode: '' })
 
   const loadData = useCallback(async () => {
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]')
+    const cart = getStorageArray('cart')
     if (cart.length === 0) { router.push('/sepet'); return }
 
     const enriched = await Promise.all(
