@@ -132,11 +132,6 @@ export default async function ProductDetailPage({ params }: Props) {
           {/* Pricing */}
           <div className="bg-gray-50 rounded-xl p-6 mb-6">
             <span className="text-3xl font-bold text-primary-500">{formatPrice(productWithConvertedPrice.priceTRY)}</span>
-            {productWithConvertedPrice.priceCurrency !== 'TRY' && (
-              <p className="text-xs text-gray-400 mt-1">
-                Para birimi: {productWithConvertedPrice.priceCurrency}
-              </p>
-            )}
           </div>
 
           {/* Stock */}
