@@ -201,7 +201,7 @@ export default function ProductDetailClient({ productId, productName, stock, tra
           className="btn-secondary flex-1"
         >
           <FiFileText className="w-4 h-4 mr-2" />
-          Teklif Listesine Ekle
+          Toplu Alımlar için Teklif İsteyin
         </button>
         <a
           href={`https://wa.me/905326404086?text=${whatsappMessage}`}
