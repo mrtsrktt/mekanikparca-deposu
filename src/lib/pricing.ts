@@ -2,7 +2,8 @@ import { prisma } from './prisma'
 
 export async function recalculateProductPrices(currency: string, rate: number) {
   const products = await prisma.product.findMany({
-    where: { priceCurrency: currency }
+    where: { priceCurrency: currency },
+    include: { priceTiers: true },
   })
 
   for (const product of products) {
@@ -10,6 +11,14 @@ export async function recalculateProductPrices(currency: string, rate: number) {
       where: { id: product.id },
       data: { priceTRY: product.priceOriginal * rate }
     })
+
+    // Kademe fiyatlarının TL karşılığını da güncelle
+    for (const tier of product.priceTiers) {
+      await prisma.priceTier.update({
+        where: { id: tier.id },
+        data: { unitPriceTRY: tier.unitPrice * rate }
+      })
+    }
   }
 }
 

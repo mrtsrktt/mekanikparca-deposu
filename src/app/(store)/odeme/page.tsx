@@ -120,17 +120,29 @@ export default function OdemePage() {
   }
 
   const getUnitPrice = (item: CartItem) => {
-    if (item.campaignPrice?.appliedCampaign) return item.campaignPrice.discountedPrice
+    if (item.campaignPrice?.discountedPrice && item.campaignPrice.discountedPrice < (item.product?.priceTRY || Infinity)) {
+      return item.campaignPrice.discountedPrice
+    }
     return item.product?.priceTRY || 0
   }
 
-  const getDiscountLabel = (item: CartItem): { type: 'campaign' | null; label: string } => {
-    if (item.campaignPrice?.appliedCampaign) {
+  const getDiscountLabel = (item: CartItem): { type: 'campaign' | 'tier' | null; label: string } => {
+    if (!item.campaignPrice || item.campaignPrice.source === 'base') return { type: null, label: '' }
+
+    if (item.campaignPrice.source === 'tier' && item.campaignPrice.appliedPriceTier) {
+      return {
+        type: 'tier',
+        label: `📦 Toplu Alım (${item.campaignPrice.appliedPriceTier.minQuantity}+ adet)`,
+      }
+    }
+
+    if (item.campaignPrice.source === 'campaign' && item.campaignPrice.appliedCampaign) {
       return {
         type: 'campaign',
         label: `🎁 ${item.campaignPrice.appliedCampaign.name}${item.campaignPrice.appliedTier ? ` (${item.campaignPrice.appliedTier.minQuantity}+ adet)` : ''}`,
       }
     }
+
     return { type: null, label: '' }
   }
 

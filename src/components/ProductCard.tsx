@@ -22,13 +22,22 @@ interface ProductCardProps {
   }
   hasCampaign?: boolean
   campaignLowestPrice?: number | null
+  tierLowestPrice?: number | null
 }
 
-export default function ProductCard({ product, hasCampaign, campaignLowestPrice }: ProductCardProps) {
+export default function ProductCard({ product, hasCampaign, campaignLowestPrice, tierLowestPrice }: ProductCardProps) {
   const [isAdding, setIsAdding] = useState(false)
   const [added, setAdded] = useState(false)
   const imageUrl = product.images[0]?.url || '/placeholder.jpg'
   const hasCampaignDiscount = hasCampaign && campaignLowestPrice && campaignLowestPrice < product.priceTRY
+  const hasTierDiscount = tierLowestPrice && tierLowestPrice < product.priceTRY
+
+  // En düşük fiyat hangisiyse onu göster
+  const bestLowestPrice = Math.min(
+    hasCampaignDiscount ? campaignLowestPrice : Infinity,
+    hasTierDiscount ? tierLowestPrice : Infinity
+  )
+  const hasAnyDiscount = bestLowestPrice < product.priceTRY
 
   return (
     <div className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover-lift">
@@ -62,13 +71,13 @@ export default function ProductCard({ product, hasCampaign, campaignLowestPrice 
 
         <div className="mt-3">
           <div>
-            {hasCampaignDiscount ? (
+            {hasAnyDiscount ? (
               <>
                 <span className="text-xs text-gray-400 line-through block">
                   {formatPrice(product.priceTRY)}
                 </span>
-                <span className="text-sm font-bold text-red-500">
-                  {formatPrice(campaignLowestPrice)} <span className="text-[10px] font-normal text-red-400">&#39;den başlayan</span>
+                <span className={`text-sm font-bold ${hasCampaignDiscount && (!hasTierDiscount || campaignLowestPrice <= tierLowestPrice) ? 'text-red-500' : 'text-blue-600'}`}>
+                  {formatPrice(bestLowestPrice)} <span className="text-[10px] font-normal opacity-70">&#39;den başlayan</span>
                 </span>
               </>
             ) : (

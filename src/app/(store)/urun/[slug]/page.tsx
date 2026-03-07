@@ -81,6 +81,16 @@ export default async function ProductDetailPage({ params }: Props) {
     // Table doesn't exist yet
   }
 
+  // Fetch price tiers for this product
+  const priceTiers = await prisma.priceTier.findMany({
+    where: { productId: product.id },
+    orderBy: { minQuantity: 'asc' },
+  })
+  const priceTiersData = priceTiers.map(t => ({
+    minQuantity: t.minQuantity,
+    unitPriceTRY: t.unitPriceTRY,
+  }))
+
   // Fetch active campaigns for this product
   const campaigns = await getActiveCampaignsForProduct(product.id)
   const campaignsData = campaigns.map(c => ({
@@ -157,6 +167,8 @@ export default async function ProductDetailPage({ params }: Props) {
             trackStock={(productWithConvertedPrice as any).trackStock}
             priceTRY={productWithConvertedPrice.priceTRY}
             campaigns={campaignsData}
+            boxQuantity={product.boxQuantity}
+            priceTiers={priceTiersData}
           />
 
           {/* Technical Details */}

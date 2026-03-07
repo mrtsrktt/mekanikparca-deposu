@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { FiShoppingCart, FiMessageCircle, FiFileText, FiCheck } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import CampaignTierTable from '@/components/CampaignTierTable'
+import PriceTierTable from '@/components/PriceTierTable'
 import Link from 'next/link'
 
 interface CampaignTier {
@@ -20,6 +21,11 @@ interface CampaignInfo {
   tiers: CampaignTier[]
 }
 
+interface PriceTierInfo {
+  minQuantity: number
+  unitPriceTRY: number
+}
+
 interface Props {
   productId: string
   productName: string
@@ -27,9 +33,11 @@ interface Props {
   trackStock?: boolean
   priceTRY: number
   campaigns?: CampaignInfo[]
+  boxQuantity?: number | null
+  priceTiers?: PriceTierInfo[]
 }
 
-export default function ProductDetailClient({ productId, productName, stock, trackStock = true, priceTRY, campaigns = [] }: Props) {
+export default function ProductDetailClient({ productId, productName, stock, trackStock = true, priceTRY, campaigns = [], boxQuantity, priceTiers = [] }: Props) {
   const { data: session } = useSession()
   const router = useRouter()
   const [quantity, setQuantity] = useState(1)
@@ -116,6 +124,27 @@ export default function ProductDetailClient({ productId, productName, stock, tra
 
   return (
     <div>
+      {/* Quick Box Selection */}
+      {priceTiers.length > 0 && boxQuantity && boxQuantity > 1 && (
+        <div className="flex flex-wrap gap-2 mb-3">
+          <span className="text-xs text-gray-500 self-center mr-1">Hızlı Seçim:</span>
+          <button type="button" onClick={() => setQuantity(1)}
+            className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors ${quantity === 1 ? 'bg-blue-500 text-white border-blue-500' : 'border-gray-300 hover:border-blue-400 text-gray-600'}`}>
+            1 Adet
+          </button>
+          <button type="button" onClick={() => setQuantity(boxQuantity)}
+            className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors ${quantity === boxQuantity ? 'bg-blue-500 text-white border-blue-500' : 'border-gray-300 hover:border-blue-400 text-gray-600'}`}>
+            1 Koli ({boxQuantity} adet)
+          </button>
+          {priceTiers.some(t => t.minQuantity >= boxQuantity * 10) && (
+            <button type="button" onClick={() => setQuantity(boxQuantity * 10)}
+              className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors ${quantity === boxQuantity * 10 ? 'bg-blue-500 text-white border-blue-500' : 'border-gray-300 hover:border-blue-400 text-gray-600'}`}>
+              10 Koli ({boxQuantity * 10} adet)
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Quantity & Add to Cart */}
       <div className="flex items-center gap-3 mb-4">
         <div className="flex items-center border rounded-lg">
@@ -184,6 +213,16 @@ export default function ProductDetailClient({ productId, productName, stock, tra
           WhatsApp
         </a>
       </div>
+
+      {/* Price Tier Table */}
+      {priceTiers.length > 0 && (
+        <PriceTierTable
+          tiers={priceTiers}
+          boxQuantity={boxQuantity || null}
+          basePriceTRY={priceTRY}
+          currentQuantity={quantity}
+        />
+      )}
 
       {/* Campaign Tier Tables */}
       {campaigns.length > 0 && campaigns.map(campaign => (

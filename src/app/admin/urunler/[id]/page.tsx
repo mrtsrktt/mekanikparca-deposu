@@ -26,6 +26,8 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     images: [] as { url: string; alt: string }[],
     videos: [] as { url: string; title: string }[],
     documents: [] as { url: string; title: string; fileSize?: number }[],
+    boxQuantity: null as number | null,
+    priceTiers: [] as { minQuantity: number; unitPrice: number }[],
   })
 
   useEffect(() => {
@@ -50,6 +52,11 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
         images: product.images?.map((img: any) => ({ url: img.url, alt: img.alt || '' })) || [],
         videos: product.videos?.map((vid: any) => ({ url: vid.url, title: vid.title || 'Video' })) || [],
         documents: product.documents?.map((doc: any) => ({ url: doc.url, title: doc.title || 'Döküman', fileSize: doc.fileSize })) || [],
+        boxQuantity: product.boxQuantity || null,
+        priceTiers: product.priceTiers?.map((t: any) => ({
+          minQuantity: t.minQuantity,
+          unitPrice: t.unitPrice,
+        })) || [],
       })
       setLoading(false)
     })
@@ -221,6 +228,88 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
               <label className="block text-sm font-medium mb-1">Ağırlık (kg)</label>
               <input type="number" step="0.01" className="input-field" value={form.weight} onChange={(e) => update('weight', parseFloat(e.target.value))} />
             </div>
+          </div>
+        </div>
+
+        {/* Toplu Alım Fiyatlandırma */}
+        <div className="card p-6">
+          <h2 className="font-semibold text-lg mb-4">Toplu Alım Fiyatlandırma</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Koli Adedi (bir kolide kaç adet)</label>
+              <input type="number" min="1" className="input-field" value={form.boxQuantity || ''} placeholder="Örn: 12"
+                onChange={(e) => update('boxQuantity', parseInt(e.target.value) || null)} />
+              <p className="text-xs text-gray-400 mt-1">Boş bırakılırsa kolisiz ürün olarak adet bazlı kademe girilir</p>
+            </div>
+          </div>
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium">Fiyat Kademeleri</label>
+              <button type="button" onClick={() => update('priceTiers', [...form.priceTiers, {
+                minQuantity: form.boxQuantity || 10,
+                unitPrice: form.priceOriginal,
+              }])} className="text-sm text-primary-500 hover:text-primary-700 font-medium">
+                + Kademe Ekle
+              </button>
+            </div>
+            {form.priceTiers.length > 0 && (
+              <table className="w-full text-sm border rounded-lg overflow-hidden">
+                <thead className="bg-gray-50">
+                  <tr>
+                    {form.boxQuantity ? <th className="text-left px-3 py-2">Min. Koli</th> : null}
+                    <th className="text-left px-3 py-2">Min. Adet</th>
+                    <th className="text-left px-3 py-2">Birim Fiyat ({form.priceCurrency})</th>
+                    <th className="px-3 py-2 w-10"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {form.priceTiers.map((tier, idx) => (
+                    <tr key={idx} className="border-t">
+                      {form.boxQuantity ? (
+                        <td className="px-3 py-2">
+                          <input type="number" min="1" className="input-field w-20"
+                            value={Math.round(tier.minQuantity / (form.boxQuantity || 1))}
+                            onChange={(e) => {
+                              const tiers = [...form.priceTiers]
+                              tiers[idx].minQuantity = (parseInt(e.target.value) || 1) * (form.boxQuantity || 1)
+                              update('priceTiers', tiers)
+                            }} />
+                        </td>
+                      ) : null}
+                      <td className="px-3 py-2">
+                        {form.boxQuantity ? (
+                          <span className="text-gray-500">{tier.minQuantity} adet</span>
+                        ) : (
+                          <input type="number" min="1" className="input-field w-24"
+                            value={tier.minQuantity}
+                            onChange={(e) => {
+                              const tiers = [...form.priceTiers]
+                              tiers[idx].minQuantity = parseInt(e.target.value) || 1
+                              update('priceTiers', tiers)
+                            }} />
+                        )}
+                      </td>
+                      <td className="px-3 py-2">
+                        <input type="number" step="any" className="input-field w-32"
+                          value={tier.unitPrice}
+                          onChange={(e) => {
+                            const tiers = [...form.priceTiers]
+                            tiers[idx].unitPrice = parseFloat(e.target.value) || 0
+                            update('priceTiers', tiers)
+                          }} />
+                      </td>
+                      <td className="px-3 py-2">
+                        <button type="button" onClick={() => update('priceTiers', form.priceTiers.filter((_, i) => i !== idx))}
+                          className="text-red-500 hover:text-red-700 text-xs">Sil</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            {form.priceTiers.length === 0 && (
+              <p className="text-xs text-gray-400">Henüz fiyat kademesi eklenmedi. Toplu alım indirimi uygulamak için kademe ekleyin.</p>
+            )}
           </div>
         </div>
 

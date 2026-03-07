@@ -50,7 +50,7 @@ export default async function ProductsPage({ searchParams }: Props) {
     getExchangeRates(),
     prisma.product.findMany({
       where,
-      include: { brand: true, category: true, images: { take: 1 } },
+      include: { brand: true, category: true, images: { take: 1 }, priceTiers: { orderBy: { unitPriceTRY: 'asc' }, take: 1 } },
       skip: (page - 1) * limit,
       take: limit,
       orderBy,
@@ -187,7 +187,7 @@ export default async function ProductsPage({ searchParams }: Props) {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {productsWithConvertedPrices.map((product) => (
-                <ProductCard key={product.id} product={product} hasCampaign={hasCampaign(product)} campaignLowestPrice={getCampaignLowestPrice(product)} />
+                <ProductCard key={product.id} product={product} hasCampaign={hasCampaign(product)} campaignLowestPrice={getCampaignLowestPrice(product)} tierLowestPrice={(product as any).priceTiers?.[0]?.unitPriceTRY || null} />
               ))}
             </div>
           )}

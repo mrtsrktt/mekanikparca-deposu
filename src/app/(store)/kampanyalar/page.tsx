@@ -27,7 +27,7 @@ export default async function CampaignsPage() {
       if (campaign.scopeType === 'PRODUCT' && campaign.productId) {
         const product = await prisma.product.findUnique({
           where: { id: campaign.productId },
-          include: { brand: true, category: true, images: { take: 1 } },
+          include: { brand: true, category: true, images: { take: 1 }, priceTiers: { orderBy: { unitPriceTRY: 'asc' }, take: 1 } },
         })
         if (product && product.isActive) products = [product]
         scopeLabel = product?.name || ''
@@ -35,7 +35,7 @@ export default async function CampaignsPage() {
         const brand = await prisma.brand.findUnique({ where: { id: campaign.brandId } })
         products = await prisma.product.findMany({
           where: { brandId: campaign.brandId, isActive: true },
-          include: { brand: true, category: true, images: { take: 1 } },
+          include: { brand: true, category: true, images: { take: 1 }, priceTiers: { orderBy: { unitPriceTRY: 'asc' }, take: 1 } },
           take: 12, orderBy: { createdAt: 'desc' },
         })
         scopeLabel = brand?.name || ''
@@ -43,7 +43,7 @@ export default async function CampaignsPage() {
         const cat = await prisma.category.findUnique({ where: { id: campaign.categoryId } })
         products = await prisma.product.findMany({
           where: { categoryId: campaign.categoryId, isActive: true },
-          include: { brand: true, category: true, images: { take: 1 } },
+          include: { brand: true, category: true, images: { take: 1 }, priceTiers: { orderBy: { unitPriceTRY: 'asc' }, take: 1 } },
           take: 12, orderBy: { createdAt: 'desc' },
         })
         scopeLabel = cat?.name || ''
@@ -130,7 +130,7 @@ export default async function CampaignsPage() {
                       if (price < lowest) lowest = price
                     }
                     return (
-                      <ProductCard key={product.id} product={product} hasCampaign campaignLowestPrice={lowest < product.priceTRY ? lowest : null} />
+                      <ProductCard key={product.id} product={product} hasCampaign campaignLowestPrice={lowest < product.priceTRY ? lowest : null} tierLowestPrice={(product as any).priceTiers?.[0]?.unitPriceTRY || null} />
                     )
                   })}
                 </div>

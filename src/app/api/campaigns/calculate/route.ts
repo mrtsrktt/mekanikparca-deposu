@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getActiveCampaignsForProduct, calculateCampaignPrice } from '@/lib/campaignPricing'
+import { getActiveCampaignsForProduct } from '@/lib/campaignPricing'
+import { getPriceTiersForProduct } from '@/lib/tierPricing'
+import { resolveBestPrice } from '@/lib/bestPrice'
 import { prisma } from '@/lib/prisma'
 
 export async function POST(req: NextRequest) {
@@ -19,12 +21,29 @@ export async function POST(req: NextRequest) {
       if (!product) return { productId: item.productId, error: 'Ürün bulunamadı' }
 
       const campaigns = await getActiveCampaignsForProduct(item.productId)
-      const result = calculateCampaignPrice(product.priceTRY, item.quantity, campaigns)
+      const { tiers: priceTiers, boxQuantity } = await getPriceTiersForProduct(item.productId)
+
+      const bestPrice = resolveBestPrice(
+        product.priceTRY,
+        item.quantity,
+        campaigns,
+        priceTiers,
+        boxQuantity
+      )
 
       return {
         productId: item.productId,
         quantity: item.quantity,
-        ...result,
+        originalPrice: bestPrice.originalPriceTRY,
+        discountedPrice: bestPrice.finalUnitPriceTRY,
+        source: bestPrice.source,
+        // Kampanya bilgileri (geriye uyumlu)
+        appliedCampaign: bestPrice.campaignResult?.appliedCampaign || null,
+        appliedTier: bestPrice.campaignResult?.appliedTier || null,
+        totalSavings: bestPrice.totalSavingsPerUnit * item.quantity,
+        // Kademe bilgileri
+        appliedPriceTier: bestPrice.tierResult?.appliedTier || null,
+        boxQuantity: boxQuantity,
       }
     })
   )

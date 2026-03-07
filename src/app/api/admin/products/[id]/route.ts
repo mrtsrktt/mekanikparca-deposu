@@ -18,6 +18,12 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
     if (!product) return NextResponse.json({ error: 'Ürün bulunamadı.' }, { status: 404 })
     
+    // Fiyat kademelerini getir
+    const priceTiers = await prisma.priceTier.findMany({
+      where: { productId: params.id },
+      orderBy: { minQuantity: 'asc' },
+    })
+
     // Try to fetch videos and documents, but don't fail if tables don't exist yet
     let videos = []
     let documents = []
@@ -40,7 +46,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       // Table doesn't exist yet, ignore
     }
     
-    return NextResponse.json({ ...product, videos, documents })
+    return NextResponse.json({ ...product, videos, documents, priceTiers })
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
@@ -53,14 +59,15 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   try {
     const body = await req.json()
     const { name, slug, sku, description, technicalDetails, priceCurrency, priceOriginal,
-      stock, trackStock, categoryId, brandId, isActive, isFeatured, metaTitle, metaDesc, weight, unit, minOrder, freeShipping, images, videos, documents } = body
+      stock, trackStock, categoryId, brandId, isActive, isFeatured, metaTitle, metaDesc, weight, unit, minOrder, freeShipping, images, videos, documents,
+      boxQuantity, priceTiers } = body
 
     let priceTRY = priceOriginal
+    const currencyRate = priceCurrency !== 'TRY'
+      ? (await prisma.currencyRate.findUnique({ where: { currency: priceCurrency } }))?.rate || 1
+      : 1
     if (priceCurrency !== 'TRY') {
-      const rate = await prisma.currencyRate.findUnique({ where: { currency: priceCurrency } })
-      if (rate) {
-        priceTRY = priceOriginal * rate.rate
-      }
+      priceTRY = priceOriginal * currencyRate
     }
 
     // Delete old images and create new ones
@@ -91,6 +98,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       categoryId: categoryId || null, brandId: brandId || null,
       isActive, isFeatured, metaTitle, metaDesc, weight, unit, minOrder,
       freeShipping: freeShipping ?? false,
+      boxQuantity: boxQuantity || null,
       images: images?.length ? { create: images.map((img: any, i: number) => ({ url: img.url, alt: img.alt, sortOrder: i })) } : undefined,
     }
     
@@ -106,11 +114,25 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       // Tables don't exist yet, skip
     }
 
+    // Eski fiyat kademelerini sil ve yenilerini oluştur
+    await prisma.priceTier.deleteMany({ where: { productId: params.id } })
+
     const product = await prisma.product.update({
       where: { id: params.id },
       data: updateData,
       include: { images: true, category: true, brand: true },
     })
+
+    if (priceTiers?.length) {
+      await prisma.priceTier.createMany({
+        data: priceTiers.map((tier: any) => ({
+          productId: params.id,
+          minQuantity: tier.minQuantity,
+          unitPrice: tier.unitPrice,
+          unitPriceTRY: priceCurrency === 'TRY' ? tier.unitPrice : tier.unitPrice * currencyRate,
+        }))
+      })
+    }
 
     return NextResponse.json(product)
   } catch (err: any) {

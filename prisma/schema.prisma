@@ -92,6 +92,8 @@ model Product {
   freeShipping    Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  boxQuantity     Int?          // Bir kolide kaç adet var (opsiyonel)
+  priceTiers      PriceTier[]
   orderItems      OrderItem[]
   quoteItems      QuoteItem[]
 }
@@ -239,6 +241,18 @@ model Campaign {
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
   tiers       CampaignTier[]
+}
+
+model PriceTier {
+  id           String  @id @default(cuid())
+  productId    String
+  product      Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  minQuantity  Int     // Minimum adet sayısı
+  unitPrice    Float   // Orijinal para biriminde birim fiyat
+  unitPriceTRY Float   // TL karşılığı (otomatik hesaplanır)
+
+  @@unique([productId, minQuantity])
+  @@index([productId])
 }
 
 model CampaignTier {
