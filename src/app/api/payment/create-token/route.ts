@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Giriş yapmanız gerekiyor.' }, { status: 401 })
     }
 
-    const { items, addressId, notes, invoiceType, companyName, taxNumber, taxOffice } = await req.json()
+    const { items, addressId, notes, invoiceType, companyName, taxNumber, taxOffice, billingCity, billingDistrict, billingAddress } = await req.json()
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: 'Sepet boş.' }, { status: 400 })
@@ -78,6 +78,7 @@ export async function POST(req: NextRequest) {
         companyName: invoiceType === 'CORPORATE' ? (companyName || null) : null,
         taxNumber: invoiceType === 'CORPORATE' ? (taxNumber || null) : null,
         taxOffice: invoiceType === 'CORPORATE' ? (taxOffice || null) : null,
+        billingAddress: invoiceType === 'CORPORATE' ? `${companyName}, ${billingAddress}, ${billingDistrict}/${billingCity}` : null,
         notes: notes || null,
         items: {
           create: orderItems,

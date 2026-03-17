@@ -442,6 +442,12 @@ Mekanik Parça Deposu`
                     <span className="text-gray-600">Vergi Dairesi:</span>
                     <span className="font-medium">{order.taxOffice || '-'}</span>
                   </div>
+                  {order.billingAddress && (
+                    <div>
+                      <span className="text-gray-600 block mb-1">Fatura Adresi:</span>
+                      <p className="font-medium text-sm">{order.billingAddress}</p>
+                    </div>
+                  )}
                 </>
               )}
             </div>

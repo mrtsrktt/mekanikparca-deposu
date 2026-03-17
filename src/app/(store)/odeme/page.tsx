@@ -37,7 +37,7 @@ export default function OdemePage() {
   const [selectedAddressId, setSelectedAddressId] = useState<string>('')
   const [notes, setNotes] = useState('')
   const [invoiceType, setInvoiceType] = useState<'PERSONAL' | 'CORPORATE'>('PERSONAL')
-  const [invoiceData, setInvoiceData] = useState({ companyName: '', taxNumber: '', taxOffice: '' })
+  const [invoiceData, setInvoiceData] = useState({ companyName: '', taxNumber: '', taxOffice: '', billingCity: '', billingDistrict: '', billingAddress: '' })
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [showNewAddress, setShowNewAddress] = useState(false)
@@ -153,7 +153,7 @@ export default function OdemePage() {
     if (!selectedAddressId) { toast.error('Lütfen bir adres seçin.'); return }
     if (items.length === 0) { toast.error('Sepetiniz boş.'); return }
     if (invoiceType === 'CORPORATE') {
-      if (!invoiceData.companyName || !invoiceData.taxNumber || !invoiceData.taxOffice) {
+      if (!invoiceData.companyName || !invoiceData.taxNumber || !invoiceData.taxOffice || !invoiceData.billingCity || !invoiceData.billingDistrict || !invoiceData.billingAddress) {
         toast.error('Kurumsal fatura bilgilerini eksiksiz doldurun.'); return
       }
     }
@@ -277,21 +277,40 @@ export default function OdemePage() {
               </label>
             </div>
             {invoiceType === 'CORPORATE' && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div>
-                  <label className="text-xs font-medium text-gray-600 block mb-1">Şirket Adı *</label>
-                  <input className="input-field text-sm" value={invoiceData.companyName}
-                    onChange={e => setInvoiceData({...invoiceData, companyName: e.target.value})} placeholder="Firma ünvanı" />
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 block mb-1">Şirket Adı *</label>
+                    <input className="input-field text-sm" value={invoiceData.companyName}
+                      onChange={e => setInvoiceData({...invoiceData, companyName: e.target.value})} placeholder="Firma ünvanı" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 block mb-1">Vergi Numarası *</label>
+                    <input className="input-field text-sm" value={invoiceData.taxNumber}
+                      onChange={e => setInvoiceData({...invoiceData, taxNumber: e.target.value})} placeholder="Vergi numarası" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 block mb-1">Vergi Dairesi *</label>
+                    <input className="input-field text-sm" value={invoiceData.taxOffice}
+                      onChange={e => setInvoiceData({...invoiceData, taxOffice: e.target.value})} placeholder="Vergi dairesi adı" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 block mb-1">İl *</label>
+                    <input className="input-field text-sm" value={invoiceData.billingCity}
+                      onChange={e => setInvoiceData({...invoiceData, billingCity: e.target.value})} placeholder="İl" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 block mb-1">İlçe *</label>
+                    <input className="input-field text-sm" value={invoiceData.billingDistrict}
+                      onChange={e => setInvoiceData({...invoiceData, billingDistrict: e.target.value})} placeholder="İlçe" />
+                  </div>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-600 block mb-1">Vergi Numarası *</label>
-                  <input className="input-field text-sm" value={invoiceData.taxNumber}
-                    onChange={e => setInvoiceData({...invoiceData, taxNumber: e.target.value})} placeholder="Vergi numarası" />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-gray-600 block mb-1">Vergi Dairesi *</label>
-                  <input className="input-field text-sm" value={invoiceData.taxOffice}
-                    onChange={e => setInvoiceData({...invoiceData, taxOffice: e.target.value})} placeholder="Vergi dairesi adı" />
+                  <label className="text-xs font-medium text-gray-600 block mb-1">Fatura Adresi *</label>
+                  <textarea className="input-field text-sm" rows={2} value={invoiceData.billingAddress}
+                    onChange={e => setInvoiceData({...invoiceData, billingAddress: e.target.value})} placeholder="Şirket fatura adresi" />
                 </div>
               </div>
             )}
