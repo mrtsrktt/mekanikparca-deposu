@@ -87,6 +87,12 @@ export default function AdminCategoriesPage() {
               <input type="text" className="input-field" value={form.metaDesc} onChange={(e) => setForm({ ...form, metaDesc: e.target.value })} />
             </div>
           </div>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" checked={form.isActive}
+              onChange={e => setForm({ ...form, isActive: e.target.checked })}
+              className="w-4 h-4 text-primary-500 rounded" />
+            <span className="text-sm font-medium text-gray-700">Aktif</span>
+          </label>
           <div className="flex gap-3">
             <button type="submit" className="btn-primary">{editing ? 'Güncelle' : 'Kaydet'}</button>
             <button type="button" onClick={() => { setShowForm(false); setEditing(null) }} className="btn-secondary">İptal</button>

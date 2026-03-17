@@ -10,7 +10,7 @@ export async function GET(req: Request) {
   const brandSlug = searchParams.get('brand')
   const sort = searchParams.get('sort') || 'newest'
 
-  const where: any = { isActive: true }
+  const where: any = { isActive: true, category: { isActive: true } }
 
   if (search) {
     where.OR = [
