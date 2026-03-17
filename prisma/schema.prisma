@@ -138,6 +138,10 @@ model Order {
   currency         String      @default("TRY")
   shippingAddress  String?
   billingAddress   String?
+  invoiceType      String      @default("PERSONAL") // PERSONAL, CORPORATE
+  companyName      String?
+  taxNumber        String?
+  taxOffice        String?
   notes            String?     // Müşteri notu
   adminNotes       String?     // Admin notu
   trackingNumber   String?     // Kargo takip numarası

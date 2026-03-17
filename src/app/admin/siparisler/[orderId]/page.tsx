@@ -418,6 +418,35 @@ Mekanik Parça Deposu`
             </div>
           </div>
 
+          {/* Fatura Bilgileri */}
+          <div className="card p-6">
+            <h2 className="text-lg font-semibold mb-4">Fatura Bilgileri</h2>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Fatura Tipi:</span>
+                <span className={`badge ${order.invoiceType === 'CORPORATE' ? 'badge-info' : 'badge-success'}`}>
+                  {order.invoiceType === 'CORPORATE' ? 'Kurumsal' : 'Bireysel'}
+                </span>
+              </div>
+              {order.invoiceType === 'CORPORATE' && (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Şirket Adı:</span>
+                    <span className="font-medium">{order.companyName || '-'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Vergi No:</span>
+                    <span className="font-medium">{order.taxNumber || '-'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Vergi Dairesi:</span>
+                    <span className="font-medium">{order.taxOffice || '-'}</span>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
           {/* Payment Info */}
           <div className="card p-6">
             <h2 className="text-lg font-semibold mb-4">Ödeme Bilgileri</h2>
