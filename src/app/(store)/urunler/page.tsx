@@ -30,7 +30,7 @@ export default async function ProductsPage({ searchParams }: Props) {
   const limit = 20
   const sort = searchParams.sort || 'newest'
 
-  const where: any = { isActive: true, category: { isActive: true } }
+  const where: any = { isActive: true, OR: [{ category: { isActive: true } }, { categoryId: null }] }
   if (searchParams.q) {
     where.OR = [
       { name: { contains: searchParams.q, mode: 'insensitive' } },
