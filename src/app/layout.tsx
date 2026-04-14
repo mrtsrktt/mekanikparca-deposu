@@ -47,7 +47,9 @@ export const metadata: Metadata = {
     ],
   },
   manifest: '/site.webmanifest',
-  verification: {},
+  verification: {
+    google: 'oCP8ySma0rw_QDZJpVoQz542bTHZwW1Izf_5MNX5MGU',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
