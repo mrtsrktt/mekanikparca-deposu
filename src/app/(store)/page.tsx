@@ -156,6 +156,55 @@ export default async function HomePage() {
 
   return (
     <div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Organization',
+            name: 'Mekanik Parça Deposu',
+            alternateName: 'İKİ M İklim',
+            url: 'https://mekanikparcadeposu.com',
+            logo: 'https://mekanikparcadeposu.com/images/logo.png',
+            contactPoint: {
+              '@type': 'ContactPoint',
+              telephone: '+90-216-232-40-52',
+              contactType: 'customer service',
+              areaServed: 'TR',
+              availableLanguage: 'Turkish',
+            },
+            address: {
+              '@type': 'PostalAddress',
+              streetAddress: 'Atatürk Mah. Alemdağ Cad. No:140-144 İç Kapı No:19',
+              addressLocality: 'Ümraniye',
+              addressRegion: 'İstanbul',
+              addressCountry: 'TR',
+            },
+            sameAs: [
+              'https://wa.me/905326404086',
+            ],
+          }),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'WebSite',
+            name: 'Mekanik Parça Deposu',
+            url: 'https://mekanikparcadeposu.com',
+            potentialAction: {
+              '@type': 'SearchAction',
+              target: {
+                '@type': 'EntryPoint',
+                urlTemplate: 'https://mekanikparcadeposu.com/urunler?search={search_term_string}',
+              },
+              'query-input': 'required name=search_term_string',
+            },
+          }),
+        }}
+      />
       <HeroSlider />
 
       {/* Features Bar */}
