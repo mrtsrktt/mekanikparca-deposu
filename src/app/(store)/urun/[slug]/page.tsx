@@ -261,7 +261,14 @@ export default async function ProductDetailPage({ params }: Props) {
           {productWithConvertedPrice.description && (
             <div className="mt-8">
               <h2 className="text-lg font-semibold mb-3">Ürün Açıklaması</h2>
-              <div className="prose prose-sm max-w-none text-gray-600" dangerouslySetInnerHTML={{ __html: productWithConvertedPrice.description }} />
+              <div
+                className="prose prose-sm max-w-none text-gray-600"
+                dangerouslySetInnerHTML={{
+                  __html: productWithConvertedPrice.description.includes('<')
+                    ? productWithConvertedPrice.description
+                    : productWithConvertedPrice.description.replace(/\n/g, '<br/>')
+                }}
+              />
             </div>
           )}
         </div>
