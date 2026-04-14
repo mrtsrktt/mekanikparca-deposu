@@ -3,6 +3,7 @@ import { formatPrice, calculateTRYPrice } from '@/lib/pricing'
 import { getActiveCampaignsForProduct } from '@/lib/campaignPricing'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import Script from 'next/script'
 import ProductDetailClient from './ProductDetailClient'
 import ProductMediaGallery from '@/components/ProductMediaGallery'
 
@@ -102,6 +103,40 @@ export default async function ProductDetailPage({ params }: Props) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      <Script
+        id="product-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Product',
+            name: product.name,
+            description: product.metaDesc || product.description || '',
+            sku: product.sku || '',
+            image: product.images?.map((img: { url: string }) => img.url) || [],
+            brand: {
+              '@type': 'Brand',
+              name: product.brand?.name || 'Mekanik Parça Deposu',
+            },
+            offers: {
+              '@type': 'Offer',
+              url: `https://mekanikparcadeposu.com/urun/${product.slug}`,
+              priceCurrency: 'TRY',
+              price: product.priceTRY || product.priceOriginal,
+              availability:
+                product.trackStock
+                  ? product.stock > 0
+                    ? 'https://schema.org/InStock'
+                    : 'https://schema.org/OutOfStock'
+                  : 'https://schema.org/InStock',
+              seller: {
+                '@type': 'Organization',
+                name: 'Mekanik Parça Deposu',
+              },
+            },
+          }),
+        }}
+      />
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
         <Link href="/" className="hover:text-primary-500">Ana Sayfa</Link>
