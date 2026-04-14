@@ -1,6 +1,11 @@
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 
+export const metadata = {
+  title: 'Markalar',
+  description: 'Mekanik Parça Deposu\'nda satılan markalar: Fernox, Lega, MRU, REGEN, Testo. Marka bazlı ürün kataloğunu inceleyin.',
+}
+
 export const dynamic = 'force-dynamic'
 
 export default async function BrandsPage() {
