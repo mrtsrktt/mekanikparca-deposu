@@ -3,7 +3,6 @@ import { formatPrice, calculateTRYPrice } from '@/lib/pricing'
 import { getActiveCampaignsForProduct } from '@/lib/campaignPricing'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import Script from 'next/script'
 import ProductDetailClient from './ProductDetailClient'
 import ProductMediaGallery from '@/components/ProductMediaGallery'
 
@@ -103,8 +102,7 @@ export default async function ProductDetailPage({ params }: Props) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <Script
-        id="product-schema"
+      <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
