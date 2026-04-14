@@ -135,6 +135,52 @@ export default async function ProductDetailPage({ params }: Props) {
           }),
         }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              {
+                '@type': 'ListItem',
+                position: 1,
+                name: 'Ana Sayfa',
+                item: 'https://mekanikparcadeposu.com',
+              },
+              {
+                '@type': 'ListItem',
+                position: 2,
+                name: 'Ürünler',
+                item: 'https://mekanikparcadeposu.com/urunler',
+              },
+              ...(productWithConvertedPrice.category
+                ? [
+                    {
+                      '@type': 'ListItem',
+                      position: 3,
+                      name: productWithConvertedPrice.category.name,
+                      item: `https://mekanikparcadeposu.com/urunler?category=${productWithConvertedPrice.category.slug}`,
+                    },
+                    {
+                      '@type': 'ListItem',
+                      position: 4,
+                      name: productWithConvertedPrice.name,
+                      item: `https://mekanikparcadeposu.com/urun/${productWithConvertedPrice.slug}`,
+                    },
+                  ]
+                : [
+                    {
+                      '@type': 'ListItem',
+                      position: 3,
+                      name: productWithConvertedPrice.name,
+                      item: `https://mekanikparcadeposu.com/urun/${productWithConvertedPrice.slug}`,
+                    },
+                  ]),
+            ],
+          }),
+        }}
+      />
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
         <Link href="/" className="hover:text-primary-500">Ana Sayfa</Link>
