@@ -50,7 +50,7 @@ export default async function ProductDetailPage({ params }: Props) {
     })
   ])
 
-  if (!product || !product.category?.isActive) notFound()
+  if (!product || (product.category && !product.category.isActive)) notFound()
 
   // Fiyatı TL'ye çevir
   const priceTRY = calculateTRYPrice(product.priceOriginal, product.priceCurrency, exchangeRates)
