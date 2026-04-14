@@ -1,6 +1,11 @@
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 
+export const metadata = {
+  title: 'Kategoriler',
+  description: 'İnhibitörler, filtreler, sirkülasyon pompaları, ısı transfer sıvıları ve daha fazlası. Tüm ürün kategorilerini keşfedin.',
+}
+
 export const dynamic = 'force-dynamic'
 
 export default async function CategoriesPage() {

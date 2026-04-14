@@ -25,6 +25,44 @@ interface Props {
   searchParams: { q?: string; category?: string; brand?: string; page?: string; sort?: string }
 }
 
+export async function generateMetadata({ searchParams }: Props) {
+  if (searchParams.category) {
+    const category = await prisma.category.findUnique({
+      where: { slug: searchParams.category },
+    })
+    if (category) {
+      return {
+        title: category.metaTitle || `${category.name} Ürünleri`,
+        description: category.metaDesc || category.description || `${category.name} kategorisindeki tüm ürünleri inceleyin. Orijinal ürünler, uygun fiyat, hızlı kargo.`,
+      }
+    }
+  }
+
+  if (searchParams.brand) {
+    const brand = await prisma.brand.findUnique({
+      where: { slug: searchParams.brand },
+    })
+    if (brand) {
+      return {
+        title: `${brand.name} Ürünleri`,
+        description: `${brand.name} markalı tüm ürünleri inceleyin. Orijinal, garantili ürünler. Hızlı kargo, uygun fiyat.`,
+      }
+    }
+  }
+
+  if (searchParams.q) {
+    return {
+      title: `"${searchParams.q}" için Arama Sonuçları`,
+      description: `"${searchParams.q}" araması için bulunan ürünler. Mekanik Parça Deposu'nda orijinal tesisat ve ısıtma ürünleri.`,
+    }
+  }
+
+  return {
+    title: 'Tüm Ürünler',
+    description: 'Fernox, Lega, MRU, REGEN ve Testo markalı ısıtma, soğutma ve tesisat ürünlerini inceleyin. Orijinal ürünler, uygun fiyat, hızlı kargo.',
+  }
+}
+
 export default async function ProductsPage({ searchParams }: Props) {
   const page = parseInt(searchParams.page || '1')
   const limit = 20
