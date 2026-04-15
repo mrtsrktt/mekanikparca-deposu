@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 const slides = [
   {
@@ -73,7 +74,7 @@ export default function HeroSlider() {
     <div className="relative w-full overflow-hidden bg-[#0f172a]">
       <div className="relative h-[220px] sm:h-[350px] md:h-[420px] lg:h-[480px]">
         <div
-          className="flex h-full"
+          className="flex h-full relative"
           style={{
             width: `${slides.length * 100}%`,
             transform: `translateX(-${active * (100 / slides.length)}%)`,
@@ -83,15 +84,17 @@ export default function HeroSlider() {
           {slides.map((slide, i) => (
             <div
               key={i}
-              className="relative h-full"
-              style={{
-                width: `${100 / slides.length}%`,
-                backgroundImage: `url(${slide.image})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-              }}
+              style={{ width: `${100 / slides.length}%` }}
+              className="relative flex-shrink-0 h-full"
             >
+              <Image
+                src={slide.image}
+                alt={slide.title || 'Mekanik Parça Deposu'}
+                fill
+                style={{ objectFit: 'cover', objectPosition: 'center' }}
+                priority={slide === slides[0]}
+                sizes="100vw"
+              />
               {/* Overlay'li slide'lar: metin göster */}
               {slide.hasOverlay === true && (
                 <div className="absolute inset-0 bg-black/30 flex items-center">
