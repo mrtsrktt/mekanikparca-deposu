@@ -101,16 +101,21 @@ export default function QuoteDetailPage({ params }: { params: { id: string } }) 
           <div className="print-customer hidden mb-4">
             <div className="border rounded-lg p-3 bg-gray-50">
               <p className="text-xs font-semibold text-gray-500 mb-1">Müşteri Bilgileri</p>
-              <p className="text-sm font-semibold">{quote.user?.name}</p>
-              <p className="text-xs text-gray-500">{quote.user?.email}</p>
-              {quote.user?.phone && <p className="text-xs text-gray-500">Tel: {quote.user.phone}</p>}
+              <p className="text-sm font-semibold">{quote.user?.name || quote.customerName || '-'}</p>
+              {quote.customerCompany && <p className="text-sm font-medium text-gray-700">{quote.customerCompany}</p>}
+              {(quote.user?.email || quote.customerEmail) && (
+                <p className="text-xs text-gray-500">{quote.user?.email || quote.customerEmail}</p>
+              )}
+              {(quote.user?.phone || quote.customerPhone) && (
+                <p className="text-xs text-gray-500">Tel: {quote.user?.phone || quote.customerPhone}</p>
+              )}
             </div>
           </div>
 
           {/* Açıklama Metni (print'te görünür) */}
           <div className="print-description hidden mb-4">
             <p className="text-sm text-gray-700 leading-relaxed">
-              Sayın {quote.user?.name}, teklif isteğinizi inceledik ve yapılabilecek en uygun fiyatlarla teklifinizi hazırladık. 
+              Sayın {quote.user?.name || quote.customerName || 'Müşterimiz'}, teklif isteğinizi inceledik ve yapılabilecek en uygun fiyatlarla teklifinizi hazırladık.
               Sizin için uygun olmasını temenni eder, hayırlı işler dileriz.
             </p>
           </div>
