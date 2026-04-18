@@ -8,6 +8,7 @@ import toast from 'react-hot-toast'
 import CampaignTierTable from '@/components/CampaignTierTable'
 import PriceTierTable from '@/components/PriceTierTable'
 import { getStorageArray } from '@/lib/safeStorage'
+import { trackAddToCart, trackWhatsAppClick } from '@/lib/gtm'
 import Link from 'next/link'
 
 interface CampaignTier {
@@ -59,7 +60,8 @@ export default function ProductDetailClient({ productId, productName, stock, tra
       cart.push({ productId, quantity })
     }
     localStorage.setItem('cart', JSON.stringify(cart))
-    
+    trackAddToCart(productName, productId, priceTRY)
+
     // Toast bildirimi göster
     toast.custom((t) => (
       <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}>
@@ -208,6 +210,7 @@ export default function ProductDetailClient({ productId, productName, stock, tra
           href={`https://wa.me/905326404086?text=${whatsappMessage}`}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => trackWhatsAppClick('product_detail')}
           className="bg-green-500 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-green-600 transition-colors inline-flex items-center"
         >
           <FiMessageCircle className="w-4 h-4 mr-2" />

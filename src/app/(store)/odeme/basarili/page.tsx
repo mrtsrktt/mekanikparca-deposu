@@ -3,11 +3,13 @@
 import { useEffect } from 'react'
 import Link from 'next/link'
 import { FiCheckCircle } from 'react-icons/fi'
+import { trackPurchase } from '@/lib/gtm'
 
 export default function BasariliPage() {
   useEffect(() => {
     localStorage.removeItem('cart')
     window.dispatchEvent(new Event('cartUpdated'))
+    trackPurchase(500)
   }, [])
 
   return (

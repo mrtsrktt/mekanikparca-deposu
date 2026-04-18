@@ -1,6 +1,9 @@
+'use client'
+
 import Link from 'next/link'
 import Image from 'next/image'
 import { FiPhone, FiMail, FiMapPin, FiChevronRight } from 'react-icons/fi'
+import { trackWhatsAppClick } from '@/lib/gtm'
 
 export default function Footer() {
   return (
@@ -107,6 +110,7 @@ export default function Footer() {
         href="https://wa.me/905326404086"
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => trackWhatsAppClick('footer')}
         className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-xl hover:bg-green-600 hover:scale-110 transition-all duration-300 z-50 wa-pulse"
         aria-label="WhatsApp ile iletişime geçin"
       >

@@ -6,6 +6,7 @@ import { formatPrice } from '@/lib/pricing'
 import { FiShoppingCart, FiEye, FiCheck } from 'react-icons/fi'
 import CampaignBadge from './CampaignBadge'
 import { getStorageArray } from '@/lib/safeStorage'
+import { trackAddToCart } from '@/lib/gtm'
 import toast from 'react-hot-toast'
 
 interface ProductCardProps {
@@ -117,7 +118,8 @@ export default function ProductCard({ product, hasCampaign, campaignLowestPrice,
                 }
                 localStorage.setItem('cart', JSON.stringify(cart))
                 window.dispatchEvent(new Event('cart-updated'))
-                
+                trackAddToCart(product.name, product.id, product.priceTRY)
+
                 // Toast bildirimi göster
                 toast.custom((t) => (
                   <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}>
