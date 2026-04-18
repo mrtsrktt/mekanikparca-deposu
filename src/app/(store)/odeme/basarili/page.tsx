@@ -1,16 +1,42 @@
-﻿'use client'
+'use client'
 
-import { useEffect } from 'react'
+import { useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { FiCheckCircle } from 'react-icons/fi'
 import { trackPurchase } from '@/lib/gtm'
 
-export default function BasariliPage() {
+function BasariliContent() {
+  const searchParams = useSearchParams()
+  const orderId = searchParams.get('orderId')
+
   useEffect(() => {
     localStorage.removeItem('cart')
     window.dispatchEvent(new Event('cartUpdated'))
-    trackPurchase(500)
-  }, [])
+
+    const sendPurchaseEvent = async () => {
+      if (!orderId) {
+        trackPurchase(1500)
+        return
+      }
+      try {
+        const res = await fetch(`/api/account/orders/${orderId}`)
+        if (!res.ok) {
+          trackPurchase(1500)
+          return
+        }
+        const data = await res.json()
+        const amount = data.totalAmount || 1500
+        const orderNumber = data.orderNumber || orderId
+        trackPurchase(amount, orderNumber)
+      } catch (err) {
+        console.error('Purchase tracking failed:', err)
+        trackPurchase(1500)
+      }
+    }
+
+    sendPurchaseEvent()
+  }, [orderId])
 
   return (
     <div className="max-w-lg mx-auto px-4 py-20 text-center">
@@ -22,5 +48,13 @@ export default function BasariliPage() {
         <Link href="/urunler" className="btn-secondary">Alisverise Devam Et</Link>
       </div>
     </div>
+  )
+}
+
+export default function BasariliPage() {
+  return (
+    <Suspense fallback={<div className="max-w-lg mx-auto px-4 py-20 text-center">Yükleniyor...</div>}>
+      <BasariliContent />
+    </Suspense>
   )
 }

@@ -141,7 +141,7 @@ export async function POST(req: NextRequest) {
     params.append('user_name', session.user.name || '')
     params.append('user_address', shippingAddressStr)
     params.append('user_phone', address.phone)
-    params.append('merchant_ok_url', `${process.env.NEXTAUTH_URL || 'https://mekanikparcadeposu.com'}/odeme/basarili`)
+    params.append('merchant_ok_url', `${process.env.NEXTAUTH_URL || 'https://mekanikparcadeposu.com'}/odeme/basarili?orderId=${order.id}`)
     params.append('merchant_fail_url', `${process.env.NEXTAUTH_URL || 'https://mekanikparcadeposu.com'}/odeme/basarisiz`)
     params.append('timeout_limit', '30')
     params.append('currency', currency)
