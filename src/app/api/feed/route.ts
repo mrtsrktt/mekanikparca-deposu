@@ -23,6 +23,7 @@ export async function GET() {
         : 'in_stock'
       const description = p.metaDesc || p.description?.replace(/<[^>]*>/g, '').slice(0, 500) || p.name
       const title = p.metaTitle || p.name
+      const hasIdentifier = !!(p.brand?.name && p.sku)
 
       return `
     <item>
@@ -37,7 +38,7 @@ export async function GET() {
       ${p.brand ? `<g:brand><![CDATA[${p.brand.name}]]></g:brand>` : ''}
       ${p.sku ? `<g:mpn>${p.sku}</g:mpn>` : ''}
       ${p.category ? `<g:product_type><![CDATA[${p.category.name}]]></g:product_type>` : ''}
-      <g:identifier_exists>no</g:identifier_exists>
+      <g:identifier_exists>${hasIdentifier ? 'yes' : 'no'}</g:identifier_exists>
     </item>`
     })
     .join('')
