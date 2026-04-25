@@ -254,7 +254,7 @@ export default function AdminNewQuotePage() {
             {currency !== 'TRY' && (
               <p className="text-xs text-gray-500 mt-3">
                 Güncel kur: 1 {currency} = {rates[currency] ? rates[currency]!.toLocaleString('tr-TR') : '—'} ₺
-                {!rates[currency] && <span className="text-red-500 ml-2">⚠ Kur tanımlı değil — Döviz Yönetimi'nden ekleyin.</span>}
+                {!rates[currency] && <span className="text-red-500 ml-2">⚠ Kur tanımlı değil — Döviz Yönetimi&apos;nden ekleyin.</span>}
               </p>
             )}
           </div>
