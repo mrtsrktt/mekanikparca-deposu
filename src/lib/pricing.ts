@@ -23,11 +23,26 @@ export async function recalculateProductPrices(currency: string, rate: number) {
 }
 
 export function formatPrice(amount: number, currency: string = 'TRY'): string {
+  const cur = currency === 'TL' ? 'TRY' : currency
   return new Intl.NumberFormat('tr-TR', {
     style: 'currency',
-    currency: 'TRY',
+    currency: cur,
     minimumFractionDigits: 2,
   }).format(amount)
+}
+
+export function convertFromTRY(tryAmount: number, toCurrency: string, rates: { USD?: number | null; EUR?: number | null }): number {
+  if (toCurrency === 'TRY' || toCurrency === 'TL') return tryAmount
+  if (toCurrency === 'USD' && rates.USD) return tryAmount / rates.USD
+  if (toCurrency === 'EUR' && rates.EUR) return tryAmount / rates.EUR
+  return tryAmount
+}
+
+export function convertToTRY(amount: number, fromCurrency: string, rates: { USD?: number | null; EUR?: number | null }): number {
+  if (fromCurrency === 'TRY' || fromCurrency === 'TL') return amount
+  if (fromCurrency === 'USD' && rates.USD) return amount * rates.USD
+  if (fromCurrency === 'EUR' && rates.EUR) return amount * rates.EUR
+  return amount
 }
 
 export function calculateTRYPrice(

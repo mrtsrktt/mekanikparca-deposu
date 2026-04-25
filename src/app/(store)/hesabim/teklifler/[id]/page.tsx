@@ -5,7 +5,9 @@ import { redirect } from 'next/navigation'
 import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import { FiArrowLeft, FiDownload } from 'react-icons/fi'
-import { formatPrice } from '@/lib/pricing'
+import { formatPrice, convertFromTRY } from '@/lib/pricing'
+
+const currencySymbol = (c: string) => (c === 'USD' ? '$' : c === 'EUR' ? '€' : '₺')
 
 const statusLabels: Record<string, { label: string; class: string }> = {
   PENDING: { label: 'Beklemede', class: 'badge-warning' },
@@ -35,12 +37,18 @@ export default function QuoteDetailPage({ params }: { params: { id: string } }) 
   if (!quote) return <div className="max-w-7xl mx-auto px-4 py-16 text-center text-gray-500">Teklif bulunamadı.</div>
 
   const st = statusLabels[quote.status] || { label: quote.status, class: 'badge-warning' }
+  const quoteCurrency: string = quote.currency || 'TRY'
+  const sym = currencySymbol(quoteCurrency)
+  const rates = { USD: quote.exchangeRateUSD, EUR: quote.exchangeRateEUR }
+  // Liste fiyatı (TRY) → teklif para birimine çevir, böylece iskonto hesabı doğru olur
+  const listPriceInQuoteCurrency = (priceTRY: number) =>
+    quoteCurrency === 'TRY' ? priceTRY : convertFromTRY(priceTRY, quoteCurrency, rates)
   const hasQuotedPrices = quote.items?.some((i: any) => i.unitPrice != null)
   const quotedTotal = hasQuotedPrices
     ? quote.items.reduce((s: number, i: any) => s + (i.unitPrice || 0) * i.quantity, 0)
     : null
   const listTotal = hasQuotedPrices
-    ? quote.items.reduce((s: number, i: any) => s + (i.product?.priceTRY || 0) * i.quantity, 0)
+    ? quote.items.reduce((s: number, i: any) => s + listPriceInQuoteCurrency(i.product?.priceTRY || 0) * i.quantity, 0)
     : null
   const totalDiscount = listTotal != null && quotedTotal != null ? listTotal - quotedTotal : null
 
@@ -141,15 +149,15 @@ export default function QuoteDetailPage({ params }: { params: { id: string } }) 
                 <tr>
                   <th className="text-left p-3">Ürün</th>
                   <th className="text-center p-3 print-narrow">Miktar</th>
-                  <th className="text-right p-3">Liste Fiyatı</th>
-                  {hasQuotedPrices && <th className="text-right p-3">Teklif Fiyatı</th>}
+                  <th className="text-right p-3">Liste Fiyatı ({sym})</th>
+                  {hasQuotedPrices && <th className="text-right p-3">Teklif Fiyatı ({sym})</th>}
                   {hasQuotedPrices && <th className="text-center p-3 print-narrow">İskonto</th>}
-                  {hasQuotedPrices && <th className="text-right p-3">Toplam</th>}
+                  {hasQuotedPrices && <th className="text-right p-3">Toplam ({sym})</th>}
                 </tr>
               </thead>
               <tbody>
                 {quote.items?.map((item: any) => {
-                  const listPrice = item.product?.priceTRY || 0
+                  const listPrice = listPriceInQuoteCurrency(item.product?.priceTRY || 0)
                   const offerPrice = item.unitPrice
                   const discountPct = offerPrice != null && listPrice > 0
                     ? Math.round((1 - offerPrice / listPrice) * 100)
@@ -171,10 +179,10 @@ export default function QuoteDetailPage({ params }: { params: { id: string } }) 
                         </div>
                       </td>
                       <td className="p-3 text-center">{item.quantity}</td>
-                      <td className="p-3 text-right text-gray-500">{formatPrice(listPrice)}</td>
+                      <td className="p-3 text-right text-gray-500">{formatPrice(listPrice, quoteCurrency)}</td>
                       {hasQuotedPrices && (
                         <td className="p-3 text-right font-semibold text-green-600">
-                          {offerPrice != null ? formatPrice(offerPrice) : '-'}
+                          {offerPrice != null ? formatPrice(offerPrice, quoteCurrency) : '-'}
                         </td>
                       )}
                       {hasQuotedPrices && (
@@ -186,7 +194,7 @@ export default function QuoteDetailPage({ params }: { params: { id: string } }) 
                       )}
                       {hasQuotedPrices && (
                         <td className="p-3 text-right font-semibold">
-                          {offerPrice != null ? formatPrice(offerPrice * item.quantity) : '-'}
+                          {offerPrice != null ? formatPrice(offerPrice * item.quantity, quoteCurrency) : '-'}
                         </td>
                       )}
                     </tr>
@@ -197,18 +205,26 @@ export default function QuoteDetailPage({ params }: { params: { id: string } }) 
                 <tfoot>
                   <tr className="border-t bg-gray-50">
                     <td colSpan={4} className="p-3 text-right text-gray-500 text-xs">Liste Toplam:</td>
-                    <td colSpan={2} className="p-3 text-right text-gray-400 line-through">{formatPrice(listTotal)}</td>
+                    <td colSpan={2} className="p-3 text-right text-gray-400 line-through">{formatPrice(listTotal, quoteCurrency)}</td>
                   </tr>
                   <tr className="bg-gray-50">
                     <td colSpan={4} className="p-3 text-right text-red-500 font-medium text-xs">Toplam İskonto:</td>
                     <td colSpan={2} className="p-3 text-right text-red-500 font-bold">
-                      -{formatPrice(totalDiscount!)} (%{listTotal > 0 ? Math.round((totalDiscount! / listTotal) * 100) : 0})
+                      -{formatPrice(totalDiscount!, quoteCurrency)} (%{listTotal > 0 ? Math.round((totalDiscount! / listTotal) * 100) : 0})
                     </td>
                   </tr>
                   <tr className="border-t-2 bg-primary-50">
                     <td colSpan={4} className="p-3 text-right font-bold text-lg">Teklif Genel Toplam:</td>
-                    <td colSpan={2} className="p-3 text-right font-bold text-lg text-primary-500">{formatPrice(quotedTotal)}</td>
+                    <td colSpan={2} className="p-3 text-right font-bold text-lg text-primary-500">{formatPrice(quotedTotal, quoteCurrency)}</td>
                   </tr>
+                  {quoteCurrency !== 'TRY' && quote[`exchangeRate${quoteCurrency}`] && (
+                    <tr className="bg-blue-50">
+                      <td colSpan={4} className="p-3 text-right text-xs text-blue-700">TL Karşılığı (kur: 1 {quoteCurrency} = {quote[`exchangeRate${quoteCurrency}`].toLocaleString('tr-TR')} ₺):</td>
+                      <td colSpan={2} className="p-3 text-right text-sm text-blue-700 font-semibold">
+                        ≈ {formatPrice(quotedTotal * quote[`exchangeRate${quoteCurrency}`])}
+                      </td>
+                    </tr>
+                  )}
                 </tfoot>
               )}
             </table>
@@ -217,8 +233,11 @@ export default function QuoteDetailPage({ params }: { params: { id: string } }) 
           {/* PDF Footer */}
           <div className="print-footer hidden mt-6 pt-4 border-t">
             <p className="text-xs text-gray-500 text-center">
-              Bu teklif {new Date(quote.createdAt).toLocaleDateString('tr-TR')} tarihinde düzenlenmiştir. 
-              Fiyatlar KDV dahildir. Teklif geçerlilik süresi 3 gündür.
+              Bu teklif {new Date(quote.createdAt).toLocaleDateString('tr-TR')} tarihinde düzenlenmiştir.
+              Fiyatlar {quoteCurrency} ({sym}) olup KDV dahildir. Teklif geçerlilik süresi 3 gündür.
+              {quoteCurrency !== 'TRY' && quote[`exchangeRate${quoteCurrency}`] && (
+                <> Kur: 1 {quoteCurrency} = {quote[`exchangeRate${quoteCurrency}`].toLocaleString('tr-TR')} ₺.</>
+              )}
             </p>
             <p className="text-xs text-gray-400 text-center mt-1">
               İKİ M İKLİMLENDİRME SİSTEMLERİ TİC. LTD. ŞTİ. | Tel: 0216 232 40 52 | info@2miklimlendirme.com.tr

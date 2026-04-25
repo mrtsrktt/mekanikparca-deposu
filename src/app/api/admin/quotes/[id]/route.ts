@@ -37,12 +37,13 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 
   const body = await req.json()
-  const { status, adminNote, items, markAsSent, newItems } = body
+  const { status, adminNote, items, markAsSent, newItems, currency } = body
 
   const updateData: any = {}
   if (status) updateData.status = status
   if (adminNote !== undefined) updateData.adminNote = adminNote
   if (markAsSent) updateData.sentAt = new Date()
+  if (currency && ['TRY', 'USD', 'EUR'].includes(currency)) updateData.currency = currency
 
   const quote = await (prisma as any).quoteRequest.update({
     where: { id: params.id },

@@ -5,15 +5,20 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { FiArrowLeft, FiSearch, FiPlus, FiTrash2, FiSave, FiMessageCircle, FiMail, FiDownload } from 'react-icons/fi'
 import toast from 'react-hot-toast'
-import { formatPrice } from '@/lib/pricing'
+import { formatPrice, convertFromTRY, convertToTRY } from '@/lib/pricing'
 
 interface SelectedProduct {
   productId: string
   product: any
   quantity: number
-  unitPrice: string
+  unitPrice: string  // teklif para birimindeki birim fiyat
   note: string
 }
+
+type Currency = 'TRY' | 'USD' | 'EUR'
+
+const currencySymbol = (c: Currency) => (c === 'TRY' ? '₺' : c === 'USD' ? '$' : '€')
+const currencyLabel = (c: Currency) => (c === 'TRY' ? 'TL' : c)
 
 export default function AdminNewQuotePage() {
   const router = useRouter()
@@ -27,6 +32,10 @@ export default function AdminNewQuotePage() {
   const [customerCompany, setCustomerCompany] = useState('')
   const [adminNote, setAdminNote] = useState('Bu teklif 3 gün geçerlidir.')
 
+  // Para birimi & kurlar
+  const [currency, setCurrency] = useState<Currency>('TRY')
+  const [rates, setRates] = useState<{ USD: number | null; EUR: number | null }>({ USD: null, EUR: null })
+
   // Ürün arama
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<any[]>([])
@@ -36,6 +45,18 @@ export default function AdminNewQuotePage() {
 
   // Seçili ürünler
   const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([])
+
+  // Kurları yükle
+  useEffect(() => {
+    fetch('/api/admin/currency')
+      .then(r => r.json())
+      .then((data: any[]) => {
+        const usd = data.find(r => r.currency === 'USD')?.rate ?? null
+        const eur = data.find(r => r.currency === 'EUR')?.rate ?? null
+        setRates({ USD: usd, EUR: eur })
+      })
+      .catch(() => {})
+  }, [])
 
   // Dışarı tıklayınca arama sonuçlarını kapat
   useEffect(() => {
@@ -47,6 +68,33 @@ export default function AdminNewQuotePage() {
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
+
+  // Ürünün teklif para birimindeki birim fiyatını hesapla (varsayılan dolum için)
+  const productPriceInQuoteCurrency = (product: any, target: Currency): number => {
+    if (product.priceCurrency === target) return product.priceOriginal
+    // Önce TRY'ye, sonra hedef dövize
+    const tryPrice = product.priceTRY ?? 0
+    return convertFromTRY(tryPrice, target, rates)
+  }
+
+  // Para birimi değişince mevcut satırları yeni dövize çevir
+  const handleCurrencyChange = (next: Currency) => {
+    if (next === currency) return
+    if (selectedProducts.length > 0) {
+      // Mevcut fiyatları currency → next dönüştür
+      const converted = selectedProducts.map(p => {
+        const amount = parseFloat(p.unitPrice) || 0
+        if (amount === 0) {
+          return { ...p, unitPrice: String(productPriceInQuoteCurrency(p.product, next).toFixed(2)) }
+        }
+        const tryAmount = convertToTRY(amount, currency, rates)
+        const newAmount = convertFromTRY(tryAmount, next, rates)
+        return { ...p, unitPrice: newAmount.toFixed(2) }
+      })
+      setSelectedProducts(converted)
+    }
+    setCurrency(next)
+  }
 
   // Ürün arama
   const handleSearch = async (q: string) => {
@@ -69,11 +117,12 @@ export default function AdminNewQuotePage() {
       toast.error('Bu ürün zaten ekli.')
       return
     }
+    const initialPrice = productPriceInQuoteCurrency(product, currency)
     setSelectedProducts([...selectedProducts, {
       productId: product.id,
       product,
       quantity: 1,
-      unitPrice: String(product.priceTRY),
+      unitPrice: initialPrice.toFixed(2),
       note: '',
     }])
     setSearchQuery('')
@@ -96,6 +145,9 @@ export default function AdminNewQuotePage() {
     return sum + price * p.quantity
   }, 0)
 
+  // TL eşdeğeri (admin için referans)
+  const quotedTotalTRY = currency === 'TRY' ? quotedTotal : convertToTRY(quotedTotal, currency, rates)
+
   const handleDownloadPdf = () => {
     if (!createdQuote) { toast.error('Önce teklifi kaydedin.'); return }
     window.open(`/hesabim/teklifler/${createdQuote.id}`, '_blank')
@@ -104,6 +156,10 @@ export default function AdminNewQuotePage() {
   const handleSave = async (sendVia?: 'whatsapp' | 'email') => {
     if (!customerName.trim()) { toast.error('Müşteri adı gerekli.'); return }
     if (selectedProducts.length === 0) { toast.error('En az bir ürün ekleyin.'); return }
+    if (currency !== 'TRY' && !rates[currency]) {
+      toast.error(`${currency} kuru tanımlı değil. Önce Döviz Yönetimi'nden kuru girin.`)
+      return
+    }
 
     setSaving(true)
     try {
@@ -116,6 +172,7 @@ export default function AdminNewQuotePage() {
           customerPhone,
           customerCompany,
           adminNote,
+          currency,
           items: selectedProducts.map(p => ({
             productId: p.productId,
             quantity: p.quantity,
@@ -161,6 +218,8 @@ export default function AdminNewQuotePage() {
     setSaving(false)
   }
 
+  const sym = currencySymbol(currency)
+
   return (
     <div>
       <Link href="/admin/teklifler" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-primary-500 mb-6">
@@ -172,6 +231,34 @@ export default function AdminNewQuotePage() {
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Sol: Müşteri + Ürünler */}
         <div className="flex-1 space-y-6">
+          {/* Para Birimi Seçimi */}
+          <div className="card p-6">
+            <h2 className="font-semibold text-lg mb-3">Teklif Para Birimi</h2>
+            <div className="flex gap-2">
+              {(['TRY', 'EUR', 'USD'] as Currency[]).map(c => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => handleCurrencyChange(c)}
+                  className={`flex-1 px-4 py-3 rounded-lg border-2 font-medium transition-colors ${
+                    currency === c
+                      ? 'border-primary-500 bg-primary-50 text-primary-600'
+                      : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                  }`}
+                >
+                  <span className="text-xl mr-2">{currencySymbol(c)}</span>
+                  {c === 'TRY' ? 'TL Bazlı Teklif' : `${c} Bazlı Teklif`}
+                </button>
+              ))}
+            </div>
+            {currency !== 'TRY' && (
+              <p className="text-xs text-gray-500 mt-3">
+                Güncel kur: 1 {currency} = {rates[currency] ? rates[currency]!.toLocaleString('tr-TR') : '—'} ₺
+                {!rates[currency] && <span className="text-red-500 ml-2">⚠ Kur tanımlı değil — Döviz Yönetimi'nden ekleyin.</span>}
+              </p>
+            )}
+          </div>
+
           {/* Müşteri Bilgileri */}
           <div className="card p-6">
             <h2 className="font-semibold text-lg mb-4">Müşteri Bilgileri</h2>
@@ -223,7 +310,9 @@ export default function AdminNewQuotePage() {
                       <img src={p.images?.[0]?.url || '/placeholder.jpg'} alt={p.name} className="w-10 h-10 object-contain bg-gray-50 rounded" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{p.name}</p>
-                        <p className="text-xs text-gray-400">{p.brand?.name} {p.sku ? `• ${p.sku}` : ''}</p>
+                        <p className="text-xs text-gray-400">
+                          {p.brand?.name} {p.sku ? `• ${p.sku}` : ''} {p.priceCurrency !== 'TRY' && <span className="text-blue-500">• {p.priceCurrency}</span>}
+                        </p>
                       </div>
                       <span className="text-sm font-semibold text-primary-500 whitespace-nowrap">{formatPrice(p.priceTRY)}</span>
                       <FiPlus className="w-4 h-4 text-green-500 flex-shrink-0" />
@@ -243,69 +332,84 @@ export default function AdminNewQuotePage() {
               <p className="text-sm text-gray-400 text-center py-8">Henüz ürün eklenmedi. Yukarıdan ürün arayarak ekleyin.</p>
             ) : (
               <div className="space-y-3">
-                {selectedProducts.map((item) => (
-                  <div key={item.productId} className="border rounded-lg p-4">
-                    <div className="flex gap-3 mb-3">
-                      <img
-                        src={item.product?.images?.[0]?.url || '/placeholder.jpg'}
-                        alt={item.product?.name}
-                        className="w-14 h-14 object-contain bg-gray-50 rounded"
-                      />
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">{item.product?.name}</p>
-                        <p className="text-xs text-gray-400">{item.product?.brand?.name}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">Liste: {formatPrice(item.product?.priceTRY || 0)}</p>
+                {selectedProducts.map((item) => {
+                  const lineAmount = (parseFloat(item.unitPrice) || 0) * item.quantity
+                  const productNativePrice = item.product?.priceCurrency !== 'TRY'
+                    ? `${item.product.priceOriginal} ${item.product.priceCurrency}`
+                    : null
+                  return (
+                    <div key={item.productId} className="border rounded-lg p-4">
+                      <div className="flex gap-3 mb-3">
+                        <img
+                          src={item.product?.images?.[0]?.url || '/placeholder.jpg'}
+                          alt={item.product?.name}
+                          className="w-14 h-14 object-contain bg-gray-50 rounded"
+                        />
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">{item.product?.name}</p>
+                          <p className="text-xs text-gray-400">{item.product?.brand?.name}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            Liste: {formatPrice(item.product?.priceTRY || 0)}
+                            {productNativePrice && <span className="ml-2 text-blue-500">({productNativePrice})</span>}
+                          </p>
+                        </div>
+                        <button onClick={() => removeProduct(item.productId)} className="p-2 text-red-500 hover:bg-red-50 rounded self-start" title="Kaldır">
+                          <FiTrash2 className="w-4 h-4" />
+                        </button>
                       </div>
-                      <button onClick={() => removeProduct(item.productId)} className="p-2 text-red-500 hover:bg-red-50 rounded self-start" title="Kaldır">
-                        <FiTrash2 className="w-4 h-4" />
-                      </button>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">Miktar</label>
+                          <input
+                            type="number"
+                            min="1"
+                            className="input-field text-sm"
+                            value={item.quantity}
+                            onChange={(e) => updateProduct(item.productId, 'quantity', Math.max(1, parseInt(e.target.value) || 1))}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">Teklif Fiyatı (Birim, {sym})</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            className="input-field text-sm"
+                            value={item.unitPrice}
+                            onChange={(e) => updateProduct(item.productId, 'unitPrice', e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">Not</label>
+                          <input
+                            type="text"
+                            className="input-field text-sm"
+                            placeholder="Opsiyonel"
+                            value={item.note}
+                            onChange={(e) => updateProduct(item.productId, 'note', e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      {lineAmount > 0 && (
+                        <p className="text-xs text-right mt-2 text-green-600 font-medium">
+                          Satır Toplam: {formatPrice(lineAmount, currency)}
+                          {currency !== 'TRY' && rates[currency] && (
+                            <span className="text-gray-400 ml-2">≈ {formatPrice(lineAmount * rates[currency]!)}</span>
+                          )}
+                        </p>
+                      )}
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">Miktar</label>
-                        <input
-                          type="number"
-                          min="1"
-                          className="input-field text-sm"
-                          value={item.quantity}
-                          onChange={(e) => updateProduct(item.productId, 'quantity', Math.max(1, parseInt(e.target.value) || 1))}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">Teklif Fiyatı (₺)</label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          className="input-field text-sm"
-                          value={item.unitPrice}
-                          onChange={(e) => updateProduct(item.productId, 'unitPrice', e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">Not</label>
-                        <input
-                          type="text"
-                          className="input-field text-sm"
-                          placeholder="Opsiyonel"
-                          value={item.note}
-                          onChange={(e) => updateProduct(item.productId, 'note', e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    {parseFloat(item.unitPrice) > 0 && (
-                      <p className="text-xs text-right mt-2 text-green-600 font-medium">
-                        Satır Toplam: {formatPrice(parseFloat(item.unitPrice) * item.quantity)}
-                      </p>
-                    )}
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
 
             {quotedTotal > 0 && (
               <div className="mt-4 p-4 bg-primary-50 rounded-lg text-right">
                 <span className="text-sm text-gray-600">Genel Toplam: </span>
-                <span className="text-xl font-bold text-primary-500">{formatPrice(quotedTotal)}</span>
+                <span className="text-xl font-bold text-primary-500">{formatPrice(quotedTotal, currency)}</span>
+                {currency !== 'TRY' && rates[currency] && (
+                  <span className="block text-xs text-gray-400 mt-1">≈ {formatPrice(quotedTotalTRY)}</span>
+                )}
               </div>
             )}
           </div>
@@ -314,6 +418,11 @@ export default function AdminNewQuotePage() {
         {/* Sağ: Açıklama & Aksiyonlar */}
         <div className="w-full lg:w-80">
           <div className="card p-6 sticky top-6 space-y-4">
+            <div className="bg-gray-50 rounded-lg p-3 text-xs">
+              <p className="font-medium text-gray-600 mb-1">Teklif Para Birimi</p>
+              <p className="text-lg font-bold text-primary-500">{currencyLabel(currency)} {sym}</p>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Teklif Açıklaması</label>
               <textarea

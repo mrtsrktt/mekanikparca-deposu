@@ -33,7 +33,7 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json()
-  const { customerName, customerEmail, customerPhone, customerCompany, adminNote, items } = body
+  const { customerName, customerEmail, customerPhone, customerCompany, adminNote, items, currency } = body
 
   if (!customerName) {
     return NextResponse.json({ error: 'Müşteri adı gerekli.' }, { status: 400 })
@@ -41,6 +41,13 @@ export async function POST(req: Request) {
   if (!items || items.length === 0) {
     return NextResponse.json({ error: 'En az bir ürün ekleyin.' }, { status: 400 })
   }
+
+  const quoteCurrency = ['TRY', 'USD', 'EUR'].includes(currency) ? currency : 'TRY'
+
+  // Snapshot current rates so the quote remains stable even if rates move later
+  const rates = await prisma.currencyRate.findMany({ where: { currency: { in: ['USD', 'EUR'] } } })
+  const usdRate = rates.find(r => r.currency === 'USD')?.rate ?? null
+  const eurRate = rates.find(r => r.currency === 'EUR')?.rate ?? null
 
   // Teklif numarası oluştur
   const count = await (prisma as any).quoteRequest.count()
@@ -56,6 +63,9 @@ export async function POST(req: Request) {
       adminNote: adminNote || null,
       status: 'QUOTED',
       isManual: true,
+      currency: quoteCurrency,
+      exchangeRateUSD: usdRate,
+      exchangeRateEUR: eurRate,
       items: {
         create: items.map((item: any) => ({
           productId: item.productId,

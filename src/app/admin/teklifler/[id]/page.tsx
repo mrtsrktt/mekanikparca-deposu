@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { FiArrowLeft, FiSave, FiMessageCircle, FiMail, FiDownload, FiPlus, FiTrash2, FiSearch } from 'react-icons/fi'
 import toast from 'react-hot-toast'
-import { formatPrice } from '@/lib/pricing'
+import { formatPrice, convertFromTRY } from '@/lib/pricing'
 import { useRef } from 'react'
+
+const currencySymbol = (c: string) => (c === 'USD' ? '$' : c === 'EUR' ? '€' : '₺')
 
 const statusOptions = [
   { value: 'PENDING', label: 'Beklemede' },
@@ -117,6 +119,15 @@ export default function AdminQuoteDetailPage({ params }: { params: { id: string 
     if (quote.items?.find((i: any) => i.product?.id === product.id)) {
       toast.error('Bu ürün zaten ekli'); return
     }
+    // Yeni ürünün fiyatını teklifin para birimine dönüştür
+    const quoteCurrency = quote.currency || 'TRY'
+    const rates = { USD: quote.exchangeRateUSD, EUR: quote.exchangeRateEUR }
+    let prefill: number
+    if (product.priceCurrency === quoteCurrency) {
+      prefill = product.priceOriginal
+    } else {
+      prefill = convertFromTRY(product.priceTRY ?? 0, quoteCurrency, rates)
+    }
     // Optimistic update
     const newItem = {
       id: `temp-${Date.now()}`,
@@ -126,7 +137,7 @@ export default function AdminQuoteDetailPage({ params }: { params: { id: string 
       note: null,
     }
     setQuote({ ...quote, items: [...(quote.items || []), newItem] })
-    setItemPrices({ ...itemPrices, [newItem.id]: { unitPrice: String(product.priceTRY), note: '' } })
+    setItemPrices({ ...itemPrices, [newItem.id]: { unitPrice: prefill.toFixed(2), note: '' } })
     setSearchQuery('')
     setShowResults(false)
     toast.success('Ürün eklendi — kaydetmeyi unutmayın')
@@ -190,6 +201,8 @@ export default function AdminQuoteDetailPage({ params }: { params: { id: string 
   if (loading) return <div className="text-center py-16 text-gray-500">Yükleniyor...</div>
   if (!quote) return <div className="text-center py-16 text-gray-500">Teklif bulunamadı.</div>
 
+  const quoteCurrency = quote.currency || 'TRY'
+  const sym = currencySymbol(quoteCurrency)
   const quotedTotal = quote.items?.reduce((s: number, i: any) => {
     const price = itemPrices[i.id]?.unitPrice ? parseFloat(itemPrices[i.id].unitPrice) : 0
     return s + price * i.quantity
@@ -206,7 +219,12 @@ export default function AdminQuoteDetailPage({ params }: { params: { id: string 
         <div className="flex-1">
           <div className="card p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h1 className="text-xl font-bold">{quote.quoteNumber}</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold">{quote.quoteNumber}</h1>
+                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                  {quoteCurrency} {sym}
+                </span>
+              </div>
               <span className="text-sm text-gray-400">
                 {new Date(quote.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
               </span>
@@ -281,9 +299,12 @@ export default function AdminQuoteDetailPage({ params }: { params: { id: string 
                     <div className="flex-1">
                       <p className="font-medium text-sm">{item.product?.name}</p>
                       <p className="text-xs text-gray-400">{item.product?.brand?.name}</p>
-                      <div className="flex gap-4 mt-1 text-xs">
+                      <div className="flex gap-4 mt-1 text-xs flex-wrap">
                         <span>Miktar: <span className="font-semibold">{item.quantity}</span></span>
-                        <span>Liste: <span className="font-semibold">{formatPrice(item.product?.priceTRY || 0)}</span></span>
+                        <span>Liste (TL): <span className="font-semibold">{formatPrice(item.product?.priceTRY || 0)}</span></span>
+                        {item.product?.priceCurrency && item.product.priceCurrency !== 'TRY' && (
+                          <span className="text-blue-500">Ürün dövizi: {item.product.priceOriginal} {item.product.priceCurrency}</span>
+                        )}
                       </div>
                     </div>
                     <button
@@ -296,7 +317,7 @@ export default function AdminQuoteDetailPage({ params }: { params: { id: string 
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-medium text-gray-500 mb-1">Teklif Fiyatı (Birim, ₺)</label>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Teklif Fiyatı (Birim, {sym})</label>
                       <input
                         type="number"
                         step="0.01"
@@ -325,7 +346,7 @@ export default function AdminQuoteDetailPage({ params }: { params: { id: string 
                   </div>
                   {itemPrices[item.id]?.unitPrice && (
                     <p className="text-xs text-right mt-2 text-green-600 font-medium">
-                      Satır Toplam: {formatPrice(parseFloat(itemPrices[item.id].unitPrice) * item.quantity)}
+                      Satır Toplam: {formatPrice(parseFloat(itemPrices[item.id].unitPrice) * item.quantity, quoteCurrency)}
                     </p>
                   )}
                 </div>
@@ -335,7 +356,12 @@ export default function AdminQuoteDetailPage({ params }: { params: { id: string 
             {quotedTotal > 0 && (
               <div className="mt-4 p-4 bg-primary-50 rounded-lg text-right">
                 <span className="text-sm text-gray-600">Genel Toplam: </span>
-                <span className="text-xl font-bold text-primary-500">{formatPrice(quotedTotal)}</span>
+                <span className="text-xl font-bold text-primary-500">{formatPrice(quotedTotal, quoteCurrency)}</span>
+                {quoteCurrency !== 'TRY' && quote[`exchangeRate${quoteCurrency}`] && (
+                  <span className="block text-xs text-gray-400 mt-1">
+                    ≈ {formatPrice(quotedTotal * quote[`exchangeRate${quoteCurrency}`])} (kur: 1 {quoteCurrency} = {quote[`exchangeRate${quoteCurrency}`].toLocaleString('tr-TR')} ₺)
+                  </span>
+                )}
               </div>
             )}
           </div>

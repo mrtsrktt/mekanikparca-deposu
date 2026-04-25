@@ -58,6 +58,9 @@ export default function AdminQuotesPage() {
                     <td className="p-3 font-semibold text-primary-500">
                       {q.quoteNumber}
                       {q.isManual && <span className="ml-1 text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full">Manuel</span>}
+                      {q.currency && q.currency !== 'TRY' && (
+                        <span className="ml-1 text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-bold">{q.currency}</span>
+                      )}
                     </td>
                     <td className="p-3">
                       {q.user?.name || q.customerName}

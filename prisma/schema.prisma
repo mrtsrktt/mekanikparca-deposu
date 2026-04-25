@@ -176,6 +176,9 @@ model QuoteRequest {
   status          String      @default("PENDING") // PENDING, REVIEWING, QUOTED, ACCEPTED, REJECTED
   isManual        Boolean     @default(false) // Admin tarafından oluşturuldu mu
   sentAt          DateTime?   // Admin'in teklifi gönderdiği tarih
+  currency        String      @default("TRY") // TRY, USD, EUR — teklif para birimi
+  exchangeRateUSD Float?      // Teklif anındaki USD/TRY kuru (snapshot)
+  exchangeRateEUR Float?      // Teklif anındaki EUR/TRY kuru (snapshot)
   items           QuoteItem[]
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
