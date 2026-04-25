@@ -250,39 +250,54 @@ export default function QuoteDetailPage({ params }: { params: { id: string } }) 
       <style jsx global>{`
         @media print {
           @page { margin: 10mm 8mm; size: A4 portrait; }
-          body * { visibility: hidden; }
-          .print-area, .print-area * { visibility: visible; }
-          .print-area { 
-            position: absolute; 
-            left: 0; 
-            top: 0; 
-            width: 100%; 
-            padding: 0 10px;
-            font-size: 11px;
+
+          /* print-area dışındaki tüm body alt-ağaçlarını gizle (layout, header, footer vs.) */
+          body > *:not(:has(.print-area)) { display: none !important; }
+
+          /* print-area'ya giden tüm sarmalayıcıların boşluk/genişlik kısıtlamalarını sıfırla */
+          html, body { margin: 0 !important; padding: 0 !important; background: white !important; }
+          body :has(.print-area) {
+            margin: 0 !important;
+            padding: 0 !important;
+            max-width: none !important;
+            width: auto !important;
+            background: white !important;
+            box-shadow: none !important;
           }
+
           .no-print { display: none !important; }
           .print-header { display: block !important; }
           .print-customer { display: block !important; }
           .print-description { display: block !important; }
           .print-footer { display: block !important; }
+
+          .print-area {
+            font-size: 11px;
+            padding: 0 !important;
+          }
+
           .print-table { border-collapse: collapse; width: 100%; font-size: 11px; }
-          .print-table th { 
-            background-color: #f3f4f6 !important; 
+          .print-table th {
+            background-color: #f3f4f6 !important;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
             font-weight: 600;
             font-size: 10px;
             white-space: nowrap;
           }
-          .print-table td, .print-table th { 
-            border: 1px solid #e5e7eb; 
+          .print-table td, .print-table th {
+            border: 1px solid #e5e7eb;
             padding: 5px 6px;
           }
           .print-table .print-narrow { width: 50px; }
           .print-img { width: 30px; height: 30px; }
-          .card { box-shadow: none !important; border: none !important; padding: 0 !important; }
+          .card { box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; }
           .print-title { font-size: 20px; color: #1a1a1a; }
           .badge { border: 1px solid #ccc; padding: 2px 8px; font-size: 10px; }
+
+          /* Sayfa kırılmasını engelle */
+          .print-area, .print-area > .card, .print-table { page-break-inside: avoid; }
+
           * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
       `}</style>
