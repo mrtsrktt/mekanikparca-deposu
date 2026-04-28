@@ -52,6 +52,109 @@ export type EnrichedProductDescription = {
 }
 
 export const PRODUCT_DESCRIPTIONS: Record<string, EnrichedProductDescription> = {
+  'lega-500-va-kombi-voltaj-regulatoru': {
+    productSlug: 'lega-500-va-kombi-voltaj-regulatoru',
+    hero: {
+      title: 'LEGA 500 VA Kombi Voltaj Regülatörü',
+      subtitle: 'Kombinizi Voltaj Dalgalanmalarına Karşı Koruyun',
+      intro:
+        "Türkiye'de kombi yanmalarının en büyük sebebi voltaj dalgalanmalarıdır. Tek bir voltaj atağı yeni bir kombi maliyetine ulaşır. Lega 500 VA Kombi Regülatörü, sadece kombiniz için tasarlanmış kompakt ve uzun ömürlü bir koruyucudur. Otomatik çalışan bu regülatör, voltajı 130-260V aralığından alır, kombinize sabit 220V (±3V) çıkış verir. %98 verimlilik ile elektrik faturanıza ek yük getirmez.",
+    },
+    trustBadges: [
+      { icon: 'ShieldCheck', text: 'Kombi Garantinizi Korur' },
+      { icon: 'BadgeCheck', text: 'CE Belgeli, %100 Türk Üretimi' },
+      { icon: 'Truck', text: 'Aynı Gün Kargo (en geç 2 iş günü)' },
+      { icon: 'Zap', text: '%98 Yüksek Verim, Düşük Tüketim' },
+    ],
+    whyThisModel: {
+      title: 'Neden Lega 500 VA Kombi Regülatörü?',
+      features: [
+        {
+          icon: 'Flame',
+          title: 'Kombiye Özel Tasarım',
+          description:
+            'Yalnızca kombi yükünü taşıyacak şekilde optimize edilmiştir. 500 VA güç, doğalgaz kombilerinin elektrik ihtiyacını rahatlıkla karşılar. Kompakt yapısı sayesinde kombinin yanına kolayca monte edilir.',
+        },
+        {
+          icon: 'Shield',
+          title: '4 Katmanlı Koruma',
+          description:
+            'Aşırı gerilim, aşırı akım, aşırı ısı ve düşük gerilim koruması bir arada. Kombiniz hangi voltaj saldırısıyla karşılaşırsa karşılaşsın güvende kalır. Sigorta atması yerine devre korumaya geçer.',
+        },
+        {
+          icon: 'Activity',
+          title: 'Geniş Voltaj Aralığı',
+          description:
+            "130V ile 260V arasında çalışır — Türkiye'nin elektrik altyapısı zayıf bölgelerinde bile sorunsuz hizmet verir. Kombinize sabit 220V (±3V) çıkış garantilenir.",
+        },
+        {
+          icon: 'Gauge',
+          title: '%98 Verimlilik',
+          description:
+            'Otomatik çalışma sistemi minimum enerji tüketimi sağlar. Cihaz arka planda sessizce çalışır, elektrik faturanıza fark etmez bir yük getirir.',
+        },
+      ],
+    },
+    whoIsItFor: {
+      title: 'Bu Model Kimler İçin?',
+      cases: [
+        { icon: 'Home', label: 'Kombili daireler' },
+        { icon: 'Building', label: 'Müstakil evler ve villalar' },
+        { icon: 'Building2', label: 'Küçük işyeri kombileri' },
+        { icon: 'Mountain', label: 'Kırsal ve voltajı zayıf bölgeler' },
+      ],
+      summary:
+        '500 VA güç kapasitesi sadece kombi yükü için tasarlanmıştır. Tüm ev cihazlarınızı korumak istiyorsanız 5 KVA veya üzeri servo regülatör modellerimizi inceleyebilirsiniz. Sadece kombinizi koruyacak ekonomik bir çözüm arıyorsanız bu model size en uygun seçimdir.',
+    },
+    techSpecs: {
+      title: 'Teknik Özellikler',
+      specs: [
+        { label: 'Güç Kapasitesi', value: '500 VA' },
+        { label: 'Tip', value: 'Kombi Regülatörü' },
+        { label: 'Çalışma Şekli', value: 'Otomatik' },
+        { label: 'Giriş Voltajı', value: '130V – 260V' },
+        { label: 'Çıkış Voltajı', value: '220V (±3V)' },
+        { label: 'Verim', value: '%98' },
+        { label: 'Aşırı Gerilim Koruması', value: 'Var' },
+        { label: 'Aşırı Akım Koruması', value: 'Var' },
+        { label: 'Aşırı Sıcaklık Koruması', value: 'Var' },
+        { label: 'Düşük Gerilim Koruması', value: 'Var' },
+        { label: 'Sertifika', value: 'CE belgeli' },
+        { label: 'Üretim Yeri', value: 'Türkiye' },
+        { label: 'Garanti', value: '2 yıl üretici garantisi' },
+      ],
+    },
+    faq: {
+      title: 'Sıkça Sorulan Sorular',
+      items: [
+        {
+          question: 'Bu regülatör tüm evimi koruyacak mı?',
+          answer:
+            'Hayır, bu model yalnızca kombiniz için tasarlanmıştır. 500 VA güç kapasitesi sadece kombi yükünü taşır. Tüm evi korumak için 5 KVA veya daha yüksek servo regülatör modellerimizden birini tercih etmelisiniz.',
+        },
+        {
+          question: 'Kurulumu kim yapar?',
+          answer:
+            'Kurulum yetkili bir elektrikçi tarafından yapılmalıdır. Cihaz, kombinin elektrik bağlantısı ile şebeke arasına monte edilir. Kombinizin servisi de bu kurulumu yapabilir.',
+        },
+        {
+          question: 'Kombimde sigorta zaten var, regülatöre neden ihtiyacım var?',
+          answer:
+            'Sigorta yalnızca kısa devreyi keser. Voltaj dalgalanmaları ise sigortaya etki etmeden kombi elektroniğini yakar. Regülatör, voltaj dalgalanmalarını dengeler ve sigortanın koruyamadığı durumlarda devreye girer.',
+        },
+        {
+          question: 'Stokta var mı?',
+          answer:
+            'Evet, ürün stoklarımızda mevcuttur. Aynı gün kargoya verilir, en geç 2 iş günü içinde kapınızda olur.',
+        },
+        {
+          question: 'Garanti süresi içinde sorun yaşarsam?',
+          answer:
+            'Tüm Lega ürünleri 2 yıl üretici garantilidir. WhatsApp veya telefonla ulaşmanız yeterli — kargo dahil tüm süreci biz yönetiriz.',
+        },
+      ],
+    },
+  },
   'lega-75-kva-monofaze-servo-voltaj-regulatoru': {
     productSlug: 'lega-75-kva-monofaze-servo-voltaj-regulatoru',
     hero: {

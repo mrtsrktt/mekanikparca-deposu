@@ -8,10 +8,15 @@ import {
   Monitor,
   Wrench,
   Home,
+  Building,
   Building2,
   Store,
   Hammer,
   Coffee,
+  Flame,
+  Activity,
+  Gauge,
+  Mountain,
   HelpCircle,
   type LucideIcon,
 } from 'lucide-react'
@@ -26,10 +31,15 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Monitor,
   Wrench,
   Home,
+  Building,
   Building2,
   Store,
   Hammer,
   Coffee,
+  Flame,
+  Activity,
+  Gauge,
+  Mountain,
 }
 
 type Props = {
