@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import ProductDetailClient from './ProductDetailClient'
 import ProductMediaGallery from '@/components/ProductMediaGallery'
+import EnrichedDescription, { hasEnrichedDescription } from '@/components/product/EnrichedDescription'
 
 export const dynamic = 'force-dynamic'
 
@@ -257,8 +258,8 @@ export default async function ProductDetailPage({ params }: Props) {
             </div>
           )}
 
-          {/* Description */}
-          {productWithConvertedPrice.description && (
+          {/* Description (sadece enriched yoksa göster) */}
+          {productWithConvertedPrice.description && !hasEnrichedDescription(productWithConvertedPrice.slug) && (
             <div className="mt-8">
               <h2 className="text-lg font-semibold mb-3">Ürün Açıklaması</h2>
               <div
@@ -273,6 +274,13 @@ export default async function ProductDetailPage({ params }: Props) {
           )}
         </div>
       </div>
+
+      {/* Enriched Description (full-width, grid altında) */}
+      {hasEnrichedDescription(productWithConvertedPrice.slug) && (
+        <div className="mt-12 md:mt-16">
+          <EnrichedDescription slug={productWithConvertedPrice.slug} />
+        </div>
+      )}
 
       {/* Videos Section */}
       {videos?.length > 0 && (
