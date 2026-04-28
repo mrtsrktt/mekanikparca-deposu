@@ -47,7 +47,7 @@ export default function ProductCard({ product, hasCampaign, campaignLowestPrice,
           <img
             src={imageUrl}
             alt={product.images[0]?.alt || product.name}
-            className="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500 ease-out"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
           />
           {product.trackStock !== false && product.stock === 0 && (
             <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-[2px] flex items-center justify-center">
