@@ -218,7 +218,7 @@ export default function BrandProductGuide({
                   <img
                     src={recommendedProduct.imageUrl}
                     alt={recommendedProduct.name}
-                    className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                   />
                 </Link>
                 <div className="flex-1 text-center md:text-left">

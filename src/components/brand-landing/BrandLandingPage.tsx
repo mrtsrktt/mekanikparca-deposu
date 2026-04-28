@@ -344,7 +344,7 @@ export default function BrandLandingPage({ brand, brandRecord, products }: Props
                           src={p.images[0]?.url || '/placeholder.jpg'}
                           alt={p.images[0]?.alt || p.name}
                           loading="lazy"
-                          className="w-full h-full object-contain p-8 md:p-10 group-hover:scale-[1.04] transition-transform duration-500"
+                          className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
                         />
 
                         {outOfStock && (
