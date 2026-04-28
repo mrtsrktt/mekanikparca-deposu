@@ -2,6 +2,8 @@ import { prisma } from '@/lib/prisma'
 import { calculateTRYPrice } from '@/lib/pricing'
 import ProductCard from '@/components/ProductCard'
 import Link from 'next/link'
+import { getBrandContent } from '@/lib/brand-content'
+import BrandLandingPage from '@/components/brand-landing/BrandLandingPage'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,6 +41,16 @@ export async function generateMetadata({ searchParams }: Props) {
   }
 
   if (searchParams.brand) {
+    const brandContent = getBrandContent(searchParams.brand)
+    if (brandContent) {
+      const description = brandContent.tagline.length > 160
+        ? brandContent.tagline.slice(0, 157) + '...'
+        : brandContent.tagline
+      return {
+        title: `${brandContent.fullName} | Mekanik Parça Deposu`,
+        description,
+      }
+    }
     const brand = await prisma.brand.findUnique({
       where: { slug: searchParams.brand },
     })
@@ -64,6 +76,54 @@ export async function generateMetadata({ searchParams }: Props) {
 }
 
 export default async function ProductsPage({ searchParams }: Props) {
+  // Brand-specific landing page (Lega, Fernox, ...) — render only when brand
+  // is in BRAND_CONTENT and no other filter/search/sort/pagination is active.
+  const brandContent = getBrandContent(searchParams.brand)
+  const isPlainBrandRequest =
+    !!brandContent &&
+    !searchParams.q &&
+    !searchParams.category &&
+    !searchParams.page &&
+    !searchParams.sort
+  if (isPlainBrandRequest && brandContent) {
+    const brandRecord = await prisma.brand.findUnique({
+      where: { slug: brandContent.slug },
+    })
+    if (brandRecord) {
+      const exchangeRates = await getExchangeRates()
+      const brandProducts = await prisma.product.findMany({
+        where: {
+          isActive: true,
+          brandId: brandRecord.id,
+          OR: [{ category: { isActive: true } }, { categoryId: null }],
+        },
+        include: { images: { take: 1, orderBy: { sortOrder: 'asc' } } },
+        orderBy: { name: 'asc' },
+      })
+      const productsWithTRY = brandProducts.map((p) => ({
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        priceTRY: calculateTRYPrice(p.priceOriginal, p.priceCurrency, exchangeRates),
+        stock: p.stock,
+        trackStock: p.trackStock,
+        images: p.images.map((img) => ({ url: img.url, alt: img.alt })),
+      }))
+      return (
+        <BrandLandingPage
+          brand={brandContent}
+          brandRecord={{
+            id: brandRecord.id,
+            name: brandRecord.name,
+            slug: brandRecord.slug,
+            logo: brandRecord.logo,
+          }}
+          products={productsWithTRY}
+        />
+      )
+    }
+  }
+
   const page = parseInt(searchParams.page || '1')
   const limit = 20
   const sort = searchParams.sort || 'newest'
