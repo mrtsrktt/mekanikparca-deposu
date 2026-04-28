@@ -19,6 +19,9 @@ import {
   Mountain,
   Wallet,
   Briefcase,
+  Factory,
+  Warehouse,
+  Receipt,
   HelpCircle,
   type LucideIcon,
 } from 'lucide-react'
@@ -44,6 +47,9 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Mountain,
   Wallet,
   Briefcase,
+  Factory,
+  Warehouse,
+  Receipt,
 }
 
 type Props = {

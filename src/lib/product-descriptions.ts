@@ -155,6 +155,116 @@ export const PRODUCT_DESCRIPTIONS: Record<string, EnrichedProductDescription> = 
       ],
     },
   },
+  'lega-40-kva-monofaze-servo-voltaj-regulatoru': {
+    productSlug: 'lega-40-kva-monofaze-servo-voltaj-regulatoru',
+    hero: {
+      title: 'LEGA 40 KVA Monofaze Servo Voltaj Regülatörü',
+      subtitle: 'Büyük Endüstriyel Tesisleriniz İçin Profesyonel Voltaj Yönetimi',
+      intro:
+        "Endüstriyel tesisler ve büyük ticari işletmeler için tasarlanmış en yüksek kapasiteli monofaze servo regülatör. 40 KVA güç kapasitesi ile 32.000 watt'a kadar yük taşır. Üretim hatları, atölye ekipmanları, mağaza zincirleri ve büyük ticari işletmelerin elektrik güvenliği için tek seferlik akıllı yatırım. 22 ülkeye ihracat yapan Lega Energy mühendisliğinin güvencesinde, ±%2 hassasiyetle çıkış voltajını sabit 220V'da tutar.",
+    },
+    trustBadges: [
+      { icon: 'ShieldCheck', text: '2 Yıl Üretici Garantisi' },
+      { icon: 'BadgeCheck', text: 'TSE Belgeli, %100 Türk Üretimi' },
+      { icon: 'Truck', text: 'Aynı Gün Kargo (en geç 2 iş günü)' },
+      { icon: 'Receipt', text: 'Firma Faturası ve E-Fatura' },
+    ],
+    whyThisModel: {
+      title: 'Neden Lega 40 KVA?',
+      features: [
+        {
+          icon: 'Factory',
+          title: 'Endüstriyel Sınıf Güç',
+          description:
+            '40 KVA, monofaze servo regülatör segmentindeki en yüksek güç değeridir. Üretim hatları, kompresör motorları, soğutma sistemleri ve yüksek tüketim makinelerinin elektrik ihtiyacını sorunsuz karşılar.',
+        },
+        {
+          icon: 'Shield',
+          title: 'Profesyonel Voltaj Koruması',
+          description:
+            "Servo motor ve büyük çaplı toroidal trafo teknolojisi sayesinde, şebeke gerilimi 140V'a düşse veya 260V'a çıksa bile çıkışı sabit 220V'da tutar. Endüstriyel sürekli kullanım için optimize edilmiştir.",
+        },
+        {
+          icon: 'Activity',
+          title: 'Yüksek Yük Dayanımı',
+          description:
+            'Ağır yük altında bile sürekli ve kararlı çalışır. Kompresör, motor ve indüktif yüklerin kalkış akımlarına dayanıklı tasarım. Aşırı yük, aşırı voltaj ve termik koruma standartmış.',
+        },
+        {
+          icon: 'Receipt',
+          title: 'Toplu Alımda Özel Fiyat',
+          description:
+            'Birden fazla ünite ihtiyacınız varsa, tesisat firmaları ve büyük işletmelere özel toplu alım fiyatlarımızdan yararlanabilirsiniz. WhatsApp üzerinden teklif alın.',
+        },
+      ],
+    },
+    whoIsItFor: {
+      title: 'Bu Model Kimler İçin?',
+      cases: [
+        { icon: 'Factory', label: 'Üretim tesisleri ve fabrikalar' },
+        { icon: 'Warehouse', label: 'Depolar ve lojistik tesisleri' },
+        { icon: 'Building2', label: 'Büyük mağaza zincirleri' },
+        { icon: 'Wrench', label: 'Ağır sanayi atölyeleri' },
+      ],
+      summary:
+        '40 KVA güç kapasitesi yaklaşık 32.000 watt yük taşıma anlamına gelir. Tipik kullanım: birden fazla endüstriyel makine + soğutma sistemi + aydınlatma + ofis ekipmanları. Daha yüksek güç ihtiyaçları veya trifaze çözüm için WhatsApp üzerinden iletişime geçebilirsiniz, özel teklif sunalım.',
+    },
+    techSpecs: {
+      title: 'Teknik Özellikler',
+      specs: [
+        { label: 'Güç Kapasitesi', value: '40 KVA' },
+        { label: 'Faz Tipi', value: 'Monofaze' },
+        { label: 'Teknoloji', value: 'Servo Motor + Toroidal Trafo' },
+        { label: 'Giriş Voltajı', value: '140V – 260V' },
+        { label: 'Çıkış Voltajı', value: '220V (±%2 hassasiyet)' },
+        { label: 'Frekans', value: '50 Hz' },
+        { label: 'Çalışma Sıcaklığı', value: '0°C – +40°C' },
+        {
+          label: 'Koruma Özellikleri',
+          value: 'Aşırı yük, aşırı voltaj, aşırı sıcaklık, kısa devre koruması',
+        },
+        { label: 'Gösterge', value: 'DM-07 dijital multifunction display' },
+        { label: 'Sertifika', value: 'TSE belgeli, TS EN 61558-1 standardı' },
+        { label: 'Üretim Yeri', value: 'Türkiye / İstanbul' },
+        { label: 'Garanti', value: '2 yıl üretici garantisi' },
+      ],
+    },
+    faq: {
+      title: 'Sıkça Sorulan Sorular',
+      items: [
+        {
+          question: '40 KVA hangi tesislere uygundur?',
+          answer:
+            "Üretim hatları, büyük mağazalar, ağır makineler içeren atölyeler, depo ve lojistik tesisleri için idealdir. Toplam yükünüz 25.000 watt'ın üzerindeyse bu modeli tercih etmelisiniz.",
+        },
+        {
+          question: 'Trifaze sistemim var, bu ürün uyar mı?',
+          answer:
+            'Bu model monofaze sistemler içindir. Trifaze tesisleriniz için özel çözüm önerebiliriz; WhatsApp üzerinden bize ulaşın, ihtiyacınıza uygun model bulalım.',
+        },
+        {
+          question: 'Kurulum hizmeti veriyor musunuz?',
+          answer:
+            'Endüstriyel kurulumlar için anlaşmalı teknik servis ekibimizden destek sağlanır. Yetkili elektrikçi tarafından yapılması gerekir; kurulum desteği için iletişime geçin.',
+        },
+        {
+          question: 'Toplu alım için indirim var mı?',
+          answer:
+            'Evet, birden fazla ünite siparişlerinde firma faturalı özel fiyatlandırma sunuyoruz. WhatsApp üzerinden teklif alabilirsiniz.',
+        },
+        {
+          question: 'Stokta var mı?',
+          answer:
+            'Evet, ürün stoklarımızda mevcuttur. Aynı gün kargoya verilir, en geç 2 iş günü içinde kapınızda olur.',
+        },
+        {
+          question: 'Garanti süresi içinde sorun yaşarsam?',
+          answer:
+            'Tüm Lega ürünleri 2 yıl üretici garantilidir. WhatsApp veya telefonla ulaşmanız yeterli — kargo dahil tüm süreci biz yönetiriz.',
+        },
+      ],
+    },
+  },
   'lega-5-kva-monofaze-servo-voltaj-regulatoru': {
     productSlug: 'lega-5-kva-monofaze-servo-voltaj-regulatoru',
     hero: {
