@@ -17,6 +17,8 @@ import {
   Activity,
   Gauge,
   Mountain,
+  Wallet,
+  Briefcase,
   HelpCircle,
   type LucideIcon,
 } from 'lucide-react'
@@ -40,6 +42,8 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Activity,
   Gauge,
   Mountain,
+  Wallet,
+  Briefcase,
 }
 
 type Props = {
