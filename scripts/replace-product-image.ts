@@ -10,9 +10,9 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 const TARGET = {
-  slug: 'lega-40-kva-monofaze-servo-voltaj-regulatoru',
-  newUrl: '/images/lega-40-kva-monofaze-servo-voltaj-regulatoru.png',
-  newAlt: 'Lega 40 kVA Monofaze Servo Voltaj Regülatörü',
+  slug: 'lega-30-kva-monofaze-servo-voltaj-regulatoru',
+  newUrl: '/images/lega-30-kva-monofaze-servo-voltaj-regulatoru.png',
+  newAlt: 'Lega 30 kVA Monofaze Servo Voltaj Regülatörü',
 }
 
 async function main() {
