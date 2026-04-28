@@ -182,8 +182,8 @@ export default async function ProductDetailPage({ params }: Props) {
           }),
         }}
       />
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+      {/* Breadcrumb (mobilde gizli) */}
+      <div className="hidden md:flex items-center gap-2 text-sm text-gray-500 mb-6">
         <Link href="/" className="hover:text-primary-500">Ana Sayfa</Link>
         <span>/</span>
         <Link href="/urunler" className="hover:text-primary-500">Ürünler</Link>
