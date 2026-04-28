@@ -250,8 +250,8 @@ export default async function ProductDetailPage({ params }: Props) {
             priceTiers={priceTiersData}
           />
 
-          {/* Technical Details */}
-          {productWithConvertedPrice.technicalDetails && (
+          {/* Technical Details (sadece enriched yoksa göster — enriched kendi techSpecs tablosunu render ediyor) */}
+          {productWithConvertedPrice.technicalDetails && !hasEnrichedDescription(productWithConvertedPrice.slug) && (
             <div className="mt-8">
               <h2 className="text-lg font-semibold mb-3">Teknik Detaylar</h2>
               <div className="prose prose-sm max-w-none text-gray-600" dangerouslySetInnerHTML={{ __html: productWithConvertedPrice.technicalDetails }} />
