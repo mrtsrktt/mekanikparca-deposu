@@ -74,8 +74,8 @@ export default function SatisPolitikasiPage() {
               <li><strong>Cayma süresi:</strong> Ürün tesliminden itibaren 14 gün.</li>
               <li>
                 Cayma hakkının kullanımı için{' '}
-                <a href="mailto:2miklimlendirmesistemleri@gmail.com" className="text-primary-600 hover:underline">
-                  2miklimlendirmesistemleri@gmail.com
+                <a href="mailto:info@2miklimlendirme.com.tr" className="text-primary-600 hover:underline">
+                  info@2miklimlendirme.com.tr
                 </a>{' '}
                 adresine sipariş numarası ile yazılı bildirim yapılmalıdır.
               </li>
@@ -126,8 +126,8 @@ export default function SatisPolitikasiPage() {
             <div className="bg-gray-50 rounded-xl p-5 text-sm space-y-2">
               <p>
                 <strong>E-posta:</strong>{' '}
-                <a href="mailto:2miklimlendirmesistemleri@gmail.com" className="text-primary-600 hover:underline">
-                  2miklimlendirmesistemleri@gmail.com
+                <a href="mailto:info@2miklimlendirme.com.tr" className="text-primary-600 hover:underline">
+                  info@2miklimlendirme.com.tr
                 </a>
               </p>
               <p>

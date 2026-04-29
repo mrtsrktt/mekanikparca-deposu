@@ -23,8 +23,8 @@ export default function KvkkPage() {
             <li><strong>Adres:</strong> Atatürk Mah. Alemdağ Cad. No:140 144 İç Kapı No:19 Ümraniye, İstanbul – Türkiye</li>
             <li>
               <strong>E-posta:</strong>{' '}
-              <a href="mailto:2miklimlendirmesistemleri@gmail.com" className="text-primary-600 hover:underline">
-                2miklimlendirmesistemleri@gmail.com
+              <a href="mailto:info@2miklimlendirme.com.tr" className="text-primary-600 hover:underline">
+                info@2miklimlendirme.com.tr
               </a>
             </li>
             <li>
@@ -116,8 +116,8 @@ export default function KvkkPage() {
           <h2 className="text-xl font-semibold mb-3 text-corporate-dark">8. Başvuru</h2>
           <p>
             Haklarınıza ilişkin taleplerinizi, kimlik doğrulaması yapacak şekilde{' '}
-            <a href="mailto:2miklimlendirmesistemleri@gmail.com" className="text-primary-600 hover:underline">
-              2miklimlendirmesistemleri@gmail.com
+            <a href="mailto:info@2miklimlendirme.com.tr" className="text-primary-600 hover:underline">
+              info@2miklimlendirme.com.tr
             </a>{' '}
             adresine iletebilirsiniz.
           </p>

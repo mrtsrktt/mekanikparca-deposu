@@ -34,8 +34,8 @@ export default function TeslimatKosullariPage() {
               <p><strong>Vergi Dairesi / No:</strong> Ümraniye / 4701462561</p>
               <p>
                 <strong>E-posta:</strong>{' '}
-                <a href="mailto:2miklimlendirmesistemleri@gmail.com" className="text-primary-600 hover:underline">
-                  2miklimlendirmesistemleri@gmail.com
+                <a href="mailto:info@2miklimlendirme.com.tr" className="text-primary-600 hover:underline">
+                  info@2miklimlendirme.com.tr
                 </a>
               </p>
               <p>
@@ -108,8 +108,8 @@ export default function TeslimatKosullariPage() {
             <h2 className="text-xl font-bold text-gray-800 mb-3">9. Eksik / Yanlış Ürün Teslimi</h2>
             <p>
               Eksik veya yanlış ürün tesliminde müşteri, teslimat tarihinden itibaren <strong>48 saat</strong> içinde{' '}
-              <a href="mailto:2miklimlendirmesistemleri@gmail.com" className="text-primary-600 hover:underline">
-                2miklimlendirmesistemleri@gmail.com
+              <a href="mailto:info@2miklimlendirme.com.tr" className="text-primary-600 hover:underline">
+                info@2miklimlendirme.com.tr
               </a>{' '}
               üzerinden sipariş numarası ile bildirim yapmalıdır.
             </p>

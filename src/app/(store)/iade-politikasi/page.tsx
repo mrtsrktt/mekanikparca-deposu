@@ -39,12 +39,11 @@ export default function IadePolitikasiPage() {
               <h2 className="text-2xl font-semibold mb-4">3. İade Edilemeyecek Ürünler</h2>
               <p className="mb-3">Aşağıdaki ürünler iade kapsamı dışındadır:</p>
               <ul className="list-disc pl-6 mb-4 space-y-2">
-                <li>Müşteri isteğiyle kişiselleştirilmiş ürünler</li>
-                <li>Hijyenik nedenlerle iade edilemeyen ürünler</li>
-                <li>Açıldıktan sonra sağlık veya hijyen açısından iade edilemeyen ürünler</li>
-                <li>Tek kullanımlık ürünler</li>
-                <li>Gazete, dergi ve benzeri periyodik yayınlar</li>
-                <li>Elektronik içerikler (yazılım, dijital ürünler)</li>
+                <li>Müşterinin teknik şartnamesine göre özel olarak hazırlatılmış veya kesilmiş ürünler</li>
+                <li>Ambalajı açılmış ve kullanılmış kimyasal ürünler (Fernox inhibitörler, koruyucular, ısı transfer sıvıları vb. — sızdırmazlığı bozulmuş kimyasal ürünler hijyen ve güvenlik nedeniyle iade alınamaz)</li>
+                <li>Kurulumu veya montajı yapılmış elektrikli ekipmanlar (servo voltaj regülatörleri, sirkülasyon pompaları, ısı pompası filtreleri vb.)</li>
+                <li>Kalibrasyonu bozulmuş veya mührü kırılmış ölçüm ve test cihazları (gaz kaçak dedektörleri, baca gazı analiz cihazları vb.)</li>
+                <li>Müşteriye özel olarak ithal edilmiş veya tedarik edilmiş, stok dışı ürünler</li>
               </ul>
             </section>
 
@@ -157,7 +156,7 @@ export default function IadePolitikasiPage() {
                 <p>Telefon: 0216 232 40 52</p>
                 <p>GSM: 0532 640 40 86</p>
                 <p className="text-sm text-gray-600 mt-2">
-                  Çalışma saatleri: Pazartesi - Cuma 09:00 - 18:00
+                  Çalışma saatleri: Pazartesi - Cumartesi 08:30 - 18:00, Pazar Kapalı
                 </p>
               </div>
             </section>

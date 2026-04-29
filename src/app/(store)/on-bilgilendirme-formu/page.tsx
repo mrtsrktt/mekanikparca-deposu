@@ -30,8 +30,8 @@ export default function OnBilgilendirmeFormuPage() {
             </li>
             <li>
               <strong>E-posta:</strong>{' '}
-              <a href="mailto:2miklimlendirmesistemleri@gmail.com" className="text-primary-600 hover:underline">
-                2miklimlendirmesistemleri@gmail.com
+              <a href="mailto:info@2miklimlendirme.com.tr" className="text-primary-600 hover:underline">
+                info@2miklimlendirme.com.tr
               </a>
             </li>
             <li>
@@ -90,8 +90,8 @@ export default function OnBilgilendirmeFormuPage() {
           <ul className="list-disc pl-6 space-y-1 text-gray-700">
             <li>
               Sipariş numarası ile birlikte{' '}
-              <a href="mailto:2miklimlendirmesistemleri@gmail.com" className="text-primary-600 hover:underline">
-                2miklimlendirmesistemleri@gmail.com
+              <a href="mailto:info@2miklimlendirme.com.tr" className="text-primary-600 hover:underline">
+                info@2miklimlendirme.com.tr
               </a>{' '}
               adresine yazılı bildirim yapılmalıdır.
             </li>
@@ -108,8 +108,8 @@ export default function OnBilgilendirmeFormuPage() {
           <h2 className="text-xl font-semibold mb-3 text-corporate-dark">7. Şikâyet ve Uyuşmazlık Çözümü</h2>
           <p className="mb-2 text-gray-700">
             Müşteri talepleri için:{' '}
-            <a href="mailto:2miklimlendirmesistemleri@gmail.com" className="text-primary-600 hover:underline">
-              2miklimlendirmesistemleri@gmail.com
+            <a href="mailto:info@2miklimlendirme.com.tr" className="text-primary-600 hover:underline">
+              info@2miklimlendirme.com.tr
             </a>{' '}
             /{' '}
             <a href="tel:02162324052" className="text-primary-600 hover:underline">0 (216) 232 40 52</a>

@@ -1,4 +1,4 @@
-import { FiTarget, FiEye, FiCheckCircle } from 'react-icons/fi'
+import { FiTarget, FiEye, FiCheckCircle, FiFileText } from 'react-icons/fi'
 
 export default function AboutPage() {
   return (
@@ -100,6 +100,69 @@ export default function AboutPage() {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Kurumsal Bilgiler */}
+      <div className="card p-8 mb-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-12 h-12 bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl flex items-center justify-center">
+            <FiFileText className="w-6 h-6 text-primary-600" />
+          </div>
+          <h2 className="text-xl font-bold text-gray-800">Kurumsal Bilgiler</h2>
+        </div>
+
+        <p className="text-gray-700 mb-6">
+          Mekanik Parça Deposu, <strong>İKİ M İKLİMLENDİRME SİSTEMLERİ TİCARET LİMİTED ŞİRKETİ</strong> bünyesinde faaliyet gösteren bir e-ticaret markasıdır. Aşağıdaki kurumsal bilgilerimiz şeffaflık ve tüketici güvencesi amacıyla yayımlanmıştır.
+        </p>
+
+        <dl className="divide-y divide-gray-100">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 py-3">
+            <dt className="text-sm font-semibold text-gray-600">Ticaret Unvanı</dt>
+            <dd className="sm:col-span-2 text-sm text-gray-800">İKİ M İKLİMLENDİRME SİSTEMLERİ TİC. LTD. ŞTİ.</dd>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 py-3 bg-gray-50/50 -mx-2 px-2 rounded">
+            <dt className="text-sm font-semibold text-gray-600">Marka</dt>
+            <dd className="sm:col-span-2 text-sm text-gray-800">Mekanik Parça Deposu</dd>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 py-3">
+            <dt className="text-sm font-semibold text-gray-600">Mersis No</dt>
+            <dd className="sm:col-span-2 text-sm text-gray-800 font-mono">0470146256100001</dd>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 py-3 bg-gray-50/50 -mx-2 px-2 rounded">
+            <dt className="text-sm font-semibold text-gray-600">Ticaret Sicil No</dt>
+            <dd className="sm:col-span-2 text-sm text-gray-800 font-mono">1020432</dd>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 py-3">
+            <dt className="text-sm font-semibold text-gray-600">Vergi Dairesi / No</dt>
+            <dd className="sm:col-span-2 text-sm text-gray-800">Ümraniye / 4701462561</dd>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 py-3 bg-gray-50/50 -mx-2 px-2 rounded">
+            <dt className="text-sm font-semibold text-gray-600">Adres</dt>
+            <dd className="sm:col-span-2 text-sm text-gray-800">Atatürk Mah. Alemdağ Cad. No:140-144 İç Kapı No:19, Ümraniye / İstanbul / Türkiye</dd>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 py-3">
+            <dt className="text-sm font-semibold text-gray-600">Telefon</dt>
+            <dd className="sm:col-span-2 text-sm text-gray-800">
+              <a href="tel:02162324052" className="hover:text-primary-600">0216 232 40 52</a>
+            </dd>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 py-3 bg-gray-50/50 -mx-2 px-2 rounded">
+            <dt className="text-sm font-semibold text-gray-600">GSM / WhatsApp</dt>
+            <dd className="sm:col-span-2 text-sm text-gray-800">
+              <a href="tel:05326404086" className="hover:text-primary-600">0532 640 40 86</a>
+            </dd>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 py-3">
+            <dt className="text-sm font-semibold text-gray-600">E-posta</dt>
+            <dd className="sm:col-span-2 text-sm text-gray-800">
+              <a href="mailto:info@2miklimlendirme.com.tr" className="hover:text-primary-600">info@2miklimlendirme.com.tr</a>
+            </dd>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 py-3 bg-gray-50/50 -mx-2 px-2 rounded">
+            <dt className="text-sm font-semibold text-gray-600">Çalışma Saatleri</dt>
+            <dd className="sm:col-span-2 text-sm text-gray-800">Pazartesi – Cumartesi: 08:30 – 18:00 · Pazar: Kapalı</dd>
+          </div>
+        </dl>
       </div>
     </div>
   )
