@@ -14,10 +14,16 @@ export async function GET() {
     },
   })
 
+  const toAbsoluteUrl = (url: string): string => {
+    if (!url) return ''
+    if (/^https?:\/\//i.test(url)) return url
+    return `${BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`
+  }
+
   const items = products
     .filter((p) => p.priceTRY && p.priceTRY > 0)
     .map((p) => {
-      const image = p.images[0]?.url || ''
+      const image = toAbsoluteUrl(p.images[0]?.url || '')
       const availability = p.trackStock
         ? p.stock > 0 ? 'in_stock' : 'out_of_stock'
         : 'in_stock'
