@@ -18,7 +18,7 @@ export default function TeslimatKosullariPage() {
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12">
         <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Teslimat Koşulları</h1>
-        <p className="text-sm text-gray-400 mb-10">Son Güncelleme: 22/03/2026</p>
+        <p className="text-sm text-gray-400 mb-10">Son Güncelleme: 02/05/2026</p>
 
         <div className="prose prose-gray max-w-none space-y-8 text-gray-700 leading-relaxed">
 
@@ -31,16 +31,22 @@ export default function TeslimatKosullariPage() {
             <div className="mt-4 bg-gray-50 rounded-xl p-5 text-sm space-y-1.5">
               <p><strong>Ünvan:</strong> İKİ M İKLİMLENDİRME SİSTEMLERİ TİC.LTD.ŞTİ.</p>
               <p><strong>Adres:</strong> Atatürk Mah. Alemdağ Cad. No:140-144 İç Kapı No:19, Ümraniye, İSTANBUL – Türkiye</p>
+              <p><strong>Mersis No:</strong> 0470146256100001</p>
+              <p><strong>Ticaret Sicil No:</strong> 1020432</p>
               <p><strong>Vergi Dairesi / No:</strong> Ümraniye / 4701462561</p>
+              <p>
+                <strong>Telefon:</strong>{' '}
+                <a href="tel:02162324052" className="text-primary-600 hover:underline">0216 232 40 52</a>
+              </p>
+              <p>
+                <strong>GSM / WhatsApp:</strong>{' '}
+                <a href="tel:05326404086" className="text-primary-600 hover:underline">0532 640 40 86</a>
+              </p>
               <p>
                 <strong>E-posta:</strong>{' '}
                 <a href="mailto:info@2miklimlendirme.com.tr" className="text-primary-600 hover:underline">
                   info@2miklimlendirme.com.tr
                 </a>
-              </p>
-              <p>
-                <strong>Telefon:</strong>{' '}
-                <a href="tel:02162324052" className="text-primary-600 hover:underline">0216 232 40 52</a>
               </p>
             </div>
           </section>
@@ -55,21 +61,19 @@ export default function TeslimatKosullariPage() {
           <section>
             <h2 className="text-xl font-bold text-gray-800 mb-3">3. Kargo Şirketi ve Gönderim</h2>
             <p>
-              Siparişler anlaşmalı kargo firmaları aracılığıyla gönderilir. Kargo firması: <strong>Aras Kargo.</strong>
-            </p>
-            <p className="mt-2">
-              Kargo takip bilgileri, sipariş kargoya verildiğinde müşteriye iletilir.
+              Siparişler anlaşmalı kargo firmaları aracılığıyla gönderilir. Gönderim sırasında kargo firması ve takip kodu müşteriye WhatsApp veya SMS yoluyla iletilir.
             </p>
           </section>
 
           <section>
             <h2 className="text-xl font-bold text-gray-800 mb-3">4. Hazırlama ve Kargoya Teslim Süresi</h2>
             <p>
-              Siparişler, ödeme onayı alındıktan sonra <strong>1–3 iş günü</strong> içerisinde kargoya teslim edilir.
+              Stoktaki ürünler ödeme onayı sonrasında <strong>en geç 2 iş günü</strong> içinde kargoya teslim edilir.
             </p>
             <ul className="list-disc pl-5 mt-2 space-y-1">
               <li>Resmî tatiller ve hafta sonları iş günü değildir.</li>
               <li>Yoğun kampanya dönemlerinde teslimat süreleri uzayabilir; bu durumda müşteriye bilgi verilir.</li>
+              <li>Stoğu olmayan ürünlerde tedarik süresi, sipariş öncesi WhatsApp üzerinden müşteriye bildirilir.</li>
             </ul>
           </section>
 
@@ -83,7 +87,10 @@ export default function TeslimatKosullariPage() {
           <section>
             <h2 className="text-xl font-bold text-gray-800 mb-3">6. Kargo Ücreti</h2>
             <p>
-              Kargo ücreti sepet tutarına göre hesaplanır. Kargo ücretleri sipariş özetinde gösterilir.
+              Kargo bedeli alıcıya aittir ve sipariş tutarına dahil değildir. Sipariş onayı sonrasında kargo firması ve ödeme yöntemi (kapıda kargo ücreti tahsilatı veya gönderici hesabına aktarım) alıcıya bildirilir.
+            </p>
+            <p className="mt-2">
+              Yetkili satıcı statümüz kapsamında ürünler orijinal ve faturalı olup, kargo ücreti dahil edilmemiş net ürün fiyatları ile satışa sunulmaktadır.
             </p>
           </section>
 
@@ -100,18 +107,26 @@ export default function TeslimatKosullariPage() {
               Müşteri, paketi teslim alırken kargo görevlisi yanında kontrol etmeli; ezilme, yırtılma, ıslanma, kırık gibi hasar durumunda <strong>&quot;Hasar Tespit Tutanağı&quot;</strong> düzenlenmesini istemelidir.
             </p>
             <p className="mt-2">
-              Tutanaksız teslim alınan hasarlı paketlerde sorumluluk kargo firması ile ispat açısından güçleşebilir.
+              Hasarlı teslim alınan paketler için <strong>48 saat</strong> içinde fotoğraflarla{' '}
+              <a href="mailto:info@2miklimlendirme.com.tr" className="text-primary-600 hover:underline">
+                info@2miklimlendirme.com.tr
+              </a>{' '}
+              veya{' '}
+              <a href="tel:05326404086" className="text-primary-600 hover:underline">0532 640 40 86</a>{' '}
+              WhatsApp üzerinden bildirim yapılmalıdır. Tutanaksız teslim alınan hasarlı paketlerde sorumluluk kargo firması ile ispat açısından güçleşebilir.
             </p>
           </section>
 
           <section>
             <h2 className="text-xl font-bold text-gray-800 mb-3">9. Eksik / Yanlış Ürün Teslimi</h2>
             <p>
-              Eksik veya yanlış ürün tesliminde müşteri, teslimat tarihinden itibaren <strong>48 saat</strong> içinde{' '}
+              Eksik veya yanlış ürün tesliminde müşteri, teslimat tarihinden itibaren <strong>48 saat</strong> içinde sipariş numarası ile{' '}
               <a href="mailto:info@2miklimlendirme.com.tr" className="text-primary-600 hover:underline">
                 info@2miklimlendirme.com.tr
               </a>{' '}
-              üzerinden sipariş numarası ile bildirim yapmalıdır.
+              veya{' '}
+              <a href="tel:05326404086" className="text-primary-600 hover:underline">0532 640 40 86</a>{' '}
+              WhatsApp üzerinden bildirim yapmalıdır.
             </p>
           </section>
 
