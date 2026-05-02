@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { FiPhone, FiMail, FiMapPin, FiChevronRight } from 'react-icons/fi'
+import { FiPhone, FiMail, FiMapPin, FiChevronRight, FiShield, FiArrowRight } from 'react-icons/fi'
 import { trackWhatsAppClick } from '@/lib/gtm'
 
 export default function Footer() {
@@ -99,27 +99,38 @@ export default function Footer() {
       </div>
 
       {/* Trust strip — yetkili bayilik markaları */}
-      <div className="border-t border-white/5">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <p className="text-center text-gray-400 text-sm mb-3">
-            Sektörün öncü markalarının yetkili satıcısıyız
-          </p>
-          <div className="flex flex-wrap justify-center items-center gap-x-6 gap-y-2 md:gap-x-8">
-            <span className="text-gray-200 font-semibold tracking-wide">LEGA</span>
-            <span className="text-gray-600">·</span>
-            <span className="text-gray-200 font-semibold tracking-wide">REGEN</span>
-            <span className="text-gray-600">·</span>
-            <span className="text-gray-200 font-semibold tracking-wide">TESTO</span>
-            <span className="text-gray-600">·</span>
-            <span className="text-gray-200 font-semibold tracking-wide">MRU</span>
-            <span className="text-gray-600">·</span>
-            <span className="text-gray-200 font-semibold tracking-wide">FERNOX</span>
+      <div className="border-t border-amber-500/20 bg-gradient-to-b from-white/[0.02] to-transparent">
+        <div className="max-w-7xl mx-auto px-4 py-8 md:py-10">
+          <div className="flex items-center justify-center gap-2 mb-5">
+            <div className="h-px w-8 bg-amber-500/40" aria-hidden />
+            <FiShield className="w-4 h-4 text-amber-400" aria-hidden />
+            <p className="text-center text-amber-400/90 text-xs md:text-sm font-bold uppercase tracking-[0.18em]">
+              Sektörün öncü markalarının yetkili satıcısıyız
+            </p>
+            <FiShield className="w-4 h-4 text-amber-400" aria-hidden />
+            <div className="h-px w-8 bg-amber-500/40" aria-hidden />
           </div>
-          <p className="text-center text-gray-500 text-xs mt-3">
-            <Link href="/hakkimizda#bayilikler" className="hover:text-amber-400 transition-colors">
-              Yetkili bayilik belgelerimizi görüntüleyin →
+
+          <div className="flex flex-wrap justify-center items-center gap-2 md:gap-3">
+            {['LEGA', 'REGEN', 'TESTO', 'MRU', 'FERNOX'].map((b) => (
+              <span
+                key={b}
+                className="inline-flex items-center text-white font-bold text-base md:text-lg tracking-wider bg-white/[0.04] border border-white/10 hover:border-amber-500/40 hover:bg-white/[0.08] px-4 py-2 rounded-lg transition-colors"
+              >
+                {b}
+              </span>
+            ))}
+          </div>
+
+          <div className="flex justify-center mt-6">
+            <Link
+              href="/hakkimizda#bayilikler"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-amber-400 hover:text-amber-300 border border-amber-500/30 hover:border-amber-400/60 hover:bg-amber-500/5 px-4 py-2 rounded-lg transition-all"
+            >
+              Yetkili bayilik belgelerimizi görüntüleyin
+              <FiArrowRight className="w-4 h-4" />
             </Link>
-          </p>
+          </div>
         </div>
       </div>
 
