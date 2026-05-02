@@ -88,9 +88,8 @@ export default function ProductCard({ product, hasCampaign, campaignLowestPrice,
             )}
           </div>
           <div className="mt-1.5">
-            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-              5.000 TL ve Üzeri Kargo Bedava
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+              Kargo bedeli alıcıya aittir
             </span>
           </div>
           <div className="flex gap-2 mt-3">

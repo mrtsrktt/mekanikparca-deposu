@@ -387,7 +387,7 @@ export const PRODUCT_DESCRIPTIONS: Record<string, EnrichedProductDescription> = 
       { icon: 'ShieldCheck', text: '2 Yıl Üretici Garantisi' },
       { icon: 'BadgeCheck', text: 'TSE Belgeli, %100 Türk Üretimi' },
       { icon: 'Truck', text: 'Aynı Gün Kargo (en geç 2 iş günü)' },
-      { icon: 'PackageCheck', text: '5.000 TL Üzeri Ücretsiz Kargo' },
+      { icon: 'Truck', text: 'Kargo bedeli alıcıya aittir' },
     ],
     whyThisModel: {
       title: 'Neden Lega 5 KVA?',
@@ -492,7 +492,7 @@ export const PRODUCT_DESCRIPTIONS: Record<string, EnrichedProductDescription> = 
       { icon: 'ShieldCheck', text: '2 Yıl Üretici Garantisi' },
       { icon: 'BadgeCheck', text: 'TSE Belgeli, %100 Türk Üretimi' },
       { icon: 'Truck', text: 'Aynı Gün Kargo (en geç 2 iş günü)' },
-      { icon: 'PackageCheck', text: '5.000 TL Üzeri Ücretsiz Kargo' },
+      { icon: 'Truck', text: 'Kargo bedeli alıcıya aittir' },
     ],
     whyThisModel: {
       title: 'Neden Lega 7,5 KVA?',

@@ -184,7 +184,7 @@ Servo motor ve toroidal trafo (varyak) teknolojisi ile çalışan Lega regülat�
       {
         question: 'Kargo ücreti ne kadar, ne kadar sürede gelir?',
         answer:
-          '5.000 TL üzeri tüm siparişlerde kargo ücretsizdir. Aynı gün kargoya verilir, 1-2 iş günü içinde teslim edilir.',
+          'Kargo bedeli alıcıya aittir. Aynı gün kargoya verilir, 1-2 iş günü içinde teslim edilir.',
       },
       {
         question: 'Firma faturası verir misiniz?',
@@ -225,7 +225,7 @@ Servo motor ve toroidal trafo (varyak) teknolojisi ile çalışan Lega regülat�
     ],
     finalCta: {
       title: 'Lega Voltaj Regülatörü mü Arıyorsunuz?',
-      subtitle: 'Aynı gün kargo · 2 yıl garanti · Ücretsiz kargo (5.000 TL+)',
+      subtitle: 'Aynı gün kargo · 2 yıl üretici garantisi · Profesyonel teknik destek',
       primaryLabel: 'Modelleri İncele',
       secondaryLabel: "WhatsApp'tan Sor",
     },

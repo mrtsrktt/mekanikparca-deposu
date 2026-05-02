@@ -233,9 +233,8 @@ export default async function ProductDetailPage({ params }: Props) {
             ) : (
               <span className="badge badge-danger">Stokta Yok</span>
             )}
-            <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-green-700 bg-green-50 border border-green-200 px-3 py-1 rounded-full">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-              5.000 TL ve Üzeri Kargo Bedava
+            <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full">
+              Kargo bedeli alıcıya aittir
             </span>
           </div>
 

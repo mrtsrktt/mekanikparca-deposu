@@ -204,17 +204,8 @@ export default function CartPage() {
               )}
               <div className="flex justify-between">
                 <span className="text-gray-500">Kargo</span>
-                {subtotal >= 5000 ? (
-                  <span className="text-green-600 font-semibold">Ücretsiz</span>
-                ) : (
-                  <span className="text-gray-500 text-sm">Ödeme adımında hesaplanır</span>
-                )}
+                <span className="text-amber-600 text-sm font-medium">Alıcı Öder</span>
               </div>
-              {subtotal < 5000 && (
-                <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-xs text-green-700">
-                  🚚 {formatPrice(5000 - subtotal)} daha ekleyin, <strong>kargo bedava</strong> olsun!
-                </div>
-              )}
               <hr />
               <div className="flex justify-between text-lg font-bold">
                 <span>Toplam</span>
