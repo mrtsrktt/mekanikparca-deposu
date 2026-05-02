@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'KVKK Aydınlatma Metni | Mekanik Parça Deposu',
@@ -9,7 +10,7 @@ export default function KvkkPage() {
   return (
     <main className="max-w-4xl mx-auto px-4 py-12 text-gray-800">
       <h1 className="text-3xl font-bold mb-2 text-corporate-dark">KVKK Aydınlatma Metni</h1>
-      <p className="text-sm text-gray-500 mb-10">Son Güncelleme: 03.03.2026</p>
+      <p className="text-sm text-gray-500 mb-10">Son Güncelleme: 02/05/2026</p>
 
       <section className="space-y-8 leading-relaxed">
 
@@ -20,16 +21,23 @@ export default function KvkkPage() {
           </p>
           <ul className="mt-3 space-y-1 text-gray-700">
             <li><strong>Ünvan:</strong> İKİ M İKLİMLENDİRME SİSTEMLERİ TİC. LTD. ŞTİ.</li>
-            <li><strong>Adres:</strong> Atatürk Mah. Alemdağ Cad. No:140 144 İç Kapı No:19 Ümraniye, İstanbul – Türkiye</li>
+            <li><strong>Adres:</strong> Atatürk Mah. Alemdağ Cad. No:140-144 İç Kapı No:19, Ümraniye, İstanbul – Türkiye</li>
+            <li><strong>Mersis No:</strong> 0470146256100001</li>
+            <li><strong>Ticaret Sicil No:</strong> 1020432</li>
+            <li><strong>Vergi Dairesi/No:</strong> Ümraniye / 4701462561</li>
+            <li>
+              <strong>Telefon:</strong>{' '}
+              <a href="tel:02162324052" className="text-primary-600 hover:underline">0216 232 40 52</a>
+            </li>
+            <li>
+              <strong>GSM / WhatsApp:</strong>{' '}
+              <a href="tel:05326404086" className="text-primary-600 hover:underline">0532 640 40 86</a>
+            </li>
             <li>
               <strong>E-posta:</strong>{' '}
               <a href="mailto:info@2miklimlendirme.com.tr" className="text-primary-600 hover:underline">
                 info@2miklimlendirme.com.tr
               </a>
-            </li>
-            <li>
-              <strong>Telefon:</strong>{' '}
-              <a href="tel:02162324052" className="text-primary-600 hover:underline">0 (216) 232 40 52</a>
             </li>
           </ul>
         </div>
@@ -64,7 +72,9 @@ export default function KvkkPage() {
         <div>
           <h2 className="text-xl font-semibold mb-3 text-corporate-dark">4. Kişisel Verilerin Toplanma Yöntemi ve Hukuki Sebepler</h2>
           <p className="mb-3">
-            Verileriniz; web sitesi formları, sipariş/üyelik ekranları, e-posta/telefon/WhatsApp iletişim kanalları, çerezler ve log kayıtları üzerinden otomatik veya kısmen otomatik yöntemlerle toplanabilir.
+            Verileriniz; web sitesi formları, sipariş/üyelik ekranları, e-posta/telefon/WhatsApp iletişim kanalları, çerezler ve log kayıtları üzerinden otomatik veya kısmen otomatik yöntemlerle toplanabilir. Çerez kullanımına ilişkin detaylı bilgi için{' '}
+            <Link href="/cerez-politikasi" className="text-primary-600 hover:underline">Çerez Politikası</Link>{' '}
+            sayfamızı inceleyiniz.
           </p>
           <p className="mb-2 font-medium">Hukuki sebepler:</p>
           <ul className="list-disc pl-6 space-y-1 text-gray-700">
@@ -80,19 +90,28 @@ export default function KvkkPage() {
           <p className="mb-3">Kişisel verileriniz, amaçlarla sınırlı olmak üzere ve gerekli güvenlik önlemleri alınarak;</p>
           <ul className="list-disc pl-6 space-y-1 text-gray-700">
             <li>Ödeme altyapısı sağlayıcısı (PayTR)</li>
-            <li>Kargo/lojistik firması (Aras Kargo)</li>
+            <li>Anlaşmalı kargo/lojistik firmaları</li>
             <li>E-fatura/e-arşiv, muhasebe ve finans süreçlerinde kullanılan hizmet sağlayıcıları</li>
-            <li>Barındırma (hosting), altyapı ve teknik hizmet sağlayıcıları</li>
+            <li>Bulut barındırma (hosting), altyapı ve teknik hizmet sağlayıcıları</li>
             <li>Yetkili kamu kurum ve kuruluşları (yasal yükümlülük halinde)</li>
           </ul>
           <p className="mt-2 text-gray-700">ile paylaşılabilir.</p>
+          <p className="mt-3 text-gray-700">
+            <strong>Yurt Dışı Aktarım:</strong> Bulut barındırma altyapısı ve bazı teknik servisler (CDN, e-posta) sebebiyle teknik kayıt verileriniz (IP adresi, oturum verisi vb.) yurt dışı sunuculardan geçebilir. Bu aktarımlar KVKK Madde 9 kapsamında yeterli koruma sağlanan ülkelerde veya sözleşme güvencesiyle gerçekleştirilir.
+          </p>
         </div>
 
         <div>
           <h2 className="text-xl font-semibold mb-3 text-corporate-dark">6. Saklama Süreleri</h2>
-          <p>
-            Verileriniz, ilgili mevzuatta öngörülen süreler ve işleme amaçları için gerekli olan süre kadar saklanır. Süre bitiminde silinir, yok edilir veya anonim hale getirilir.
+          <p className="mb-3">
+            Verileriniz, ilgili mevzuatta öngörülen süreler ve işleme amaçları için gerekli olan süre kadar saklanır:
           </p>
+          <ul className="list-disc pl-6 space-y-1 text-gray-700">
+            <li><strong>Müşteri / sipariş / fatura verileri:</strong> Türk Borçlar Kanunu, Vergi Usul Kanunu ve Türk Ticaret Kanunu kapsamında en az 10 yıl.</li>
+            <li><strong>Pazarlama izinleri:</strong> izninizi geri çektiğiniz tarihe kadar.</li>
+            <li><strong>Site teknik kayıtları (loglar):</strong> işleme amacı çerçevesinde gerekli olduğu süre boyunca.</li>
+          </ul>
+          <p className="mt-2 text-gray-700">Süre bitiminde veriler silinir, yok edilir veya anonim hale getirilir.</p>
         </div>
 
         <div>
@@ -108,18 +127,34 @@ export default function KvkkPage() {
             <li>Aktarılan 3. kişilere bildirilmesini isteme</li>
             <li>Otomatik sistemlerle analiz sonucu aleyhe sonuca itiraz etme</li>
             <li>Kanuna aykırı işlem nedeniyle zararın giderilmesini talep etme</li>
+            <li>Açık rızaya dayanan işlemlerde rızayı geri çekme hakkı</li>
           </ul>
           <p className="mt-2 text-gray-700">haklarına sahipsiniz.</p>
         </div>
 
         <div>
           <h2 className="text-xl font-semibold mb-3 text-corporate-dark">8. Başvuru</h2>
-          <p>
-            Haklarınıza ilişkin taleplerinizi, kimlik doğrulaması yapacak şekilde{' '}
-            <a href="mailto:info@2miklimlendirme.com.tr" className="text-primary-600 hover:underline">
-              info@2miklimlendirme.com.tr
-            </a>{' '}
-            adresine iletebilirsiniz.
+          <p className="mb-3">
+            Haklarınıza ilişkin taleplerinizi, KVKK Madde 13 ve Veri Sorumlusuna Başvuru Usul ve Esasları Hakkında Tebliğ uyarınca aşağıdaki yöntemlerle iletebilirsiniz:
+          </p>
+          <ul className="list-disc pl-6 space-y-1 text-gray-700">
+            <li>
+              <strong>E-posta:</strong>{' '}
+              <a href="mailto:info@2miklimlendirme.com.tr" className="text-primary-600 hover:underline">
+                info@2miklimlendirme.com.tr
+              </a>{' '}
+              (kimlik doğrulamasını sağlayacak bilgilerle)
+            </li>
+            <li>
+              <strong>WhatsApp:</strong>{' '}
+              <a href="tel:05326404086" className="text-primary-600 hover:underline">0532 640 40 86</a>
+            </li>
+            <li>
+              <strong>Yazılı başvuru:</strong> Atatürk Mah. Alemdağ Cad. No:140-144 İç Kapı No:19, Ümraniye, İstanbul adresine ıslak imzalı dilekçe ile.
+            </li>
+          </ul>
+          <p className="mt-3 text-gray-700">
+            Başvurunuz, Kanun&apos;un öngördüğü süre içinde en geç 30 gün içinde yanıtlanır.
           </p>
         </div>
 
