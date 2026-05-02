@@ -1,11 +1,16 @@
 'use client'
 
-import { FiPhone, FiMail, FiMapPin, FiClock, FiSmartphone } from 'react-icons/fi'
+import { FiPhone, FiMail, FiMapPin, FiClock, FiSmartphone, FiFileText } from 'react-icons/fi'
+import { FaWhatsapp } from 'react-icons/fa'
+import { trackWhatsAppClick } from '@/lib/gtm'
 
 export default function ContactPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-2">İletişim</h1>
+      <p className="text-base text-gray-700 leading-relaxed mb-3 max-w-3xl">
+        Sipariş öncesi model seçimi, teknik destek, toplu alım teklifi veya ürün bulunabilirliği için bize WhatsApp, telefon veya e-posta üzerinden ulaşabilirsiniz. Mesai saatleri içinde aynı gün geri dönüş yapıyoruz.
+      </p>
       <p className="text-gray-500 mb-8">İKİ M İKLİMLENDİRME SİSTEMLERİ TİCARET LİMİTED ŞİRKETİ</p>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -31,9 +36,19 @@ export default function ContactPage() {
             </div>
             <div className="flex items-start gap-4">
               <div className="p-3 bg-primary-50 rounded-lg"><FiSmartphone className="w-5 h-5 text-primary-500" /></div>
-              <div>
+              <div className="flex-1">
                 <h3 className="font-semibold">Cep / WhatsApp</h3>
-                <p className="text-sm text-gray-500">
+                <a
+                  href="https://wa.me/905326404086?text=Merhaba%2C%20siteniz%20%C3%BCzerinden%20size%20ula%C5%9F%C4%B1yorum.%20Bilgi%20alabilirmiyim"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => trackWhatsAppClick('iletisim')}
+                  className="inline-flex items-center gap-2 mt-1 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                >
+                  <FaWhatsapp className="w-4 h-4" />
+                  WhatsApp&apos;tan Yaz
+                </a>
+                <p className="text-sm text-gray-500 mt-2">
                   <a href="tel:05326404086" className="hover:text-primary-500 transition-colors">0532 640 40 86</a>
                 </p>
               </div>
@@ -53,6 +68,15 @@ export default function ContactPage() {
                 <h3 className="font-semibold">Çalışma Saatleri</h3>
                 <p className="text-sm text-gray-500">Pazartesi - Cumartesi: 08:30 - 18:00</p>
                 <p className="text-sm text-gray-500">Pazar: Kapalı</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-primary-50 rounded-lg"><FiFileText className="w-5 h-5 text-primary-500" /></div>
+              <div>
+                <h3 className="font-semibold">Yasal Bilgiler</h3>
+                <p className="text-sm text-gray-500">Mersis No: 0470146256100001</p>
+                <p className="text-sm text-gray-500">Ticaret Sicil No: 1020432</p>
+                <p className="text-sm text-gray-500">Vergi Dairesi/No: Ümraniye / 4701462561</p>
               </div>
             </div>
           </div>
