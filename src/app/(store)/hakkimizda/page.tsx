@@ -26,27 +26,21 @@ export default function AboutPage() {
       <div className="card p-8 mb-8">
         <div className="prose prose-lg max-w-none text-gray-600 leading-relaxed space-y-4">
           <p>
-            Mekanik Parça Deposu, 30 yılı aşkın sektör tecrübesine sahip kurucusunun bilgi birikimi ve saha deneyimi üzerine kurulmuş;
-            ısıtma, soğutma ve mekanik tesisat alanında faaliyet gösteren profesyonel bir teknik tedarik firmasıdır.
-          </p>
-          <p>
-            Sektörde uzun yıllar lider markalarla çalışmış olmanın verdiği deneyimle, servis firmalarının, ustaların ve proje satın alma
-            ekiplerinin ihtiyaç duyduğu ürünleri güvenilir markalardan temin ederek doğru fiyat, güçlü stok ve hızlı sevkiyat avantajıyla
-            müşterilerimize sunuyoruz.
+            Mekanik Parça Deposu, 32 yıllık sektör tecrübesini e-ticarete taşıyan; ısıtma, soğutma ve mekanik tesisat alanında faaliyet gösteren profesyonel bir teknik tedarik firmasıdır. LEGA, FERNOX, REGEN, MRU ve TESTO başta olmak üzere sektörün öncü markalarının yetkili satıcısı olarak; servis firmaları, kurulum ustaları ve proje satın alma ekiplerinin sahadaki gerçek ihtiyaçlarına göre kurgulanmış bir tedarik altyapısı sunuyoruz.
           </p>
 
-          <p className="font-semibold text-gray-700">Ana faaliyet alanımız;</p>
+          <p className="font-semibold text-gray-700">Ana faaliyet alanımız:</p>
           <ul className="list-disc pl-6 space-y-1 text-gray-600">
-            <li>Isıtma sistemleri</li>
-            <li>Tesisat kimyasalları</li>
+            <li>Voltaj regülatörleri</li>
             <li>Sirkülasyon pompaları</li>
             <li>Manyetik filtre sistemleri</li>
-            <li>HVAC servis ekipmanları</li>
-            <li>Ölçüm ve test cihazları</li>
+            <li>Tesisat kimyasalları (inhibitör, koruyucu, temizleyici, kaçak gidericiler)</li>
+            <li>Gaz kaçak dedektörleri (doğalgaz, soğutucu gazlar, CO)</li>
+            <li>Isı pompası transfer sıvıları</li>
+            <li>HVAC servis ve ölçüm ekipmanları</li>
           </ul>
-          <p>gibi profesyonel ürün gruplarını kapsar.</p>
           <p>
-            Biz yalnızca ürün satışı yapmıyoruz; doğru ürün seçimi ve teknik destek süreçlerinde de müşterilerimizin yanında yer alıyoruz.
+            Sıkça çalıştığımız profesyoneller arasında HVAC kurulum ve servis firmaları, doğalgaz ve sıhhi tesisat ustaları, soğutma sistemi teknisyenleri, fabrika ve site bakım ekipleri ile toptancı/proje satın alma birimleri yer alır. Yetkili satıcı olduğumuz tüm ürünler orijinal, faturalı ve üretici garantilidir; sipariş öncesi model seçim danışmanlığı ve sipariş sonrası WhatsApp üzerinden teknik destek standart hizmetimizdir.
           </p>
         </div>
       </div>
@@ -63,16 +57,7 @@ export default function AboutPage() {
           </div>
           <div className="text-gray-600 leading-relaxed space-y-3">
             <p>
-              Mekanik Parça Deposu olarak hedefimiz; mekanik tesisat ve HVAC sektöründe güvenilir, sürdürülebilir ve referans gösterilen
-              bir teknik tedarik markası olmaktır.
-            </p>
-            <p>
-              Gelişen teknolojiyi yakından takip ederek ürün portföyümüzü sürekli güncelliyor, sektördeki yenilikleri müşterilerimize
-              hızlı ve doğru şekilde ulaştırmayı amaçlıyoruz.
-            </p>
-            <p>
-              Uzun vadeli iş birlikleri kurmak, toptancı ve profesyonel müşterilerimiz için güçlü bir çözüm ortağı olmak vizyonumuzun
-              temelini oluşturur.
+              Türkiye&apos;de mekanik tesisat ve HVAC sektöründeki profesyonellerin ilk başvurduğu dijital tedarik noktası olmak; servis firmaları, ustalar ve proje satın alma ekipleri için stok güvenliği, ürün orijinalliği ve teknik bilgi anlamında referans gösterilen bir marka haline gelmek.
             </p>
           </div>
         </div>
@@ -87,15 +72,15 @@ export default function AboutPage() {
           </div>
           <div className="text-gray-600 leading-relaxed space-y-3">
             <p>
-              Misyonumuz; müşterilerimizin ihtiyaçlarını doğru analiz ederek, kaliteli ve güvenilir ürünleri rekabetçi fiyatlarla sunmak
-              ve ticarette karşılıklı güveni esas alan kalıcı ilişkiler kurmaktır.
+              Profesyonelin işini ilk seferde, en doğru ürünle çözmek. Yetkili satıcı olduğumuz markalardan stok güvencesiyle ürün sağlamak; teknik soruları cevapsız bırakmadan, sipariş öncesi danışmanlık ve sipariş sonrası WhatsApp desteğiyle ürün-müşteri bağını canlı tutmak.
             </p>
+            <p className="font-medium text-gray-700">Bu doğrultuda taahhütlerimiz:</p>
             <ul className="space-y-2">
               {[
-                'Müşteri memnuniyetini öncelik kabul ederiz.',
-                'Ticarette saygı ve şeffaflık ilkesine bağlı kalırız.',
-                'Sadece satış değil, çözüm sunarız.',
-                'Sürekli gelişimi hedefleriz.',
+                'Yetkili satıcı orijinallik güvencesi — sahte ürün riski yok',
+                'Aynı gün kargo (en geç 2 iş günü içinde teslimat)',
+                'WhatsApp üzerinden uzman teknik destek',
+                'Toplu alımda firma faturalı özel fiyatlandırma',
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <FiCheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
@@ -103,10 +88,6 @@ export default function AboutPage() {
                 </li>
               ))}
             </ul>
-            <p>
-              Profesyonel servis firmaları ve toptancı müşterilerimiz için güçlü stok yapımız, hızlı sevkiyat altyapımız ve teknik destek
-              yaklaşımımız ile sürdürülebilir iş ortaklıkları kurmayı amaçlıyoruz.
-            </p>
           </div>
         </div>
       </div>
