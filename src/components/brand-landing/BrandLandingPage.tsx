@@ -10,6 +10,7 @@ import BrandAboutToggle from './BrandAboutToggle'
 import BrandStickyCta from './BrandStickyCta'
 import BrandTechSpecs from './BrandTechSpecs'
 import BrandFinalCta from './BrandFinalCta'
+import DealershipCertificate from './DealershipCertificate'
 
 type BrandRecord = {
   id: string
@@ -477,6 +478,9 @@ export default function BrandLandingPage({ brand, brandRecord, products }: Props
             </div>
           </div>
         </section>
+
+        {/* ===== DEALERSHIP CERTIFICATE ===== */}
+        <DealershipCertificate brand={brand.slug} />
 
         {/* ===== ABOUT COMPANY ===== */}
         <section className="bg-slate-50 border-y border-slate-200">

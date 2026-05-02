@@ -1,4 +1,13 @@
+import type { Metadata } from 'next'
 import { FiTarget, FiEye, FiCheckCircle, FiFileText } from 'react-icons/fi'
+import CertificateCard from '@/components/CertificateCard'
+import { DEALERSHIP_CERTIFICATES } from '@/lib/dealership-certificates'
+
+export const metadata: Metadata = {
+  title: 'Hakkımızda — Yetkili Satıcı | Mekanik Parça Deposu',
+  description:
+    'İKİ M İklimlendirme bünyesinde faaliyet gösteren Mekanik Parça Deposu; Lega, REGEN, Testo ve MRU markalarının yetkili satıcısıdır. Kurumsal bilgiler ve bayilik belgeleri.',
+}
 
 export default function AboutPage() {
   return (
@@ -164,6 +173,61 @@ export default function AboutPage() {
           </div>
         </dl>
       </div>
+
+      {/* Yetkili Bayiliklerimiz */}
+      <section id="bayilikler" className="py-12 md:py-16 bg-slate-50 -mx-4 px-4 rounded-2xl scroll-mt-20">
+        <div className="text-center mb-10">
+          <h2 className="text-2xl md:text-3xl font-bold text-slate-900">
+            Yetkili Bayiliklerimiz
+          </h2>
+          <div className="w-16 h-1 bg-amber-500 mx-auto mt-4 rounded-full" />
+          <p className="text-slate-600 mt-4 max-w-2xl mx-auto">
+            Sektörün öncü markalarının resmi yetkili satıcısıyız. Tüm
+            ürünlerimiz orijinal ve üretici garantilidir.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {DEALERSHIP_CERTIFICATES.map((cert) => (
+            <CertificateCard key={cert.brand} certificate={cert} />
+          ))}
+        </div>
+      </section>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Organization',
+            name: 'İKİ M İKLİMLENDİRME SİSTEMLERİ TİC. LTD. ŞTİ.',
+            alternateName: 'Mekanik Parça Deposu',
+            url: 'https://mekanikparcadeposu.com',
+            telephone: '+902162324052',
+            email: 'info@2miklimlendirme.com.tr',
+            address: {
+              '@type': 'PostalAddress',
+              streetAddress:
+                'Atatürk Mah. Alemdağ Cad. No:140-144 İç Kapı No:19',
+              addressLocality: 'Ümraniye',
+              addressRegion: 'İstanbul',
+              addressCountry: 'TR',
+            },
+            taxID: '4701462561',
+            identifier: [
+              { '@type': 'PropertyValue', propertyID: 'MERSIS', value: '0470146256100001' },
+              { '@type': 'PropertyValue', propertyID: 'TicaretSicilNo', value: '1020432' },
+            ],
+            hasCredential: DEALERSHIP_CERTIFICATES.map((c) => ({
+              '@type': 'EducationalOccupationalCredential',
+              name: c.certificateTitle,
+              credentialCategory: 'Yetkili Satıcı Belgesi',
+              recognizedBy: { '@type': 'Organization', name: c.brandDisplayName },
+              url: `https://mekanikparcadeposu.com${c.pdfPath}`,
+            })),
+          }),
+        }}
+      />
     </div>
   )
 }

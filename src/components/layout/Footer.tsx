@@ -98,6 +98,31 @@ export default function Footer() {
         </div>
       </div>
 
+      {/* Trust strip — yetkili bayilik markaları */}
+      <div className="border-t border-white/5">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <p className="text-center text-gray-400 text-sm mb-3">
+            Sektörün öncü markalarının yetkili satıcısıyız
+          </p>
+          <div className="flex flex-wrap justify-center items-center gap-x-6 gap-y-2 md:gap-x-8">
+            <span className="text-gray-200 font-semibold tracking-wide">LEGA</span>
+            <span className="text-gray-600">·</span>
+            <span className="text-gray-200 font-semibold tracking-wide">REGEN</span>
+            <span className="text-gray-600">·</span>
+            <span className="text-gray-200 font-semibold tracking-wide">TESTO</span>
+            <span className="text-gray-600">·</span>
+            <span className="text-gray-200 font-semibold tracking-wide">MRU</span>
+            <span className="text-gray-600">·</span>
+            <span className="text-gray-200 font-semibold tracking-wide">FERNOX</span>
+          </div>
+          <p className="text-center text-gray-500 text-xs mt-3">
+            <Link href="/hakkimizda#bayilikler" className="hover:text-amber-400 transition-colors">
+              Yetkili bayilik belgelerimizi görüntüleyin →
+            </Link>
+          </p>
+        </div>
+      </div>
+
       {/* Bottom bar */}
       <div className="border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 py-5 flex flex-col items-center gap-2">
