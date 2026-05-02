@@ -5,13 +5,7 @@ export default function IadePolitikasiPage() {
       
       <div className="card p-8">
         <div className="prose max-w-none">
-          <p className="text-gray-600 mb-6">
-            Son güncelleme: {new Date().toLocaleDateString('tr-TR', { 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })}
-          </p>
+          <p className="text-gray-600 mb-6">Son güncelleme: 02/05/2026</p>
           
           <div className="space-y-6">
             <section>
@@ -39,11 +33,9 @@ export default function IadePolitikasiPage() {
               <h2 className="text-2xl font-semibold mb-4">3. İade Edilemeyecek Ürünler</h2>
               <p className="mb-3">Aşağıdaki ürünler iade kapsamı dışındadır:</p>
               <ul className="list-disc pl-6 mb-4 space-y-2">
-                <li>Müşterinin teknik şartnamesine göre özel olarak hazırlatılmış veya kesilmiş ürünler</li>
-                <li>Ambalajı açılmış ve kullanılmış kimyasal ürünler (Fernox inhibitörler, koruyucular, ısı transfer sıvıları vb. — sızdırmazlığı bozulmuş kimyasal ürünler hijyen ve güvenlik nedeniyle iade alınamaz)</li>
-                <li>Kurulumu veya montajı yapılmış elektrikli ekipmanlar (servo voltaj regülatörleri, sirkülasyon pompaları, ısı pompası filtreleri vb.)</li>
-                <li>Kalibrasyonu bozulmuş veya mührü kırılmış ölçüm ve test cihazları (gaz kaçak dedektörleri, baca gazı analiz cihazları vb.)</li>
-                <li>Müşteriye özel olarak ithal edilmiş veya tedarik edilmiş, stok dışı ürünler</li>
+                <li>Ambalajı açılmış kimyasal ürünler (inhibitör, koruyucu, temizleyici, kaçak gidericiler, ısı transfer sıvıları, solar sıvılar vb.) — hijyen ve karışım/bütünlük güvenliği nedeniyle.</li>
+                <li>Müşteri talebiyle özel olarak tedarik edilmiş, standart stok dışı ürünler.</li>
+                <li>Kullanım izi bulunan, fiziksel hasar görmüş veya orijinal ambalajı tahrip edilmiş ürünler.</li>
               </ul>
             </section>
 
@@ -77,8 +69,7 @@ export default function IadePolitikasiPage() {
                   <div>
                     <h3 className="font-semibold">Kargoya Verme</h3>
                     <p className="text-sm text-gray-600">
-                      Size gönderilecek kargo etiketini paketin üzerine yapıştırın ve en yakın 
-                      kargo şubesine teslim edin.
+                      İade onayı sonrası tarafımızca MDP anlaşmalı kargo firmasına ait kargo etiketi size iletilir. Etiketi paketin üzerine yapıştırın ve ilgili kargo firmasının en yakın şubesine teslim edin. Anlaşmalı kanal dışında yapılan gönderimler kabul edilmeyebilir.
                     </p>
                   </div>
                 </div>
@@ -88,8 +79,7 @@ export default function IadePolitikasiPage() {
                   <div>
                     <h3 className="font-semibold">İade Onayı ve Ödeme</h3>
                     <p className="text-sm text-gray-600">
-                      Ürün kontrol edildikten sonra iadeniz onaylanır ve ödemeniz 7 iş günü 
-                      içinde iade edilir.
+                      Ürün kontrol edildikten sonra iadeniz onaylanır ve ödemeniz 7 iş günü içinde yapmış olduğunuz ödeme yöntemine iade edilir. Kredi kartı iadelerinin hesabınıza yansıma süresi bankanıza göre 1–3 iş günü daha sürebilir.
                     </p>
                   </div>
                 </div>
@@ -108,27 +98,29 @@ export default function IadePolitikasiPage() {
             <section>
               <h2 className="text-2xl font-semibold mb-4">6. Para İadesi</h2>
               <p className="mb-3">
-                İadeniz onaylandıktan sonra, ödemeniz aşağıdaki şekillerde iade edilir:
+                İadeniz onaylandıktan sonra, ödemeniz 7 iş günü içinde yapmış olduğunuz ödeme yöntemine iade edilir:
               </p>
               <ul className="list-disc pl-6 mb-4 space-y-2">
-                <li>Kredi kartı ile yapılan ödemeler: Kartınıza iade edilir (7-10 iş günü)</li>
-                <li>Havale/EFT ile yapılan ödemeler: Banka hesabınıza iade edilir (3-5 iş günü)</li>
+                <li>Kredi kartı ile yapılan ödemeler kartınıza iade edilir; iadenin hesabınıza yansıma süresi bankanıza göre 1–3 iş günü daha sürebilir.</li>
+                <li>Havale/EFT ile yapılan ödemeler banka hesabınıza iade edilir.</li>
               </ul>
             </section>
 
             <section>
               <h2 className="text-2xl font-semibold mb-4">7. Değişim</h2>
               <p className="mb-3">
-                Ürün değişimi için önce iade işlemi yapılır, ardından yeni ürün siparişi verilir. 
-                Değişim işlemlerinde kargo ücretleri her iki yönde de müşteriye aittir.
+                Ürün değişimi için önce iade işlemi yapılır, ardından yeni ürün siparişi verilir. Üründen kaynaklı bir hata yoksa ve sipariş doğru sevk edilmişse, değişim işleminde hem giden hem dönen kargo ücreti alıcıya aittir. Üründen kaynaklı kusur veya hatalı sevkiyat durumunda kargo ücretleri firmamız tarafından karşılanır.
               </p>
             </section>
 
             <section>
               <h2 className="text-2xl font-semibold mb-4">8. Arızalı veya Kusurlu Ürünler</h2>
               <p className="mb-3">
-                Teslim aldığınız üründe herhangi bir arıza veya kusur tespit ederseniz, 
-                lütfen 2 iş günü içinde bizimle iletişime geçin. Arızalı ürünler için:
+                Teslim aldığınız üründe arıza veya kusur tespit ederseniz <strong>48 saat</strong> içinde{' '}
+                <a href="mailto:info@2miklimlendirme.com.tr" className="text-primary-600 hover:underline">info@2miklimlendirme.com.tr</a>{' '}
+                veya{' '}
+                <a href="tel:05326404086" className="text-primary-600 hover:underline">0532 640 40 86</a>{' '}
+                WhatsApp üzerinden bize ulaşın. Arızalı ürünler için:
               </p>
               <ul className="list-disc pl-6 mb-4 space-y-2">
                 <li>Kargo ücreti firmamız tarafından karşılanır</li>
@@ -140,23 +132,46 @@ export default function IadePolitikasiPage() {
             <section>
               <h2 className="text-2xl font-semibold mb-4">9. Garanti</h2>
               <p className="mb-3">
-                Tüm ürünlerimiz üretici garantisi kapsamındadır. Garanti süreleri ürünlere göre değişiklik gösterebilir. 
-                Garanti kapsamındaki ürünler için lütfen üretici firma ile iletişime geçin veya bizimle iletişim kurun.
+                Yetkili satıcı olduğumuz tüm ürünler üretici garantisi kapsamındadır (genelde 2 yıl, model bazında değişebilir; ürün sayfasında belirtilir). Garanti süreci içinde sorun yaşadığınızda WhatsApp veya telefonla bize ulaşmanız yeterlidir; üretici servis koordinasyonu, kargolama ve değişim süreçlerini biz yönetiriz.
               </p>
             </section>
 
             <section>
               <h2 className="text-2xl font-semibold mb-4">10. İletişim</h2>
               <p className="mb-3">
-                İade ve değişim ile ilgili sorularınız için lütfen bizimle iletişime geçin:
+                İade ve değişim ile ilgili sorularınız için bize ulaşın:
               </p>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p><strong>İKİ M İKLİMLENDİRME SİSTEMLERİ TİCARET LİMİTED ŞİRKETİ</strong></p>
-                <p>E-posta: info@2miklimlendirme.com.tr</p>
-                <p>Telefon: 0216 232 40 52</p>
-                <p>GSM: 0532 640 40 86</p>
-                <p className="text-sm text-gray-600 mt-2">
-                  Çalışma saatleri: Pazartesi - Cumartesi 08:30 - 18:00, Pazar Kapalı
+              <div className="bg-gray-50 p-4 rounded-lg space-y-1.5 text-sm">
+                <p className="font-semibold text-base">İKİ M İKLİMLENDİRME SİSTEMLERİ TİCARET LİMİTED ŞİRKETİ</p>
+                <p><strong>Adres:</strong> Atatürk Mah. Alemdağ Cad. No:140-144 İç Kapı No:19, Ümraniye, İstanbul – Türkiye</p>
+                <p><strong>Mersis No:</strong> 0470146256100001</p>
+                <p><strong>Ticaret Sicil No:</strong> 1020432</p>
+                <p><strong>Vergi Dairesi/No:</strong> Ümraniye / 4701462561</p>
+                <p>
+                  <strong>Telefon:</strong>{' '}
+                  <a href="tel:02162324052" className="text-primary-600 hover:underline">0216 232 40 52</a>
+                </p>
+                <p>
+                  <strong>GSM / WhatsApp:</strong>{' '}
+                  <a href="tel:05326404086" className="text-primary-600 hover:underline">0532 640 40 86</a>
+                </p>
+                <p>
+                  <strong>E-posta:</strong>{' '}
+                  <a href="mailto:info@2miklimlendirme.com.tr" className="text-primary-600 hover:underline">info@2miklimlendirme.com.tr</a>
+                </p>
+                <p><strong>Çalışma Saatleri:</strong> Pazartesi – Cumartesi 08:30 – 18:00 · Pazar Kapalı</p>
+                <p className="pt-2">
+                  <a
+                    href="https://wa.me/905326404086?text=Merhaba%2C%20siteniz%20%C3%BCzerinden%20size%20ula%C5%9F%C4%B1yorum.%20Bilgi%20alabilirmiyim"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                    </svg>
+                    WhatsApp&apos;tan Yaz
+                  </a>
                 </p>
               </div>
             </section>
