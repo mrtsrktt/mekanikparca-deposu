@@ -48,6 +48,7 @@ export default function TeslimatKosullariPage() {
                   info@2miklimlendirme.com.tr
                 </a>
               </p>
+              <p><strong>KEP:</strong> ikimiklimlendirme@hs01.kep.tr</p>
             </div>
           </section>
 

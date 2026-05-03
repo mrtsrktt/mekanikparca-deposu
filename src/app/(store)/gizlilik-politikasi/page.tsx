@@ -175,6 +175,7 @@ export default function GizlilikPolitikasiPage() {
                     info@2miklimlendirme.com.tr
                   </a>
                 </p>
+                <p><strong>KEP:</strong> ikimiklimlendirme@hs01.kep.tr</p>
                 <p><strong>Çalışma Saatleri:</strong> Pazartesi – Cumartesi 08:30 – 18:00 · Pazar Kapalı</p>
                 <p className="pt-2">
                   <a

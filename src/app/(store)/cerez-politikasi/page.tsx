@@ -161,6 +161,7 @@ export default function CerezPolitikasiPage() {
                 info@2miklimlendirme.com.tr
               </a>
             </li>
+            <li><strong>KEP:</strong> ikimiklimlendirme@hs01.kep.tr</li>
           </ul>
         </div>
 

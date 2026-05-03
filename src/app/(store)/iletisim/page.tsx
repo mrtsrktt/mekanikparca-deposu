@@ -77,6 +77,7 @@ export default function ContactPage() {
                 <p className="text-sm text-gray-500">Mersis No: 0470146256100001</p>
                 <p className="text-sm text-gray-500">Ticaret Sicil No: 1020432</p>
                 <p className="text-sm text-gray-500">Vergi Dairesi/No: Ümraniye / 4701462561</p>
+                <p className="text-sm text-gray-500">KEP: ikimiklimlendirme@hs01.kep.tr</p>
               </div>
             </div>
           </div>

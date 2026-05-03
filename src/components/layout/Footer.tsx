@@ -138,7 +138,7 @@ export default function Footer() {
       <div className="border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 py-5 flex flex-col items-center gap-2">
           <p className="text-xs text-gray-600 text-center">
-            Mersis No: 0470146256100001 · Ticaret Sicil No: 1020432 · Vergi Dairesi/No: Ümraniye / 4701462561
+            Mersis No: 0470146256100001 · Ticaret Sicil No: 1020432 · Vergi Dairesi/No: Ümraniye / 4701462561 · KEP: ikimiklimlendirme@hs01.kep.tr
           </p>
           <p className="text-xs text-gray-600 text-center">&copy; 2026 İKİ M İKLİMLENDİRME SİSTEMLERİ TİC. LTD. ŞTİ. Tüm hakları saklıdır.</p>
         </div>

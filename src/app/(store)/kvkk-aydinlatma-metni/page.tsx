@@ -39,6 +39,7 @@ export default function KvkkPage() {
                 info@2miklimlendirme.com.tr
               </a>
             </li>
+            <li><strong>KEP:</strong> ikimiklimlendirme@hs01.kep.tr</li>
           </ul>
         </div>
 
@@ -148,6 +149,9 @@ export default function KvkkPage() {
             <li>
               <strong>WhatsApp:</strong>{' '}
               <a href="tel:05326404086" className="text-primary-600 hover:underline">0532 640 40 86</a>
+            </li>
+            <li>
+              <strong>KEP:</strong> ikimiklimlendirme@hs01.kep.tr (kayıtlı elektronik posta — tüzel kişiler ve resmi tebligat için)
             </li>
             <li>
               <strong>Yazılı başvuru:</strong> Atatürk Mah. Alemdağ Cad. No:140-144 İç Kapı No:19, Ümraniye, İstanbul adresine ıslak imzalı dilekçe ile.

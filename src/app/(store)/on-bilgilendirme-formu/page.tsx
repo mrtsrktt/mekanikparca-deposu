@@ -40,6 +40,7 @@ export default function OnBilgilendirmeFormuPage() {
                 info@2miklimlendirme.com.tr
               </a>
             </li>
+            <li><strong>KEP:</strong> ikimiklimlendirme@hs01.kep.tr</li>
             <li>
               <strong>Web:</strong>{' '}
               <a href="https://mekanikparcadeposu.com" className="text-primary-600 hover:underline">mekanikparcadeposu.com</a>

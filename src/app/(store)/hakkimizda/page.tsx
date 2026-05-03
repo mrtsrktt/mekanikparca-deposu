@@ -149,6 +149,10 @@ export default function AboutPage() {
             </dd>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 py-3 bg-gray-50/50 -mx-2 px-2 rounded">
+            <dt className="text-sm font-semibold text-gray-600">KEP</dt>
+            <dd className="sm:col-span-2 text-sm text-gray-800">ikimiklimlendirme@hs01.kep.tr</dd>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 py-3">
             <dt className="text-sm font-semibold text-gray-600">Çalışma Saatleri</dt>
             <dd className="sm:col-span-2 text-sm text-gray-800">Pazartesi – Cumartesi: 08:30 – 18:00 · Pazar: Kapalı</dd>
           </div>
