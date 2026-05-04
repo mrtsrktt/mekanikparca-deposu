@@ -80,7 +80,7 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50">
+    <header className="sticky top-0 z-50 no-print">
       {/* Top bar */}
       <div className="bg-gradient-to-r from-corporate-dark via-corporate-gray to-corporate-dark text-gray-300 text-xs">
         <div className="max-w-7xl mx-auto px-4 py-1.5 flex justify-between items-center">

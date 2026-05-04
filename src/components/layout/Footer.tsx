@@ -7,7 +7,7 @@ import { trackWhatsAppClick } from '@/lib/gtm'
 
 export default function Footer() {
   return (
-    <footer className="bg-gradient-to-b from-corporate-dark to-[#060d18] text-gray-400">
+    <footer className="bg-gradient-to-b from-corporate-dark to-[#060d18] text-gray-400 no-print">
       {/* Main Footer */}
       <div className="max-w-7xl mx-auto px-4 pt-16 pb-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
