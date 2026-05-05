@@ -111,44 +111,56 @@ export default function BrandLandingPage({ brand, brandRecord, products }: Props
 
       <div className="bg-white">
         {/* ===== HERO ===== */}
-        <section className="relative overflow-hidden bg-white">
+        <section className="relative overflow-hidden bg-[#0a0f1e]">
           {/* subtle grid pattern */}
           <div
-            className="absolute inset-0 opacity-[0.04] pointer-events-none"
+            className="absolute inset-0 opacity-[0.08] pointer-events-none"
             style={{
               backgroundImage:
-                'linear-gradient(to right, #0f172a 1px, transparent 1px), linear-gradient(to bottom, #0f172a 1px, transparent 1px)',
+                'linear-gradient(to right, #fbbf24 1px, transparent 1px), linear-gradient(to bottom, #fbbf24 1px, transparent 1px)',
               backgroundSize: '48px 48px',
             }}
             aria-hidden
           />
-          {/* corner gradient accent */}
+          {/* corner gradient accent — electric glow */}
           <div
-            className="absolute -top-32 -right-32 w-[420px] h-[420px] rounded-full bg-gradient-to-br from-amber-100 to-transparent blur-3xl pointer-events-none"
+            className="absolute -top-32 -right-32 w-[480px] h-[480px] rounded-full bg-gradient-to-br from-amber-400/40 via-amber-500/15 to-transparent blur-3xl pointer-events-none"
             aria-hidden
           />
+          {/* sine wave — voltage curve */}
+          <svg
+            viewBox="0 0 1440 120"
+            preserveAspectRatio="none"
+            className="absolute bottom-0 left-0 w-full h-24 opacity-[0.06] pointer-events-none"
+            aria-hidden
+          >
+            <path
+              d="M0,60 C180,20 360,100 540,60 C720,20 900,100 1080,60 C1260,20 1440,100 1440,60 L1440,120 L0,120 Z"
+              fill="#f59e0b"
+            />
+          </svg>
 
           <div className="relative max-w-6xl mx-auto px-4 pt-8 md:pt-12 pb-10 md:pb-16">
             <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center">
               {/* Left column: text */}
               <div className="lg:col-span-7 order-2 lg:order-1">
-                <div className="inline-flex items-center gap-2 text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full mb-5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" aria-hidden />
+                <div className="inline-flex items-center gap-2 text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] text-amber-400 bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-full mb-5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" aria-hidden />
                   {brand.heroSubtitle}
                 </div>
 
-                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-bold text-slate-900 leading-[1.05] tracking-tight">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-bold text-white leading-[1.05] tracking-tight">
                   {brand.fullName}
                 </h1>
 
-                <p className="mt-5 text-base md:text-lg text-slate-600 leading-relaxed max-w-xl">
+                <p className="mt-5 text-base md:text-lg text-slate-300 leading-relaxed max-w-xl">
                   {brand.tagline}
                 </p>
 
                 <div className="mt-7 flex flex-wrap gap-3">
                   <a
                     href="#urunler"
-                    className="inline-flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold text-sm md:text-base py-3 px-6 rounded-lg shadow-sm hover:shadow-md transition-all"
+                    className="inline-flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold text-sm md:text-base py-3 px-6 rounded-lg shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30 transition-all"
                   >
                     Modelleri İncele
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -157,7 +169,7 @@ export default function BrandLandingPage({ brand, brandRecord, products }: Props
                   </a>
                   <a
                     href="#secim-rehberi"
-                    className="inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-900 border-2 border-slate-900 font-bold text-sm md:text-base py-3 px-6 rounded-lg transition-colors"
+                    className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50 font-bold text-sm md:text-base py-3 px-6 rounded-lg transition-colors"
                   >
                     Hangi Model Bana Uygun?
                   </a>
@@ -168,12 +180,12 @@ export default function BrandLandingPage({ brand, brandRecord, products }: Props
                   {brand.heroBadges.map((b) => (
                     <div
                       key={b.label}
-                      className="bg-white border border-slate-200 rounded-xl px-3 py-3 md:py-4 text-center hover:border-amber-400 hover:shadow-sm transition-all"
+                      className="bg-white/5 border border-white/10 rounded-xl px-3 py-3 md:py-4 text-center hover:border-amber-400/60 hover:bg-white/[0.07] transition-all"
                     >
-                      <div className="text-xl md:text-2xl font-bold text-slate-900 tabular-nums leading-none">
+                      <div className="text-xl md:text-2xl font-bold text-white tabular-nums leading-none">
                         {b.value}
                       </div>
-                      <div className="mt-1.5 text-[10px] md:text-xs font-medium text-slate-500 leading-tight">
+                      <div className="mt-1.5 text-[10px] md:text-xs font-medium text-slate-400 leading-tight">
                         {b.label}
                       </div>
                     </div>
@@ -186,10 +198,10 @@ export default function BrandLandingPage({ brand, brandRecord, products }: Props
                 <div className="relative">
                   {/* backdrop gradient */}
                   <div
-                    className="absolute inset-x-4 top-4 bottom-0 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 opacity-[0.04]"
+                    className="absolute inset-x-4 top-4 bottom-0 rounded-3xl bg-gradient-to-br from-amber-500/20 via-amber-500/5 to-transparent blur-2xl"
                     aria-hidden
                   />
-                  <div className="relative aspect-square max-w-md mx-auto bg-gradient-to-br from-white to-slate-50 rounded-3xl border border-slate-200 shadow-xl shadow-slate-900/5 overflow-hidden">
+                  <div className="relative aspect-square max-w-md mx-auto bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl border border-slate-700 shadow-2xl shadow-black/50 overflow-hidden">
                     {/* logo bar */}
                     <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
                       {brandRecord.logo ? (
@@ -203,10 +215,10 @@ export default function BrandLandingPage({ brand, brandRecord, products }: Props
                           />
                         </div>
                       ) : (
-                        <div className="text-base font-bold text-slate-900">{brand.name}</div>
+                        <div className="text-base font-bold text-white">{brand.name}</div>
                       )}
-                      <span className="inline-flex items-center gap-1 text-[9px] md:text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-full">
-                        <span className="w-1 h-1 rounded-full bg-emerald-500" aria-hidden />
+                      <span className="inline-flex items-center gap-1 text-[9px] md:text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/20 border border-emerald-500/40 px-2 py-1 rounded-full">
+                        <span className="w-1 h-1 rounded-full bg-emerald-400" aria-hidden />
                         Stokta
                       </span>
                     </div>
@@ -254,11 +266,11 @@ export default function BrandLandingPage({ brand, brandRecord, products }: Props
           {/* breadcrumb */}
           <div className="relative max-w-6xl mx-auto px-4 pb-4">
             <div className="flex items-center gap-2 text-xs text-slate-500">
-              <Link href="/" className="hover:text-slate-900">Ana Sayfa</Link>
+              <Link href="/" className="hover:text-white">Ana Sayfa</Link>
               <span>/</span>
-              <Link href="/urunler" className="hover:text-slate-900">Ürünler</Link>
+              <Link href="/urunler" className="hover:text-white">Ürünler</Link>
               <span>/</span>
-              <span className="text-slate-700 font-medium">{brand.name}</span>
+              <span className="text-slate-300 font-medium">{brand.name}</span>
             </div>
           </div>
         </section>
