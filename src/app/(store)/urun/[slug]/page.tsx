@@ -35,6 +35,9 @@ export async function generateMetadata({ params }: Props) {
   return {
     title: product.metaTitle || `${product.name} | Mekanik Parça Deposu`,
     description: product.metaDesc || product.description?.slice(0, 160),
+    alternates: {
+      canonical: `/urun/${params.slug}`,
+    },
   }
 }
 

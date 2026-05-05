@@ -5,6 +5,7 @@ import { Providers } from '@/components/Providers'
 import { Toaster } from 'react-hot-toast'
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://mekanikparcadeposu.com'),
   title: {
     default: 'Mekanik Parça Deposu | Isıtma & Soğutma Sistemleri Uzmanı',
     template: '%s | Mekanik Parça Deposu',

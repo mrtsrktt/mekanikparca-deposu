@@ -36,6 +36,7 @@ export async function generateMetadata({ searchParams }: Props) {
       return {
         title: category.metaTitle || `${category.name} Ürünleri`,
         description: category.metaDesc || category.description || `${category.name} kategorisindeki tüm ürünleri inceleyin. Orijinal ürünler, uygun fiyat, hızlı kargo.`,
+        alternates: { canonical: `/urunler?category=${searchParams.category}` },
       }
     }
   }
@@ -49,6 +50,7 @@ export async function generateMetadata({ searchParams }: Props) {
       return {
         title: `${brandContent.fullName} | Mekanik Parça Deposu`,
         description,
+        alternates: { canonical: `/urunler?brand=${searchParams.brand}` },
       }
     }
     const brand = await prisma.brand.findUnique({
@@ -58,6 +60,7 @@ export async function generateMetadata({ searchParams }: Props) {
       return {
         title: `${brand.name} Ürünleri`,
         description: `${brand.name} markalı tüm ürünleri inceleyin. Orijinal, garantili ürünler. Hızlı kargo, uygun fiyat.`,
+        alternates: { canonical: `/urunler?brand=${searchParams.brand}` },
       }
     }
   }
@@ -66,12 +69,14 @@ export async function generateMetadata({ searchParams }: Props) {
     return {
       title: `"${searchParams.q}" için Arama Sonuçları`,
       description: `"${searchParams.q}" araması için bulunan ürünler. Mekanik Parça Deposu'nda orijinal tesisat ve ısıtma ürünleri.`,
+      alternates: { canonical: `/urunler?q=${encodeURIComponent(searchParams.q!)}` },
     }
   }
 
   return {
     title: 'Tüm Ürünler',
     description: 'Fernox, Lega, MRU, REGEN ve Testo markalı ısıtma, soğutma ve tesisat ürünlerini inceleyin. Orijinal ürünler, uygun fiyat, hızlı kargo.',
+    alternates: { canonical: '/urunler' },
   }
 }
 
