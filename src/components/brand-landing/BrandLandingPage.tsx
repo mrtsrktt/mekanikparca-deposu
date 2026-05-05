@@ -203,27 +203,6 @@ export default function BrandLandingPage({ brand, brandRecord, products }: Props
                     aria-hidden
                   />
                   <div className="relative aspect-square max-w-md mx-auto bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl border border-slate-700 shadow-2xl shadow-black/50 overflow-hidden">
-                    {/* logo bar */}
-                    <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
-                      {brandRecord.logo ? (
-                        <div className="relative h-7 md:h-8 w-20 md:w-24">
-                          <Image
-                            src={brandRecord.logo}
-                            alt={brand.name}
-                            fill
-                            sizes="96px"
-                            className="object-contain object-left"
-                          />
-                        </div>
-                      ) : (
-                        <div className="text-base font-bold text-white">{brand.name}</div>
-                      )}
-                      <span className="inline-flex items-center gap-1 text-[9px] md:text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/20 border border-emerald-500/40 px-2 py-1 rounded-full">
-                        <span className="w-1 h-1 rounded-full bg-emerald-400" aria-hidden />
-                        Stokta
-                      </span>
-                    </div>
-
                     {heroProduct?.images[0]?.url ? (
                       <Image
                         src={heroProduct.images[0].url}
@@ -231,7 +210,7 @@ export default function BrandLandingPage({ brand, brandRecord, products }: Props
                         fill
                         priority
                         sizes="(max-width: 1024px) 90vw, 480px"
-                        className="object-contain p-10 md:p-12"
+                        className="object-cover"
                       />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">
