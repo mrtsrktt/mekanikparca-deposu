@@ -11,6 +11,7 @@ import BrandStickyCta from './BrandStickyCta'
 import BrandTechSpecs from './BrandTechSpecs'
 import BrandFinalCta from './BrandFinalCta'
 import DealershipCertificate from './DealershipCertificate'
+import AnimatedNumber from './AnimatedNumber'
 
 type BrandRecord = {
   id: string
@@ -183,7 +184,7 @@ export default function BrandLandingPage({ brand, brandRecord, products }: Props
                       className="bg-white/5 border border-white/10 rounded-xl px-3 py-3 md:py-4 text-center hover:border-amber-400/60 hover:bg-white/[0.07] transition-all"
                     >
                       <div className="text-xl md:text-2xl font-bold text-white tabular-nums leading-none">
-                        {b.value}
+                        <AnimatedNumber value={b.value} />
                       </div>
                       <div className="mt-1.5 text-[10px] md:text-xs font-medium text-slate-400 leading-tight">
                         {b.label}
