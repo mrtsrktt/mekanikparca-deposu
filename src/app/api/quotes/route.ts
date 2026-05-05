@@ -15,7 +15,7 @@ export async function GET() {
     include: {
       items: {
         include: {
-          product: { include: { images: { take: 1 }, brand: true } }
+          product: { include: { images: { orderBy: { sortOrder: 'asc' }, take: 1 }, brand: true } }
         }
       }
     },

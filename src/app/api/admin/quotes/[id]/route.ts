@@ -16,7 +16,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       user: { select: { id: true, name: true, email: true, phone: true } },
       items: {
         include: {
-          product: { include: { images: { take: 1 }, brand: true, category: true } }
+          product: { include: { images: { orderBy: { sortOrder: 'asc' }, take: 1 }, brand: true, category: true } }
         }
       },
     },
@@ -86,7 +86,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       user: { select: { id: true, name: true, email: true, phone: true } },
       items: {
         include: {
-          product: { include: { images: { take: 1 }, brand: true } }
+          product: { include: { images: { orderBy: { sortOrder: 'asc' }, take: 1 }, brand: true } }
         }
       },
     },

@@ -49,7 +49,7 @@ export default async function HomePage() {
     getExchangeRates(),
     prisma.product.findMany({
       where: { isActive: true, isFeatured: true, OR: [{ category: { isActive: true } }, { categoryId: null }] },
-      include: { brand: true, category: true, images: { take: 1 }, priceTiers: { orderBy: { unitPriceTRY: 'asc' }, take: 1 } },
+      include: { brand: true, category: true, images: { orderBy: { sortOrder: 'asc' }, take: 1 }, priceTiers: { orderBy: { unitPriceTRY: 'asc' }, take: 1 } },
       take: 8,
       orderBy: { createdAt: 'desc' },
     }),
@@ -69,7 +69,7 @@ export default async function HomePage() {
       include: {
         products: {
           where: { isActive: true, OR: [{ category: { isActive: true } }, { categoryId: null }] },
-          include: { images: { take: 1 }, brand: true, category: true, priceTiers: { orderBy: { unitPriceTRY: 'asc' }, take: 1 } },
+          include: { images: { orderBy: { sortOrder: 'asc' }, take: 1 }, brand: true, category: true, priceTiers: { orderBy: { unitPriceTRY: 'asc' }, take: 1 } },
           take: 6,
           orderBy: { createdAt: 'desc' },
         },
@@ -124,15 +124,15 @@ export default async function HomePage() {
   const campaignProductIds = new Set<string>()
   const allCampaignProducts: any[] = []
   if (cpIds.size > 0) {
-    const prods = await prisma.product.findMany({ where: { id: { in: Array.from(cpIds) as string[] }, isActive: true, OR: [{ category: { isActive: true } }, { categoryId: null }] }, include: { brand: true, category: true, images: { take: 1 }, priceTiers: { orderBy: { unitPriceTRY: 'asc' }, take: 1 } } })
+    const prods = await prisma.product.findMany({ where: { id: { in: Array.from(cpIds) as string[] }, isActive: true, OR: [{ category: { isActive: true } }, { categoryId: null }] }, include: { brand: true, category: true, images: { orderBy: { sortOrder: 'asc' }, take: 1 }, priceTiers: { orderBy: { unitPriceTRY: 'asc' }, take: 1 } } })
     prods.forEach(p => { if (!campaignProductIds.has(p.id)) { campaignProductIds.add(p.id); allCampaignProducts.push(p) } })
   }
   if (cbIds.size > 0) {
-    const prods = await prisma.product.findMany({ where: { brandId: { in: Array.from(cbIds) as string[] }, isActive: true, OR: [{ category: { isActive: true } }, { categoryId: null }] }, include: { brand: true, category: true, images: { take: 1 }, priceTiers: { orderBy: { unitPriceTRY: 'asc' }, take: 1 } }, take: 12 })
+    const prods = await prisma.product.findMany({ where: { brandId: { in: Array.from(cbIds) as string[] }, isActive: true, OR: [{ category: { isActive: true } }, { categoryId: null }] }, include: { brand: true, category: true, images: { orderBy: { sortOrder: 'asc' }, take: 1 }, priceTiers: { orderBy: { unitPriceTRY: 'asc' }, take: 1 } }, take: 12 })
     prods.forEach(p => { if (!campaignProductIds.has(p.id)) { campaignProductIds.add(p.id); allCampaignProducts.push(p) } })
   }
   if (ccIds.size > 0) {
-    const prods = await prisma.product.findMany({ where: { categoryId: { in: Array.from(ccIds) as string[] }, isActive: true, OR: [{ category: { isActive: true } }, { categoryId: null }] }, include: { brand: true, category: true, images: { take: 1 }, priceTiers: { orderBy: { unitPriceTRY: 'asc' }, take: 1 } }, take: 12 })
+    const prods = await prisma.product.findMany({ where: { categoryId: { in: Array.from(ccIds) as string[] }, isActive: true, OR: [{ category: { isActive: true } }, { categoryId: null }] }, include: { brand: true, category: true, images: { orderBy: { sortOrder: 'asc' }, take: 1 }, priceTiers: { orderBy: { unitPriceTRY: 'asc' }, take: 1 } }, take: 12 })
     prods.forEach(p => { if (!campaignProductIds.has(p.id)) { campaignProductIds.add(p.id); allCampaignProducts.push(p) } })
   }
   const homeCampaignProducts = convertProductPrices(allCampaignProducts.slice(0, 6))

@@ -153,7 +153,7 @@ export default async function ProductsPage({ searchParams }: Props) {
     getExchangeRates(),
     prisma.product.findMany({
       where,
-      include: { brand: true, category: true, images: { take: 1 }, priceTiers: { orderBy: { unitPriceTRY: 'asc' }, take: 1 } },
+      include: { brand: true, category: true, images: { orderBy: { sortOrder: 'asc' }, take: 1 }, priceTiers: { orderBy: { unitPriceTRY: 'asc' }, take: 1 } },
       skip: (page - 1) * limit,
       take: limit,
       orderBy,

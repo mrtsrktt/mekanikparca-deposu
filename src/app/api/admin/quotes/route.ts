@@ -15,7 +15,7 @@ export async function GET() {
       user: { select: { id: true, name: true, email: true, phone: true } },
       items: {
         include: {
-          product: { include: { images: { take: 1 }, brand: true } }
+          product: { include: { images: { orderBy: { sortOrder: 'asc' }, take: 1 }, brand: true } }
         }
       },
     },
@@ -78,7 +78,7 @@ export async function POST(req: Request) {
     include: {
       items: {
         include: {
-          product: { include: { images: { take: 1 }, brand: true } }
+          product: { include: { images: { orderBy: { sortOrder: 'asc' }, take: 1 }, brand: true } }
         }
       },
     },

@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
       isActive: true,
     },
     include: {
-      images: { take: 1 },
+      images: { orderBy: { sortOrder: 'asc' }, take: 1 },
       brand: { select: { name: true } },
     },
     take: 20,

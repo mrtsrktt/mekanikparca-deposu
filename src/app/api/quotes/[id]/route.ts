@@ -15,7 +15,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     include: {
       items: {
         include: {
-          product: { include: { images: { take: 1 }, brand: true, category: true } }
+          product: { include: { images: { orderBy: { sortOrder: 'asc' }, take: 1 }, brand: true, category: true } }
         }
       },
       user: { select: { name: true, email: true, phone: true } },
