@@ -114,6 +114,23 @@ export default async function ProductsPage({ searchParams }: Props) {
         trackStock: p.trackStock,
         images: p.images.map((img) => ({ url: img.url, alt: img.alt })),
       }))
+      // Sort by capacity ascending; VA values are normalized to KVA (1 KVA = 1000 VA).
+      // Products without a parsable capacity fall to the end, name-asc among themselves.
+      const getCapacityKva = (name: string): number | null => {
+        const kva = name.match(/(\d+(?:[.,]\d+)?)\s*KVA/i)
+        if (kva) return parseFloat(kva[1].replace(',', '.'))
+        const va = name.match(/(\d+(?:[.,]\d+)?)\s*VA\b/i)
+        if (va) return parseFloat(va[1].replace(',', '.')) / 1000
+        return null
+      }
+      productsWithTRY.sort((a, b) => {
+        const ca = getCapacityKva(a.name)
+        const cb = getCapacityKva(b.name)
+        if (ca === null && cb === null) return a.name.localeCompare(b.name, 'tr')
+        if (ca === null) return 1
+        if (cb === null) return -1
+        return ca - cb
+      })
       return (
         <BrandLandingPage
           brand={brandContent}
