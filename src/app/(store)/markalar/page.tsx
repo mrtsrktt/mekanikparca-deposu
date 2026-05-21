@@ -6,7 +6,7 @@ export const metadata = {
   description: 'Mekanik Parça Deposu\'nda satılan markalar: Fernox, Lega, MRU, REGEN, Testo. Marka bazlı ürün kataloğunu inceleyin.',
 }
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 export default async function BrandsPage() {
   const brands = await prisma.brand.findMany({

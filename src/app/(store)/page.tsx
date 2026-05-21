@@ -1,10 +1,17 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { calculateTRYPrice } from '@/lib/pricing'
 import ProductCard from '@/components/ProductCard'
 import HeroSlider from '@/components/HeroSlider'
 
-export const dynamic = 'force-dynamic'
+export const metadata: Metadata = {
+  alternates: {
+    canonical: '/',
+  },
+}
+
+export const revalidate = 3600
 
 async function getExchangeRates() {
   try {

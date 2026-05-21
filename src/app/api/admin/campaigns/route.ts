@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin-guard'
+import { revalidateStorefront } from '@/lib/revalidate'
 
 export async function GET() {
   const { error } = await requireAdmin()
@@ -72,5 +73,6 @@ export async function POST(req: NextRequest) {
     include: { tiers: { orderBy: { minQuantity: 'asc' } } },
   })
 
+  revalidateStorefront()
   return NextResponse.json(campaign, { status: 201 })
 }

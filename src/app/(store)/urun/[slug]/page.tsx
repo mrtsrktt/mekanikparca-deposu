@@ -7,7 +7,7 @@ import ProductDetailClient from './ProductDetailClient'
 import ProductMediaGallery from '@/components/ProductMediaGallery'
 import EnrichedDescription, { hasEnrichedDescription } from '@/components/product/EnrichedDescription'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 async function getExchangeRates() {
   try {

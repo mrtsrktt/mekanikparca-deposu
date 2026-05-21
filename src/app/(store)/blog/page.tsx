@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 export default async function BlogPage() {
   const posts = await prisma.blogPost.findMany({

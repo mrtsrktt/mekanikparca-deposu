@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin-guard'
+import { revalidateStorefront } from '@/lib/revalidate'
 
 export async function GET() {
   const { error } = await requireAdmin()
@@ -14,5 +15,6 @@ export async function POST(req: Request) {
   if (error) return error
   const body = await req.json()
   const post = await prisma.blogPost.create({ data: body })
+  revalidateStorefront()
   return NextResponse.json(post)
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin-guard'
+import { revalidateStorefront } from '@/lib/revalidate'
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   const { error } = await requireAdmin()
@@ -134,6 +135,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       })
     }
 
+    revalidateStorefront()
     return NextResponse.json(product)
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })
@@ -146,6 +148,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
 
   try {
     await prisma.product.delete({ where: { id: params.id } })
+    revalidateStorefront()
     return NextResponse.json({ message: 'Ürün silindi.' })
   } catch (err: any) {
     console.error('Product delete error:', err)

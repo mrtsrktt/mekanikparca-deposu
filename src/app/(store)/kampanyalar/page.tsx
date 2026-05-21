@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { formatPrice } from '@/lib/pricing'
 import ProductCard from '@/components/ProductCard'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 export const metadata = {
   title: 'Kampanyalar | Mekanik Parça Deposu',

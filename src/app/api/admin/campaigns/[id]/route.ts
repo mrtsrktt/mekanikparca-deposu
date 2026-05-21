@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin-guard'
+import { revalidateStorefront } from '@/lib/revalidate'
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const { error } = await requireAdmin()
@@ -81,6 +82,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     include: { tiers: { orderBy: { minQuantity: 'asc' } } },
   })
 
+  revalidateStorefront()
   return NextResponse.json(campaign)
 }
 
@@ -94,5 +96,6 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   }
 
   await prisma.campaign.delete({ where: { id: params.id } })
+  revalidateStorefront()
   return NextResponse.json({ success: true })
 }

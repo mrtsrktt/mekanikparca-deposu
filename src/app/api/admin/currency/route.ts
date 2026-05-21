@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin-guard'
 import { recalculateProductPrices } from '@/lib/pricing'
+import { revalidateStorefront } from '@/lib/revalidate'
 
 export async function GET() {
   const { error } = await requireAdmin()
@@ -26,5 +27,6 @@ export async function POST(req: Request) {
   // Recalculate all product prices in this currency
   await recalculateProductPrices(currency, rate)
 
+  revalidateStorefront()
   return NextResponse.json({ message: `${currency} kuru güncellendi. Ürün fiyatları yeniden hesaplandı.`, rate: updated })
 }

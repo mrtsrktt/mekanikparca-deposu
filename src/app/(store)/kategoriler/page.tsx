@@ -6,7 +6,7 @@ export const metadata = {
   description: 'İnhibitörler, filtreler, sirkülasyon pompaları, ısı transfer sıvıları ve daha fazlası. Tüm ürün kategorilerini keşfedin.',
 }
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 export default async function CategoriesPage() {
   const categories = await prisma.category.findMany({

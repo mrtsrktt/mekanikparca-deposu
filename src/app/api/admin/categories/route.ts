@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin-guard'
+import { revalidateStorefront } from '@/lib/revalidate'
 
 export async function GET() {
   const { error } = await requireAdmin()
@@ -19,5 +20,6 @@ export async function POST(req: Request) {
 
   const body = await req.json()
   const category = await prisma.category.create({ data: body })
+  revalidateStorefront()
   return NextResponse.json(category)
 }

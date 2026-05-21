@@ -3,60 +3,87 @@ import { prisma } from '@/lib/prisma'
 
 const BASE_URL = 'https://mekanikparcadeposu.com'
 
+// Statik sayfalar için sabit lastmod — her sitemap üretiminde "şimdi" yazmamak
+// için. Google "her gün değişiyor" yalanını güvenilmez bulup yok sayar.
+// İçerik gerçekten değişince bu tarihi manuel güncelleyin.
+const STATIC_LAST_MODIFIED = new Date('2026-05-21')
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // En son güncellenen ürün/blog tarihini ana sayfa lastmod'u olarak kullan
+  const [latestProduct, latestBlogPost] = await Promise.all([
+    prisma.product.findFirst({
+      where: { isActive: true },
+      orderBy: { updatedAt: 'desc' },
+      select: { updatedAt: true },
+    }),
+    prisma.blogPost.findFirst({
+      where: { isPublished: true },
+      orderBy: { updatedAt: 'desc' },
+      select: { updatedAt: true },
+    }),
+  ])
+
+  const homepageLastMod = [
+    latestProduct?.updatedAt,
+    latestBlogPost?.updatedAt,
+    STATIC_LAST_MODIFIED,
+  ]
+    .filter((d): d is Date => d instanceof Date)
+    .sort((a, b) => b.getTime() - a.getTime())[0]
+
   // Statik sayfalar
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: BASE_URL,
-      lastModified: new Date(),
+      lastModified: homepageLastMod,
       changeFrequency: 'daily',
       priority: 1,
     },
     {
       url: `${BASE_URL}/urunler`,
-      lastModified: new Date(),
+      lastModified: latestProduct?.updatedAt ?? STATIC_LAST_MODIFIED,
       changeFrequency: 'daily',
       priority: 0.9,
     },
     {
       url: `${BASE_URL}/kategoriler`,
-      lastModified: new Date(),
+      lastModified: STATIC_LAST_MODIFIED,
       changeFrequency: 'weekly',
       priority: 0.8,
     },
     {
       url: `${BASE_URL}/markalar`,
-      lastModified: new Date(),
+      lastModified: STATIC_LAST_MODIFIED,
       changeFrequency: 'weekly',
       priority: 0.8,
     },
     {
       url: `${BASE_URL}/kampanyalar`,
-      lastModified: new Date(),
+      lastModified: STATIC_LAST_MODIFIED,
       changeFrequency: 'weekly',
       priority: 0.7,
     },
     {
       url: `${BASE_URL}/blog`,
-      lastModified: new Date(),
+      lastModified: latestBlogPost?.updatedAt ?? STATIC_LAST_MODIFIED,
       changeFrequency: 'weekly',
       priority: 0.7,
     },
     {
       url: `${BASE_URL}/hakkimizda`,
-      lastModified: new Date(),
+      lastModified: STATIC_LAST_MODIFIED,
       changeFrequency: 'monthly',
       priority: 0.5,
     },
     {
       url: `${BASE_URL}/iletisim`,
-      lastModified: new Date(),
+      lastModified: STATIC_LAST_MODIFIED,
       changeFrequency: 'monthly',
       priority: 0.5,
     },
     {
       url: `${BASE_URL}/sikca-sorulan-sorular`,
-      lastModified: new Date(),
+      lastModified: STATIC_LAST_MODIFIED,
       changeFrequency: 'monthly',
       priority: 0.4,
     },

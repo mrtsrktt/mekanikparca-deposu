@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin-guard'
+import { revalidateStorefront } from '@/lib/revalidate'
 
 export async function GET(req: Request) {
   const { error } = await requireAdmin()
@@ -96,6 +97,7 @@ export async function POST(req: Request) {
       })
     }
 
+    revalidateStorefront()
     return NextResponse.json(product)
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })
