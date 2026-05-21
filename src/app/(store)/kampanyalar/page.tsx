@@ -8,6 +8,7 @@ export const revalidate = 3600
 export const metadata = {
   title: 'Kampanyalar | Mekanik Parça Deposu',
   description: 'Aktif kampanyalar. Toplu alımlarda özel fiyat avantajlarından yararlanın.',
+  alternates: { canonical: '/kampanyalar' },
 }
 
 export default async function CampaignsPage() {

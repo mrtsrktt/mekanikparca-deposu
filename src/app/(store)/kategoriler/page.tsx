@@ -4,6 +4,7 @@ import Link from 'next/link'
 export const metadata = {
   title: 'Kategoriler',
   description: 'İnhibitörler, filtreler, sirkülasyon pompaları, ısı transfer sıvıları ve daha fazlası. Tüm ürün kategorilerini keşfedin.',
+  alternates: { canonical: '/kategoriler' },
 }
 
 export const revalidate = 3600

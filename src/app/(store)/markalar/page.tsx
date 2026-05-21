@@ -4,6 +4,7 @@ import Link from 'next/link'
 export const metadata = {
   title: 'Markalar',
   description: 'Mekanik Parça Deposu\'nda satılan markalar: Fernox, Lega, MRU, REGEN, Testo. Marka bazlı ürün kataloğunu inceleyin.',
+  alternates: { canonical: '/markalar' },
 }
 
 export const revalidate = 3600

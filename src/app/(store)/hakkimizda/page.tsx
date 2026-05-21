@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: 'Hakkımızda — Yetkili Satıcı | Mekanik Parça Deposu',
   description:
     'İKİ M İklimlendirme bünyesinde faaliyet gösteren Mekanik Parça Deposu; Lega, REGEN, Testo ve MRU markalarının yetkili satıcısıdır. Kurumsal bilgiler ve bayilik belgeleri.',
+  alternates: { canonical: '/hakkimizda' },
 }
 
 export default function AboutPage() {

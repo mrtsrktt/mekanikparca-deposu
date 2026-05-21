@@ -1,6 +1,12 @@
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 
+export const metadata = {
+  title: 'Blog | Mekanik Parça Deposu',
+  description: 'Mekanik tesisat, ısıtma ve soğutma sistemleri hakkında bilgi yazıları, ürün incelemeleri ve teknik rehberler.',
+  alternates: { canonical: '/blog' },
+}
+
 export const revalidate = 3600
 
 export default async function BlogPage() {
