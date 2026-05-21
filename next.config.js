@@ -17,6 +17,11 @@ const nextConfig = {
         destination: '/urun/isi-pompasi-isi-transfer-sivisi-hp-5c-10-litre-fernox-heat-transfer-fluid-don-koruma',
         permanent: true,
       },
+      {
+        source: '/urun/tf1-sigma-manyetik-mini-filtre',
+        destination: '/urun/fernox-tf1-sigma-kombi-alti-manyetik-mini-filtre',
+        permanent: true,
+      },
     ]
   },
 }
