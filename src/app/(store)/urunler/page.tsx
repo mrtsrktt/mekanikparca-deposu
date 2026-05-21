@@ -28,12 +28,23 @@ interface Props {
 }
 
 export async function generateMetadata({ searchParams }: Props) {
+  // Sıralama/sayfalama varyantları için noindex: aynı içeriğin yeniden
+  // düzenlenmiş kopyalarıdır, canonical zaten ana versiyona işaret ediyor;
+  // ama noindex Google'a daha güçlü bir sinyaldir ve crawl budget'ı korur.
+  const isFilterVariant =
+    !!searchParams.sort ||
+    (searchParams.page ? parseInt(searchParams.page) > 1 : false)
+  const robotsMeta = isFilterVariant
+    ? { robots: { index: false, follow: true } }
+    : {}
+
   if (searchParams.category) {
     const category = await prisma.category.findUnique({
       where: { slug: searchParams.category },
     })
     if (category) {
       return {
+        ...robotsMeta,
         title: category.metaTitle || `${category.name} Ürünleri`,
         description: category.metaDesc || category.description || `${category.name} kategorisindeki tüm ürünleri inceleyin. Orijinal ürünler, uygun fiyat, hızlı kargo.`,
         alternates: { canonical: `/urunler?category=${searchParams.category}` },
@@ -48,6 +59,7 @@ export async function generateMetadata({ searchParams }: Props) {
         ? brandContent.tagline.slice(0, 157) + '...'
         : brandContent.tagline
       return {
+        ...robotsMeta,
         title: `${brandContent.fullName} | Mekanik Parça Deposu`,
         description,
         alternates: { canonical: `/urunler?brand=${searchParams.brand}` },
@@ -58,6 +70,7 @@ export async function generateMetadata({ searchParams }: Props) {
     })
     if (brand) {
       return {
+        ...robotsMeta,
         title: `${brand.name} Ürünleri`,
         description: `${brand.name} markalı tüm ürünleri inceleyin. Orijinal, garantili ürünler. Hızlı kargo, uygun fiyat.`,
         alternates: { canonical: `/urunler?brand=${searchParams.brand}` },
@@ -67,6 +80,8 @@ export async function generateMetadata({ searchParams }: Props) {
 
   if (searchParams.q) {
     return {
+      // Arama sonuç sayfaları genelde dizine eklenmez — varyant olsun olmasın.
+      robots: { index: false, follow: true },
       title: `"${searchParams.q}" için Arama Sonuçları`,
       description: `"${searchParams.q}" araması için bulunan ürünler. Mekanik Parça Deposu'nda orijinal tesisat ve ısıtma ürünleri.`,
       alternates: { canonical: `/urunler?q=${encodeURIComponent(searchParams.q!)}` },
@@ -74,6 +89,7 @@ export async function generateMetadata({ searchParams }: Props) {
   }
 
   return {
+    ...robotsMeta,
     title: 'Tüm Ürünler',
     description: 'Fernox, Lega, MRU, REGEN ve Testo markalı ısıtma, soğutma ve tesisat ürünlerini inceleyin. Orijinal ürünler, uygun fiyat, hızlı kargo.',
     alternates: { canonical: '/urunler' },
