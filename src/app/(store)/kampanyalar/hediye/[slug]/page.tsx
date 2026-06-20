@@ -1,13 +1,16 @@
 'use client'
 
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { FiMinus, FiPlus, FiShoppingCart, FiCheck, FiCopy } from 'react-icons/fi'
+import { FiMinus, FiPlus, FiShoppingCart, FiCheck, FiClock, FiGift, FiShare2, FiTruck, FiPackage, FiChevronRight, FiStar } from 'react-icons/fi'
 import { formatPrice } from '@/lib/pricing'
 import { getStorageArray } from '@/lib/safeStorage'
 
+// ============================================================
+// Types
+// ============================================================
 interface ProductInGroup {
   id: string
   name: string
@@ -34,9 +37,175 @@ interface Campaign {
   giftValue: number
   giftQuantity: number
   giftImage?: string
+  startDate: string
+  endDate: string
   groups: Group[]
 }
 
+// ============================================================
+// Countdown Timer
+// ============================================================
+function CountdownTimer({ endDate }: { endDate: string }) {
+  const [now, setNow] = useState(Date.now())
+  const end = new Date(endDate).getTime()
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const diff = Math.max(0, end - now)
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24)
+  const minutes = Math.floor((diff / (1000 * 60)) % 60)
+  const seconds = Math.floor((diff / 1000) % 60)
+
+  if (diff <= 0) {
+    return (
+      <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-500/20 rounded-xl border border-red-400/30 text-red-200 text-sm font-bold">
+        <FiClock className="w-4 h-4" />
+        Kampanya Sona Erdi
+      </div>
+    )
+  }
+
+  const timeBlocks = [
+    { label: 'Gün', value: days },
+    { label: 'Saat', value: hours },
+    { label: 'Dk', value: minutes },
+    { label: 'Sn', value: seconds },
+  ]
+
+  return (
+    <div className="inline-flex items-center gap-4 bg-white/10 backdrop-blur-sm rounded-2xl px-5 py-3 border border-white/10">
+      <FiClock className="w-4 h-4 text-amber-400" />
+      {timeBlocks.map((block, i) => (
+        <div key={block.label} className="flex items-center gap-3">
+          <div className="text-center">
+            <div className="text-2xl font-black text-white tabular-nums leading-tight">
+              {String(block.value).padStart(2, '0')}
+            </div>
+            <div className="text-[10px] text-white/50 uppercase tracking-wider font-medium">{block.label}</div>
+          </div>
+          {i < timeBlocks.length - 1 && (
+            <span className="text-white/30 text-lg font-light">:</span>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ============================================================
+// Product Card
+// ============================================================
+function ProductCard({
+  product,
+  quantity,
+  onIncrease,
+  onDecrease,
+  onInput,
+}: {
+  product: ProductInGroup
+  quantity: number
+  onIncrease: () => void
+  onDecrease: () => void
+  onInput: (val: string) => void
+}) {
+  const isSelected = quantity > 0
+  return (
+    <div
+      className={`group relative flex items-center gap-4 p-4 rounded-2xl border-2 transition-all duration-300 ${
+        isSelected
+          ? 'border-amber-400 bg-amber-50/60 shadow-md shadow-amber-100'
+          : 'border-gray-100 bg-white hover:border-amber-200 hover:shadow-md'
+      }`}
+    >
+      {/* Selection indicator */}
+      {isSelected && (
+        <div className="absolute -top-2 -right-2 w-7 h-7 bg-amber-500 rounded-full flex items-center justify-center shadow-lg shadow-amber-200">
+          <FiCheck className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+        </div>
+      )}
+
+      {/* Product Image */}
+      <div className={`w-16 h-16 md:w-20 md:h-20 rounded-xl flex-shrink-0 overflow-hidden transition-shadow duration-300 ${
+        isSelected ? 'bg-white shadow-md' : 'bg-gray-50 group-hover:shadow-md'
+      }`}>
+        {product.images?.[0]?.url ? (
+          <Image
+            src={product.images[0].url}
+            alt={product.name}
+            width={80}
+            height={80}
+            className="w-full h-full object-contain p-1"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-300 text-2xl">
+            <FiPackage />
+          </div>
+        )}
+      </div>
+
+      {/* Product Info */}
+      <div className="flex-1 min-w-0">
+        <h4 className="font-semibold text-gray-800 text-sm md:text-base leading-tight line-clamp-2">
+          {product.name}
+        </h4>
+        <div className="flex items-center gap-2 mt-1 flex-wrap">
+          {product.brand && (
+            <span className="text-xs text-gray-400 font-medium">{product.brand.name}</span>
+          )}
+          {product.sku && (
+            <span className="text-[10px] text-gray-300 font-mono">{product.sku}</span>
+          )}
+        </div>
+        <div className="mt-1.5">
+          <span className="text-base md:text-lg font-extrabold text-gray-900">
+            {formatPrice(product.priceTRY)}
+          </span>
+          <span className="text-xs text-gray-400 ml-1">/ adet</span>
+        </div>
+      </div>
+
+      {/* Quantity Controls */}
+      <div className="flex flex-col items-center gap-1 flex-shrink-0">
+        <div className="flex items-center gap-0.5 bg-gray-100 rounded-xl p-0.5">
+          <button
+            onClick={onDecrease}
+            disabled={quantity === 0}
+            className="w-8 h-8 rounded-lg flex items-center justify-center bg-white hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors shadow-sm"
+          >
+            <FiMinus className="w-3.5 h-3.5" />
+          </button>
+          <input
+            type="number"
+            min={0}
+            value={quantity || ''}
+            placeholder="0"
+            onChange={e => onInput(e.target.value)}
+            className="w-12 h-8 text-center text-sm font-bold bg-transparent border-none outline-none tabular-nums"
+          />
+          <button
+            onClick={onIncrease}
+            className="w-8 h-8 rounded-lg flex items-center justify-center bg-white hover:bg-amber-100 hover:text-amber-700 transition-colors shadow-sm"
+          >
+            <FiPlus className="w-3.5 h-3.5" />
+          </button>
+        </div>
+        {quantity > 0 && (
+          <span className="text-xs font-bold text-amber-600 tabular-nums">
+            {formatPrice(quantity * product.priceTRY)}
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ============================================================
+// Main Page Component
+// ============================================================
 export default function GiftCampaignPage() {
   const params = useParams()
   const router = useRouter()
@@ -47,7 +216,7 @@ export default function GiftCampaignPage() {
   const [error, setError] = useState('')
   const [activeGroup, setActiveGroup] = useState(0)
   const [quantities, setQuantities] = useState<Record<string, number>>({})
-  const [showPopup, setShowPopup] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
   const [addedToCart, setAddedToCart] = useState(false)
 
   // Load campaign
@@ -58,7 +227,6 @@ export default function GiftCampaignPage() {
         if (data.error) { setError(data.error); setLoading(false); return }
         setCampaign(data)
 
-        // Restore saved quantities from localStorage
         const saved = localStorage.getItem(`gc_${data.id}`)
         if (saved) {
           try { setQuantities(JSON.parse(saved)) } catch {}
@@ -69,7 +237,7 @@ export default function GiftCampaignPage() {
       .catch(() => { setError('Kampanya yüklenirken hata oluştu.'); setLoading(false) })
   }, [slug])
 
-  // Save quantities to localStorage on change
+  // Save quantities to localStorage
   useEffect(() => {
     if (campaign) {
       localStorage.setItem(`gc_${campaign.id}`, JSON.stringify(quantities))
@@ -93,47 +261,41 @@ export default function GiftCampaignPage() {
     })
   }, [campaign, quantities])
 
-  // Current active group total
   const currentTotal = groupTotals[activeGroup]?.total || 0
   const currentThreshold = campaign?.groups[activeGroup]?.threshold || 999999
   const currentSubtotal = groupTotals[activeGroup]?.subtotal || 0
   const thresholdReached = currentTotal >= currentThreshold
   const progressPercent = Math.min(100, Math.round((currentTotal / currentThreshold) * 100))
-
-  // Calculate how many times threshold is reached
   const timesReached = Math.floor(currentTotal / currentThreshold)
+  const remaining = Math.max(0, currentThreshold - currentTotal)
 
-  const updateQuantity = (productId: string, delta: number) => {
+  const updateQuantity = useCallback((productId: string, delta: number) => {
     setQuantities(prev => {
       const current = prev[productId] || 0
-      const next = Math.max(0, current + delta)
-      return { ...prev, [productId]: next }
+      return { ...prev, [productId]: Math.max(0, current + delta) }
     })
     setAddedToCart(false)
-  }
+    setShowSuccess(false)
+  }, [])
 
-  const handleQuantityInput = (productId: string, value: string) => {
+  const handleQuantityInput = useCallback((productId: string, value: string) => {
     const num = parseInt(value) || 0
     setQuantities(prev => ({ ...prev, [productId]: Math.max(0, num) }))
     setAddedToCart(false)
-  }
+    setShowSuccess(false)
+  }, [])
 
-  // Add to cart and redirect to checkout
-  const handleAddToCart = () => {
-    if (!campaign) return
+  const handleAddToCart = useCallback(() => {
+    if (!campaign || !thresholdReached) return
 
-    // Get selected products
     const cartItems: { productId: string; quantity: number }[] = []
     campaign.groups[activeGroup].products.forEach(p => {
       const qty = quantities[p.id] || 0
-      if (qty > 0) {
-        cartItems.push({ productId: p.id, quantity: qty })
-      }
+      if (qty > 0) cartItems.push({ productId: p.id, quantity: qty })
     })
 
     if (cartItems.length === 0) return
 
-    // Add to cart (merge with existing cart)
     const existingCart = getStorageArray('cart')
     const mergedCart = [...existingCart]
 
@@ -149,7 +311,6 @@ export default function GiftCampaignPage() {
     localStorage.setItem('cart', JSON.stringify(mergedCart))
     window.dispatchEvent(new Event('cart-updated'))
 
-    // Save campaign gift info for checkout page
     localStorage.setItem('giftCampaign', JSON.stringify({
       campaignId: campaign.id,
       campaignName: campaign.name,
@@ -169,476 +330,563 @@ export default function GiftCampaignPage() {
     }))
 
     setAddedToCart(true)
-    setShowPopup(true)
-  }
+    setShowSuccess(true)
+  }, [campaign, thresholdReached, activeGroup, quantities, currentTotal, currentThreshold, timesReached])
 
-  const goToCheckout = () => {
+  const goToCheckout = useCallback(() => {
     router.push('/odeme')
-  }
+  }, [router])
 
-  // Copy share link
-  const copyShareLink = () => {
+  const copyShareLink = useCallback(() => {
     navigator.clipboard.writeText(window.location.href)
-      .then(() => alert('Kampanya linki kopyalandı!'))
+      .then(() => {
+        const el = document.getElementById('share-toast')
+        if (el) { el.style.opacity = '1'; setTimeout(() => { el.style.opacity = '0' }, 2000) }
+      })
       .catch(() => {})
-  }
+  }, [])
 
-  // Loading state
+  // ============================================================
+  // Render: Loading
+  // ============================================================
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/3 mx-auto" />
-          <div className="h-64 bg-gray-200 rounded-xl max-w-4xl mx-auto" />
+      <div className="max-w-7xl mx-auto px-4 py-20">
+        <div className="animate-pulse space-y-6">
+          <div className="h-10 bg-gray-200 rounded-xl w-1/4" />
+          <div className="h-72 bg-gray-200 rounded-3xl" />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="h-32 bg-gray-100 rounded-2xl" />
+              ))}
+            </div>
+            <div className="h-96 bg-gray-100 rounded-2xl" />
+          </div>
         </div>
       </div>
     )
   }
 
-  // Error state
+  // ============================================================
+  // Render: Error / Not Found
+  // ============================================================
   if (error || !campaign) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-20 text-center">
-        <span className="text-6xl block mb-4">🔍</span>
+        <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+          <FiGift className="w-10 h-10 text-gray-400" />
+        </div>
         <h1 className="text-2xl font-bold text-gray-800 mb-2">Kampanya Bulunamadı</h1>
-        <p className="text-gray-500 mb-6">{error || 'Bu kampanya aktif değil veya bulunamadı.'}</p>
-        <Link href="/kampanyalar" className="btn-primary">Tüm Kampanyalar</Link>
+        <p className="text-gray-500 mb-6">{error || 'Bu kampanya aktif değil veya sona ermiş olabilir.'}</p>
+        <Link href="/kampanyalar" className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-bold px-6 py-3 rounded-xl transition-colors">
+          <FiChevronRight className="w-5 h-5" />
+          Tüm Kampanyaları Gör
+        </Link>
       </div>
     )
   }
 
+  // ============================================================
+  // Render: Campaign Page
+  // ============================================================
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-        <Link href="/" className="hover:text-primary-500">Ana Sayfa</Link>
-        <span>/</span>
-        <Link href="/kampanyalar" className="hover:text-primary-500">Kampanyalar</Link>
-        <span>/</span>
-        <span className="text-gray-800">{campaign.giftName}</span>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* ================================================================ */}
+      {/* HERO SECTION */}
+      {/* ================================================================ */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-amber-950">
+        {/* Background pattern */}
+        <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}
+        />
+        {/* Glow effects */}
+        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-amber-500/15 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-orange-500/10 rounded-full blur-[120px] pointer-events-none" />
 
-      {/* Gift Device Hero — Premium Tasarım */}
-      <div className="relative overflow-hidden rounded-3xl mb-8 bg-gradient-to-br from-slate-800 via-slate-900 to-indigo-950 text-white shadow-2xl shadow-indigo-900/20">
-        {/* Decorative background elements */}
-        <div className="absolute inset-0 opacity-[0.07] pointer-events-none">
-          <div className="absolute -top-24 -right-24 w-96 h-96 bg-white rounded-full blur-3xl" />
-          <div className="absolute -bottom-32 -left-32 w-[30rem] h-[30rem] bg-indigo-400 rounded-full blur-3xl" />
-        </div>
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-amber-400/10 to-transparent rounded-bl-full pointer-events-none" />
+        {/* Content */}
+        <div className="relative max-w-7xl mx-auto px-4 py-10 md:py-16">
+          {/* Top badge row */}
+          <div className="flex flex-wrap items-center gap-3 mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500 text-white text-sm font-bold rounded-full shadow-lg shadow-amber-500/30">
+              <FiStar className="w-4 h-4 fill-white" />
+              HEDİYE KAMPANYASI
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-white/10 backdrop-blur-sm text-white/80 text-xs font-medium rounded-full border border-white/10">
+              <FiClock className="w-3.5 h-3.5" />
+              Sınırlı Süre
+            </div>
+            <button
+              onClick={copyShareLink}
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white/70 hover:text-white text-xs font-medium rounded-full border border-white/10 transition-all"
+            >
+              <FiShare2 className="w-3.5 h-3.5" />
+              Paylaş
+            </button>
+          </div>
 
-        <div className="relative p-6 md:p-10">
-          <div className="flex flex-col lg:flex-row items-center gap-8">
-            {/* Gift Image — Premium Card */}
+          {/* Main hero row */}
+          <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+            {/* Gift Image */}
             <div className="flex-shrink-0">
-              <div className="relative group">
-                {/* Glow effect behind image */}
-                <div className="absolute inset-0 bg-gradient-to-br from-amber-300/30 via-white/10 to-indigo-300/20 rounded-2xl blur-xl scale-110" />
-                {campaign.giftImage ? (
-                  <div className="relative w-44 h-44 md:w-52 md:h-52 bg-white rounded-2xl p-4 shadow-2xl flex items-center justify-center">
+              <div className="relative">
+                {/* Outer glow ring */}
+                <div className="absolute -inset-6 bg-amber-400/20 rounded-full blur-2xl" />
+                {/* Image container */}
+                <div className="relative w-40 h-40 md:w-56 md:h-56 bg-white rounded-3xl p-4 shadow-2xl shadow-black/30 flex items-center justify-center border border-white/20">
+                  {campaign.giftImage ? (
                     <Image
                       src={campaign.giftImage}
                       alt={campaign.giftName}
-                      width={180}
-                      height={180}
+                      width={200}
+                      height={200}
                       className="object-contain max-w-full max-h-full"
                     />
-                  </div>
-                ) : (
-                  <div className="relative w-44 h-44 md:w-52 md:h-52 bg-gradient-to-br from-white via-slate-50 to-slate-100 rounded-2xl p-6 shadow-2xl flex flex-col items-center justify-center gap-3 border border-white/50">
-                    <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-400/30">
-                      <svg className="w-9 h-9 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-                      </svg>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center gap-2 text-gray-300">
+                      <FiGift className="w-16 h-16" />
+                      <span className="text-xs font-medium">GÖRSEL YAKINDA</span>
                     </div>
-                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider text-center">GÖRSEL YAKINDA</span>
-                  </div>
-                )}
+                  )}
+                </div>
+                {/* Value badge */}
+                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-black px-4 py-1.5 rounded-full shadow-xl shadow-green-500/30 whitespace-nowrap">
+                  DEĞER: {formatPrice(campaign.giftValue)}
+                </div>
               </div>
             </div>
 
-            {/* Gift Info */}
+            {/* Hero Text */}
             <div className="flex-1 text-center lg:text-left">
-              {/* Premium Badge */}
-              <div className="inline-flex items-center gap-2 mb-4">
-                <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs font-bold rounded-full shadow-lg shadow-amber-400/20 uppercase tracking-wider">
-                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                  HEDİYE KAMPANYASI
-                </span>
-                <span className="hidden sm:inline-flex items-center gap-1 px-3 py-1.5 bg-white/10 backdrop-blur-sm text-white/80 text-xs font-medium rounded-full border border-white/10">
-                  Sınırlı Süre
-                </span>
-              </div>
-
-              <h1 className="text-2xl md:text-3xl lg:text-4xl font-extrabold mb-3 tracking-tight leading-tight">
-                {campaign.giftName}
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight mb-3">
+                {campaign.name}
               </h1>
+              <p className="text-xl md:text-2xl text-amber-400 font-bold mb-4">
+                🎁 {campaign.giftName} <span className="text-white/60 font-normal text-lg">Hediye!</span>
+              </p>
 
-              {/* Key Info Pills */}
-              <div className="flex flex-wrap items-center gap-2.5 justify-center lg:justify-start mb-4">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/10 backdrop-blur-sm rounded-lg text-sm text-white/90 border border-white/10">
-                  <span className="text-white/50 text-xs">Stok Kodu</span>
+              {/* Info pills */}
+              <div className="flex flex-wrap items-center gap-2 justify-center lg:justify-start mb-5">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/10 backdrop-blur-sm rounded-xl text-sm text-white/80 border border-white/10">
+                  <span className="text-white/40 text-xs">Stok Kodu</span>
                   <span className="font-mono font-bold text-white">{campaign.giftStockCode}</span>
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-400/20 backdrop-blur-sm rounded-lg text-sm border border-amber-400/30">
-                  <span className="text-amber-300/70 text-xs">Değer</span>
-                  <span className="font-bold text-amber-100">{formatPrice(campaign.giftValue)}</span>
-                </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/10 backdrop-blur-sm rounded-lg text-sm text-white/90 border border-white/10">
-                  <span className="text-white/50 text-xs">Adet</span>
-                  <span className="font-bold text-white">{campaign.giftQuantity > 1 ? `${campaign.giftQuantity} Adet` : '1 Adet'}</span>
-                </span>
+                {campaign.giftQuantity > 1 && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-400/20 backdrop-blur-sm rounded-xl text-sm border border-amber-400/30">
+                    <span className="font-bold text-amber-200">{campaign.giftQuantity} Adet</span>
+                    <span className="text-amber-300/60 text-xs">birden verilecek</span>
+                  </span>
+                )}
               </div>
 
-              {campaign.description && (
-                <p className="text-white/60 text-sm leading-relaxed max-w-xl">{campaign.description}</p>
-              )}
+              {/* Countdown */}
+              <div className="flex justify-center lg:justify-start">
+                <CountdownTimer endDate={campaign.endDate} />
+              </div>
             </div>
-
-            {/* Share Button */}
-            <button
-              onClick={copyShareLink}
-              className="flex-shrink-0 self-start p-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-xl transition-all duration-300 hover:scale-105 border border-white/10"
-              title="Kampanya linkini kopyala"
-            >
-              <svg className="w-5 h-5 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-              </svg>
-            </button>
           </div>
         </div>
 
-        {/* Bottom accent bar */}
-        <div className="h-1 bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400" />
+        {/* Bottom wave/accent */}
+        <div className="relative h-2 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left: Product Groups & Selection */}
-        <div className="lg:col-span-2">
-          {/* Group Tabs */}
-          <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-            {campaign.groups.map((group, idx) => {
-              const gt = groupTotals[idx]
-              const reached = gt.total >= gt.threshold
-              return (
-                <button
-                  key={group.id}
-                  onClick={() => { setActiveGroup(idx); setShowPopup(false); setAddedToCart(false) }}
-                  className={`flex-shrink-0 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                    activeGroup === idx
-                      ? 'bg-primary-500 text-white shadow-lg shadow-primary-200'
-                      : reached
-                        ? 'bg-green-50 border-2 border-green-300 text-green-700 hover:bg-green-100'
-                        : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="text-xs opacity-70">{group.name}</div>
-                  <div className="text-lg font-bold">
-                    {gt.total} / {gt.threshold}
-                  </div>
-                  {reached && <div className="text-xs">✓ Ulaşıldı</div>}
-                </button>
-              )
-            })}
-          </div>
+      {/* ================================================================ */}
+      {/* MAIN CONTENT */}
+      {/* ================================================================ */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Breadcrumb */}
+        <nav className="flex items-center gap-2 text-sm text-gray-400 mb-6">
+          <Link href="/" className="hover:text-gray-600 transition-colors">Ana Sayfa</Link>
+          <FiChevronRight className="w-3 h-3" />
+          <Link href="/kampanyalar" className="hover:text-gray-600 transition-colors">Kampanyalar</Link>
+          <FiChevronRight className="w-3 h-3" />
+          <span className="text-gray-700 font-medium truncate">{campaign.giftName}</span>
+        </nav>
 
-          {/* Active Group Products */}
-          <div className="card p-6">
+        {/* Description banner */}
+        {campaign.description && (
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-50 via-orange-50 to-yellow-50 border border-amber-200 p-5 mb-8">
+            <div className="absolute top-0 right-0 text-6xl opacity-10">🎁</div>
+            <div className="relative">
+              <h2 className="text-lg font-bold text-amber-800 mb-1">📢 Kampanya Detayları</h2>
+              <p className="text-sm text-amber-700 leading-relaxed">{campaign.description}</p>
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* ============================================================ */}
+          {/* LEFT: Product Selection */}
+          {/* ============================================================ */}
+          <div className="lg:col-span-2">
+            {/* Group Tabs */}
+            <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
+              {campaign.groups.map((group, idx) => {
+                const gt = groupTotals[idx]
+                const reached = gt.total >= gt.threshold
+                const isActive = activeGroup === idx
+                return (
+                  <button
+                    key={group.id}
+                    onClick={() => { setActiveGroup(idx); setShowSuccess(false); setAddedToCart(false) }}
+                    className={`flex-shrink-0 px-5 py-3.5 rounded-2xl text-left transition-all duration-300 min-w-[140px] ${
+                      isActive
+                        ? 'bg-white shadow-xl shadow-amber-200/50 border-2 border-amber-400 scale-105'
+                        : reached
+                          ? 'bg-green-50 border-2 border-green-300 hover:bg-green-100'
+                          : 'bg-white border-2 border-gray-100 hover:border-gray-200 hover:shadow-md'
+                    }`}
+                  >
+                    <div className="text-[11px] text-gray-400 font-medium uppercase tracking-wide mb-1">{group.name}</div>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className={`text-xl font-black tabular-nums ${isActive ? 'text-gray-900' : reached ? 'text-green-700' : 'text-gray-700'}`}>
+                        {gt.total}
+                      </span>
+                      <span className="text-xs text-gray-400">/ {gt.threshold} adet</span>
+                    </div>
+                    {reached && (
+                      <span className="inline-flex items-center gap-1 text-[10px] text-green-600 font-bold mt-1">
+                        <FiCheck className="w-3 h-3" /> Ulaşıldı
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Products Header */}
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-lg text-gray-800">
-                {campaign.groups[activeGroup].name}
-              </h3>
-              <span className="text-sm text-gray-500">
+              <div>
+                <h3 className="text-xl font-bold text-gray-800">
+                  {campaign.groups[activeGroup].name}
+                </h3>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  Bu gruptan toplam <strong className="text-amber-600">{currentThreshold} adet</strong> ve üzeri alımda hediye kazanırsınız
+                </p>
+              </div>
+              <span className="text-sm text-gray-400 bg-gray-100 px-3 py-1.5 rounded-xl">
                 {campaign.groups[activeGroup].products.length} ürün
               </span>
             </div>
 
-            {campaign.groups[activeGroup].products.length === 0 ? (
-              <div className="text-center py-12 text-gray-400">
-                <span className="text-4xl block mb-3">📦</span>
-                <p>Bu grupta henüz ürün bulunmuyor.</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {campaign.groups[activeGroup].products.map(product => {
-                  const qty = quantities[product.id] || 0
-                  return (
-                    <div key={product.id}
-                      className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
-                        qty > 0 ? 'border-primary-300 bg-primary-50/50' : 'border-gray-200 bg-white hover:border-gray-300'
-                      }`}
-                    >
-                      {/* Product Image */}
-                      <div className="w-14 h-14 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
-                        {product.images?.[0]?.url ? (
-                          <Image src={product.images[0].url} alt={product.name} width={56} height={56}
-                            className="w-full h-full object-contain" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-400 text-xl">📦</div>
-                        )}
-                      </div>
-
-                      {/* Product Info */}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-800 text-sm truncate">{product.name}</p>
-                        <div className="flex items-center gap-2 text-xs text-gray-500">
-                          {product.sku && <span>SKU: {product.sku}</span>}
-                          {product.brand && <span>• {product.brand.name}</span>}
-                        </div>
-                        <p className="text-sm font-bold text-primary-600 mt-0.5">
-                          {formatPrice(product.priceTRY)} / adet
-                        </p>
-                      </div>
-
-                      {/* Quantity Controls */}
-                      <div className="flex items-center gap-1 flex-shrink-0">
-                        <button
-                          onClick={() => updateQuantity(product.id, -1)}
-                          disabled={qty === 0}
-                          className="w-8 h-8 rounded-lg border border-gray-300 flex items-center justify-center
-                            hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                        >
-                          <FiMinus className="w-3 h-3" />
-                        </button>
-                        <input
-                          type="number"
-                          min={0}
-                          value={qty || ''}
-                          placeholder="0"
-                          onChange={e => handleQuantityInput(product.id, e.target.value)}
-                          className="w-16 h-8 text-center text-sm font-bold border border-gray-300 rounded-lg focus:border-primary-400 focus:ring-1 focus:ring-primary-200 outline-none"
-                        />
-                        <button
-                          onClick={() => updateQuantity(product.id, 1)}
-                          className="w-8 h-8 rounded-lg border border-gray-300 flex items-center justify-center
-                            hover:bg-primary-50 hover:border-primary-300 transition-colors"
-                        >
-                          <FiPlus className="w-3 h-3" />
-                        </button>
-                      </div>
-
-                      {/* Line Total */}
-                      {qty > 0 && (
-                        <div className="hidden sm:block w-24 text-right flex-shrink-0">
-                          <div className="text-sm font-bold text-gray-700">{formatPrice(qty * product.priceTRY)}</div>
-                          <div className="text-xs text-gray-400">{qty} adet</div>
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right: Progress & Checkout Panel */}
-        <div className="lg:col-span-1">
-          <div className="sticky top-8 space-y-4">
-            {/* Progress Card */}
-            <div className="card p-6">
-              <h3 className="font-bold text-gray-800 mb-4">📊 İlerleme Durumu</h3>
-
-              {/* Progress bar */}
-              <div className="relative w-full h-6 bg-gray-200 rounded-full overflow-hidden mb-3">
+            {/* Progress bar (inline) */}
+            <div className="mb-6">
+              <div className="relative w-full h-4 bg-gray-200 rounded-full overflow-hidden">
+                {/* Progress fill */}
                 <div
-                  className={`absolute left-0 top-0 h-full rounded-full transition-all duration-500 ${
-                    thresholdReached
-                      ? 'bg-green-500'
-                      : progressPercent > 50
-                        ? 'bg-primary-500'
-                        : 'bg-amber-500'
-                  }`}
-                  style={{ width: `${progressPercent}%` }}
+                  className="absolute left-0 top-0 h-full rounded-full transition-all duration-700 ease-out"
+                  style={{
+                    width: `${progressPercent}%`,
+                    background: thresholdReached
+                      ? 'linear-gradient(90deg, #22c55e, #16a34a)'
+                      : progressPercent > 60
+                        ? 'linear-gradient(90deg, #f59e0b, #d97706)'
+                        : 'linear-gradient(90deg, #f97316, #ea580c)',
+                  }}
                 />
-                <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-700">
-                  {currentTotal} / {currentThreshold}
-                </span>
-              </div>
-
-              <div className="text-center mb-4">
-                {thresholdReached ? (
-                  <div className="text-green-600 font-bold text-lg animate-bounce">
-                    🎉 Hedefe Ulaştınız!
-                  </div>
-                ) : (
-                  <div className="text-gray-500 text-sm">
-                    Hedefe <strong>{currentThreshold - currentTotal}</strong> adet kaldı
+                {/* Animated shine */}
+                {!thresholdReached && (
+                  <div className="absolute inset-0 rounded-full overflow-hidden">
+                    <div
+                      className="absolute inset-y-0 w-20 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                      style={{ animation: 'shimmer 2s infinite' }}
+                    />
                   </div>
                 )}
               </div>
-
-              {/* Gift preview — Premium Card */}
-              <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 p-5 mb-4 text-center shadow-lg shadow-slate-900/10 border border-slate-700/30">
-                {/* Subtle pattern overlay */}
-                <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
-                  style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
-                <div className="relative">
-                  <div className="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-400/20">
-                    {campaign.giftImage ? (
-                      <Image src={campaign.giftImage} alt={campaign.giftName} width={40} height={40}
-                        className="object-contain rounded-lg" />
-                    ) : (
-                      <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-                      </svg>
-                    )}
-                  </div>
-                  <p className="font-bold text-white text-sm leading-tight">{campaign.giftName}</p>
-                  <p className="text-xs text-slate-400 mt-1 font-mono">{campaign.giftStockCode}</p>
-                  <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-400/15 rounded-lg border border-amber-400/20">
-                    <span className="text-amber-300 text-xs font-semibold">Değer: {formatPrice(campaign.giftValue)}</span>
-                  </div>
-                  {campaign.giftQuantity > 1 && (
-                    <p className="text-xs text-amber-400/70 mt-2 font-medium">
-                      ✦ Her kazanımda <strong className="text-amber-300">{campaign.giftQuantity} adet</strong> verilir
-                    </p>
-                  )}
-                </div>
+              <div className="flex justify-between mt-2 text-sm">
+                <span className={`font-bold ${thresholdReached ? 'text-green-600' : 'text-amber-600'}`}>
+                  {currentTotal} adet
+                </span>
+                <span className="text-gray-400">{currentThreshold} adet hedef</span>
               </div>
-
-              {/* Times reached */}
-              {timesReached > 0 && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4 text-center">
-                  <p className="text-sm text-green-700">
-                    Bu gruptan toplam <strong>{timesReached}x</strong> hediye kazanabilirsiniz!
-                  </p>
-                  {campaign.giftQuantity > 1 && (
-                    <p className="text-xs text-green-600 mt-1">
-                      Toplam {timesReached * campaign.giftQuantity} adet hediye cihaz
-                    </p>
-                  )}
+              {thresholdReached && (
+                <div className="text-center mt-2 text-green-600 font-bold animate-pulse">
+                  🎉 Hedefe ulaştınız! Hediye kazanabilirsiniz.
                 </div>
-              )}
-
-              {/* Subtotal */}
-              <div className="border-t pt-3 mb-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Ürün Toplamı:</span>
-                  <span className="font-bold text-gray-800">{formatPrice(currentSubtotal)}</span>
-                </div>
-                <div className="flex justify-between text-sm mt-1 text-green-600">
-                  <span>Hediye:</span>
-                  <span className="font-bold">ÜCRETSİZ 🎁</span>
-                </div>
-              </div>
-
-              {/* Add to Cart Button */}
-              {thresholdReached ? (
-                <div className="space-y-3">
-                  {!addedToCart ? (
-                    <button
-                      onClick={handleAddToCart}
-                      className="w-full btn-primary py-3 text-base font-bold flex items-center justify-center gap-2"
-                    >
-                      <FiShoppingCart className="w-5 h-5" />
-                      Sepete Ekle ve Ödemeye Geç
-                    </button>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2 text-green-600 justify-center">
-                        <FiCheck className="w-5 h-5" />
-                        <span className="font-medium">Sepete eklendi!</span>
-                      </div>
-                      <button
-                        onClick={goToCheckout}
-                        className="w-full bg-green-600 hover:bg-green-700 text-white rounded-lg py-3 text-base font-bold transition-colors"
-                      >
-                        Ödemeye Geç →
-                      </button>
-                      <button
-                        onClick={() => setShowPopup(false)}
-                        className="w-full btn-secondary text-sm"
-                      >
-                        Alışverişe Devam Et
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <button
-                  disabled
-                  className="w-full bg-gray-300 text-gray-500 rounded-lg py-3 text-base font-bold cursor-not-allowed"
-                >
-                  Hediye için {currentThreshold - currentTotal} adet daha ekleyin
-                </button>
               )}
             </div>
 
-            {/* How it works */}
-            <div className="card p-4 text-sm">
-              <h4 className="font-bold text-gray-800 mb-2">📋 Nasıl Çalışır?</h4>
-              <ol className="space-y-1.5 text-gray-600 list-decimal list-inside">
-                <li>Ürün grubu seçin (sekmelerden)</li>
-                <li>İstediğiniz ürünlerden adet girin</li>
-                <li>Toplam adet eşiğe ulaşınca hediye kazanın</li>
-                <li>Sepete ekleyip ödemeye geçin</li>
-              </ol>
-              <div className="mt-3 p-2 bg-blue-50 rounded text-xs text-blue-700">
-                💡 <strong>Unutmayın:</strong> Grup içi ürünleri karıştırabilirsiniz, farklı gruplar birleştirilmez.
+            {/* Product list */}
+            {campaign.groups[activeGroup].products.length === 0 ? (
+              <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
+                <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                  <FiPackage className="w-7 h-7 text-gray-300" />
+                </div>
+                <p className="text-gray-400 font-medium">Bu grupta henüz ürün bulunmuyor.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {campaign.groups[activeGroup].products.map(product => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    quantity={quantities[product.id] || 0}
+                    onIncrease={() => updateQuantity(product.id, 1)}
+                    onDecrease={() => updateQuantity(product.id, -1)}
+                    onInput={val => handleQuantityInput(product.id, val)}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Group note */}
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-2xl">
+              <div className="flex items-start gap-3">
+                <span className="text-xl flex-shrink-0">💡</span>
+                <div className="text-sm text-blue-700">
+                  <p className="font-bold mb-1">Nasıl Çalışır?</p>
+                  <ol className="space-y-1 text-blue-600">
+                    <li>1. Ürün grubu seçin ve istediğiniz ürünlerden adet belirleyin</li>
+                    <li>2. Grup içi farklı ürünleri karıştırabilirsiniz</li>
+                    <li>3. Toplam adet eşiğe ulaşınca hediye kazanırsınız</li>
+                    <li>4. Sepete ekleyip ödemeye geçin — hediye ücretsiz eklenecek</li>
+                  </ol>
+                  <p className="text-xs text-blue-400 mt-2">⚠️ Farklı gruplardaki ürünler birleştirilmez, her grup kendi eşiğini takip eder.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ============================================================ */}
+          {/* RIGHT: Sidebar */}
+          {/* ============================================================ */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-8 space-y-5">
+              {/* Gift Preview Card */}
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 shadow-xl shadow-slate-900/10">
+                {/* Subtle dot pattern */}
+                <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
+                  style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '14px 14px' }} />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-400/10 rounded-bl-full pointer-events-none" />
+
+                <div className="relative p-6 text-center">
+                  <span className="text-[10px] text-amber-400/70 font-bold uppercase tracking-[0.2em] mb-3 block">Hediye Cihaz</span>
+
+                  {/* Gift image */}
+                  <div className="w-24 h-24 mx-auto mb-4 rounded-2xl bg-white/5 p-3 flex items-center justify-center border border-white/10">
+                    {campaign.giftImage ? (
+                      <Image src={campaign.giftImage} alt={campaign.giftName} width={80} height={80} className="object-contain" />
+                    ) : (
+                      <FiGift className="w-10 h-10 text-white/20" />
+                    )}
+                  </div>
+
+                  <h4 className="font-bold text-white text-lg mb-1">{campaign.giftName}</h4>
+                  <p className="text-xs text-slate-400 font-mono mb-3">{campaign.giftStockCode}</p>
+
+                  <div className="inline-flex items-center gap-1.5 px-4 py-2 bg-green-500/15 rounded-xl border border-green-400/20 mb-3">
+                    <span className="text-green-300 text-sm font-black">ÜCRETSİZ</span>
+                  </div>
+
+                  <div className="flex items-center gap-2 justify-center text-xs text-slate-400">
+                    <span>Yaklaşık Değer:</span>
+                    <span className="font-bold text-amber-400">{formatPrice(campaign.giftValue)}</span>
+                  </div>
+
+                  {campaign.giftQuantity > 1 && (
+                    <div className="mt-3 pt-3 border-t border-white/10">
+                      <p className="text-xs text-amber-400/80 font-medium">
+                        ✦ Her kazanımda <strong className="text-amber-300">{campaign.giftQuantity} adet</strong> verilir
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Order Summary */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <FiShoppingCart className="w-5 h-5 text-gray-400" />
+                  Sipariş Özeti
+                </h3>
+
+                {/* Progress */}
+                <div className="mb-4">
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-gray-500">İlerleme</span>
+                    <span className={`font-bold tabular-nums ${thresholdReached ? 'text-green-600' : 'text-amber-600'}`}>
+                      {currentTotal}/{currentThreshold}
+                    </span>
+                  </div>
+                  <div className="relative w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className={`absolute left-0 top-0 h-full rounded-full transition-all duration-700 ${
+                        thresholdReached ? 'bg-green-500' : 'bg-amber-500'
+                      }`}
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
+                  {!thresholdReached && (
+                    <p className="text-xs text-gray-400 mt-1.5">
+                      Hedefe <strong className="text-amber-600">{remaining}</strong> adet kaldı
+                    </p>
+                  )}
+                </div>
+
+                {/* Times reached */}
+                {timesReached > 0 && (
+                  <div className="bg-green-50 border border-green-200 rounded-xl p-3 mb-4">
+                    <p className="text-sm text-green-700 font-bold text-center">
+                      🎉 Toplam {timesReached}x hediye kazanabilirsiniz!
+                    </p>
+                    {campaign.giftQuantity > 1 && (
+                      <p className="text-xs text-green-600 text-center mt-0.5">
+                        = {timesReached * campaign.giftQuantity} adet {campaign.giftName}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Subtotal */}
+                <div className="border-t border-gray-100 pt-3 space-y-1.5 mb-5">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Ürün Toplamı</span>
+                    <span className="font-bold text-gray-800 tabular-nums">{formatPrice(currentSubtotal)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Hediye Cihaz</span>
+                    <span className="font-bold text-green-600">ÜCRETSİZ 🎁</span>
+                  </div>
+                  <div className="flex justify-between text-sm pt-2 border-t border-gray-100">
+                    <span className="font-semibold text-gray-800">Genel Toplam</span>
+                    <span className="font-bold text-lg text-gray-900 tabular-nums">{formatPrice(currentSubtotal)}</span>
+                  </div>
+                </div>
+
+                {/* CTA Button */}
+                {thresholdReached ? (
+                  <div className="space-y-3">
+                    {!addedToCart ? (
+                      <button
+                        onClick={handleAddToCart}
+                        className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold py-4 rounded-2xl transition-all shadow-xl shadow-amber-500/20 hover:shadow-amber-500/30 active:scale-[0.98] flex items-center justify-center gap-2 text-lg"
+                      >
+                        <FiShoppingCart className="w-5 h-5" />
+                        Sepete Ekle ve Hediye Kazan
+                      </button>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-green-600 justify-center py-2">
+                          <FiCheck className="w-5 h-5" />
+                          <span className="font-bold">Sepete Eklendi!</span>
+                        </div>
+                        <button
+                          onClick={goToCheckout}
+                          className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-2xl transition-colors shadow-lg shadow-green-500/20"
+                        >
+                          🛒 Ödemeye Geç →
+                        </button>
+                        <button
+                          onClick={() => setShowSuccess(false)}
+                          className="w-full text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-xl py-2.5 text-sm font-medium transition-colors"
+                        >
+                          Alışverişe Devam Et
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    disabled
+                    className="w-full bg-gray-200 text-gray-400 font-bold py-4 rounded-2xl cursor-not-allowed text-sm"
+                  >
+                    🔒 Hediye için {remaining} adet daha ekleyin
+                  </button>
+                )}
+              </div>
+
+              {/* Benefits */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                <h4 className="font-bold text-gray-800 text-sm mb-3">✅ Kampanya Avantajları</h4>
+                <div className="space-y-2.5">
+                  {[
+                    { icon: FiGift, text: `${campaign.giftName} ücretsiz`, color: 'text-green-500' },
+                    { icon: FiTruck, text: 'Aynı gün kargo', color: 'text-blue-500' },
+                    { icon: FiPackage, text: 'Orijinal ürün garantisi', color: 'text-purple-500' },
+                    { icon: FiStar, text: `${campaign.giftValue} TL değerinde hediye`, color: 'text-amber-500' },
+                  ].map((benefit, i) => (
+                    <div key={i} className="flex items-center gap-2.5 text-sm">
+                      <benefit.icon className={`w-4 h-4 ${benefit.color} flex-shrink-0`} />
+                      <span className="text-gray-600">{benefit.text}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Success Popup Modal — Premium */}
-      {showPopup && thresholdReached && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      {/* ================================================================ */}
+      {/* SUCCESS MODAL */}
+      {/* ================================================================ */}
+      {showSuccess && thresholdReached && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in">
           <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden animate-bounce-in">
-            {/* Popup Header */}
-            <div className="bg-gradient-to-br from-slate-800 via-slate-900 to-indigo-950 p-6 text-center">
-              <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-amber-400 to-orange-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-amber-400/30">
-                <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-                </svg>
+            {/* Modal Header */}
+            <div className="relative overflow-hidden bg-gradient-to-br from-slate-800 via-slate-900 to-amber-950 p-8 text-center">
+              <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
+                style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '10px 10px' }} />
+              <div className="absolute -top-10 -right-10 w-40 h-40 bg-amber-400/20 rounded-full blur-3xl" />
+
+              <div className="relative">
+                {/* Success icon */}
+                <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-2xl shadow-green-400/30">
+                  <FiCheck className="w-9 h-9 text-white" strokeWidth={3} />
+                </div>
+
+                <h2 className="text-2xl font-black text-white mb-1">Tebrikler! 🎉</h2>
+                <p className="text-white/60 text-sm mb-4">
+                  <strong>{currentThreshold}</strong> adet hedefine ulaştınız
+                </p>
+
+                {/* Gift preview in modal */}
+                <div className="inline-flex flex-col items-center gap-2 bg-white/10 backdrop-blur-sm rounded-2xl px-6 py-4 border border-white/10">
+                  <span className="text-[10px] text-amber-400/70 font-bold uppercase tracking-widest">Kazandığınız Hediye</span>
+                  <div className="flex items-center gap-3">
+                    {campaign.giftImage ? (
+                      <Image src={campaign.giftImage} alt={campaign.giftName} width={48} height={48} className="object-contain rounded-lg bg-white/5 p-1" />
+                    ) : (
+                      <FiGift className="w-10 h-10 text-amber-400" />
+                    )}
+                    <div className="text-left">
+                      <p className="font-bold text-white">{campaign.giftName}</p>
+                      <p className="text-xs text-slate-400 font-mono">{campaign.giftStockCode}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {timesReached > 1 && (
+                  <div className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 bg-amber-400/20 rounded-xl border border-amber-400/20">
+                    <FiStar className="w-4 h-4 text-amber-400 fill-amber-400" />
+                    <span className="text-amber-200 text-sm font-bold">
+                      {timesReached}x Kazandınız! ({timesReached * campaign.giftQuantity} adet hediye)
+                    </span>
+                  </div>
+                )}
               </div>
-              <h2 className="text-2xl font-extrabold text-white mb-1">Tebrikler! 🎉</h2>
-              <p className="text-white/70 text-sm">
-                <strong>{currentThreshold}</strong> adet hedefine ulaştınız
-              </p>
             </div>
 
-            {/* Popup Body */}
+            {/* Modal Body */}
             <div className="p-6">
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 p-5 mb-4 text-center border border-slate-700/30">
-                <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
-                  style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '12px 12px' }} />
-                <div className="relative">
-                  <p className="font-bold text-white text-lg mb-1">{campaign.giftName}</p>
-                  <p className="text-xs text-slate-400 font-mono">{campaign.giftStockCode}</p>
-                  <div className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-green-500/20 rounded-xl border border-green-400/30">
-                    <span className="text-green-300 text-sm font-bold">ÜCRETSİZ KAZANDINIZ!</span>
-                  </div>
-                  {campaign.giftQuantity > 1 && (
-                    <p className="text-xs text-slate-400 mt-2">{campaign.giftQuantity} adet verilecek</p>
-                  )}
-                  {timesReached > 1 && (
-                    <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-400/15 rounded-lg border border-amber-400/20">
-                      <span className="text-amber-300 text-xs font-bold">
-                        Toplam {timesReached}x ({timesReached * campaign.giftQuantity} adet) hediye!
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <p className="text-sm text-gray-500 text-center mb-4">
-                Seçtiğiniz ürünler sepete eklenmiştir. Hediye cihazınız ödeme sayfasında belirtilecektir.
+              <p className="text-sm text-gray-500 text-center mb-5">
+                Seçtiğiniz ürünler sepete eklenmiştir. Hediye cihazınız ödeme sayfasında ücretsiz olarak eklenecektir.
               </p>
 
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 <button
                   onClick={goToCheckout}
-                  className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl py-3.5 font-bold text-base transition-all shadow-lg shadow-green-500/20 hover:shadow-green-500/30"
+                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-2xl py-4 font-bold text-base transition-all shadow-xl shadow-green-500/20 hover:shadow-green-500/30 active:scale-[0.98]"
                 >
-                  🛒 Ödemeye Geç
+                  🛒 Hemen Ödemeye Geç
                 </button>
                 <button
-                  onClick={() => setShowPopup(false)}
-                  className="w-full text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-xl py-2.5 text-sm font-medium transition-colors"
+                  onClick={() => setShowSuccess(false)}
+                  className="w-full text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-2xl py-3 text-sm font-medium transition-colors"
                 >
                   Alışverişe Devam Et
                 </button>
@@ -647,6 +895,37 @@ export default function GiftCampaignPage() {
           </div>
         </div>
       )}
+
+      {/* Share Toast */}
+      <div
+        id="share-toast"
+        className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl text-sm font-medium opacity-0 transition-opacity duration-300 pointer-events-none z-50"
+      >
+        🔗 Kampanya linki kopyalandı!
+      </div>
+
+      {/* Keyframe animations */}
+      <style jsx global>{`
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(200%); }
+        }
+        @keyframes bounce-in {
+          0% { transform: scale(0.9); opacity: 0; }
+          50% { transform: scale(1.02); }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-bounce-in {
+          animation: bounce-in 0.4s ease-out;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   )
 }
