@@ -43,3 +43,11 @@ public/uploads/
 next-env.d.ts
 .env*.local
 .env.vercel
+
+# claude
+.claude/settings.json
+.playwright-mcp/
+
+# temporary docs
+Bayi-yazilari/
+site-analiz-raporu.docx

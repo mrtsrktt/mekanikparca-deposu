@@ -41,6 +41,7 @@ export default function OdemePage() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [showNewAddress, setShowNewAddress] = useState(false)
+  const [giftCampaign, setGiftCampaign] = useState<any>(null)
   const [newAddr, setNewAddr] = useState({ title: '', fullName: '', phone: '', city: '', district: '', address: '', zipCode: '' })
 
   const loadData = useCallback(async () => {
@@ -82,6 +83,15 @@ export default function OdemePage() {
     }
 
     setItems(validItems)
+
+    // Check for active gift campaign
+    try {
+      const gcRaw = localStorage.getItem('giftCampaign')
+      if (gcRaw) {
+        const gc = JSON.parse(gcRaw)
+        if (gc.campaignId) setGiftCampaign(gc)
+      }
+    } catch {}
 
     const addrRes = await fetch('/api/account/addresses')
     if (addrRes.ok) {
@@ -168,6 +178,7 @@ export default function OdemePage() {
           addressId: selectedAddressId,
           notes,
           invoiceType,
+          giftCampaign: giftCampaign || null,
           ...(invoiceType === 'CORPORATE' ? invoiceData : {}),
         }),
       })
@@ -320,6 +331,43 @@ export default function OdemePage() {
         {/* Sağ: Özet */}
         <div className="card p-6 h-fit sticky top-24">
           <h2 className="font-semibold mb-4">Sipariş Özeti</h2>
+
+          {/* Gift Campaign Info */}
+          {giftCampaign && (
+            <div className="mb-4 p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-xl">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-2xl">🎁</span>
+                <div>
+                  <p className="text-sm font-bold text-amber-800">Hediye Kampanyası</p>
+                  <p className="text-xs text-amber-600">{giftCampaign.campaignName}</p>
+                </div>
+              </div>
+              <div className="bg-white rounded-lg p-3 mt-2">
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">🎁</span>
+                  <div>
+                    <p className="font-bold text-gray-800">{giftCampaign.giftName}</p>
+                    <p className="text-xs text-gray-500">{giftCampaign.giftStockCode}</p>
+                    <p className="text-sm text-green-600 font-bold mt-1">
+                      ÜCRETSİZ ✨
+                      <span className="text-xs text-gray-400 font-normal ml-1">
+                        (Değer: {formatPrice(giftCampaign.giftValue)})
+                      </span>
+                    </p>
+                    {giftCampaign.giftQuantity > 1 && (
+                      <p className="text-xs text-amber-600 font-medium mt-0.5">
+                        {giftCampaign.giftQuantity} Adet hediye edilecek
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="text-xs text-gray-500 mt-2">
+                <span className="text-green-600">✓</span> {giftCampaign.groupName} — Toplam {giftCampaign.totalQuantity} adet
+              </div>
+            </div>
+          )}
+
           <div className="space-y-2 text-sm mb-4">
             {items.map(item => {
               const unitPrice = getUnitPrice(item)

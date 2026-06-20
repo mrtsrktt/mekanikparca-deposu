@@ -26,10 +26,21 @@ export async function GET(req: Request) {
       priceTRY: true,
       images: { take: 1, select: { url: true } },
       brand: { select: { name: true } },
+      priceTiers: { orderBy: { unitPriceTRY: 'asc' }, take: 1, select: { unitPriceTRY: true } },
     },
     take: 6,
     orderBy: { name: 'asc' },
   })
 
-  return NextResponse.json(products)
+  // En ucuz kademe fiyatı varsa onu kullan
+  const enriched = products.map(p => {
+    const cheapestTier = p.priceTiers?.[0]?.unitPriceTRY
+    return {
+      ...p,
+      priceTRY: cheapestTier && cheapestTier < p.priceTRY ? cheapestTier : p.priceTRY,
+      priceTiers: undefined, // client'a gönderme
+    }
+  })
+
+  return NextResponse.json(enriched)
 }

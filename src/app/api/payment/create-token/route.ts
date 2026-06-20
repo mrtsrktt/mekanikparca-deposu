@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Giriş yapmanız gerekiyor.' }, { status: 401 })
     }
 
-    const { items, addressId, notes, invoiceType, companyName, taxNumber, taxOffice, billingCity, billingDistrict, billingAddress } = await req.json()
+    const { items, addressId, notes, invoiceType, companyName, taxNumber, taxOffice, billingCity, billingDistrict, billingAddress, giftCampaign } = await req.json()
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: 'Sepet boş.' }, { status: 400 })
@@ -80,6 +80,7 @@ export async function POST(req: NextRequest) {
         taxOffice: invoiceType === 'CORPORATE' ? (taxOffice || null) : null,
         billingAddress: invoiceType === 'CORPORATE' ? `${companyName}, ${billingAddress}, ${billingDistrict}/${billingCity}` : null,
         notes: notes || null,
+        adminNotes: giftCampaign ? `🎁 Hediye Kampanyası: ${giftCampaign.giftName} (${giftCampaign.giftStockCode}) — ${giftCampaign.groupName}, ${giftCampaign.totalQuantity} adet, ${giftCampaign.giftQuantity} adet hediye` : null,
         items: {
           create: orderItems,
         },
@@ -111,6 +112,15 @@ export async function POST(req: NextRequest) {
       const unitPriceKurus = Math.round(item.unitPrice * 100)
       return [product.name, unitPriceKurus.toString(), item.quantity.toString()]
     })
+
+    // Add gift campaign item to basket (0 TL)
+    if (giftCampaign) {
+      basketItems.push([
+        `🎁 HEDİYE: ${giftCampaign.giftName} (${giftCampaign.giftStockCode})`,
+        '0',
+        (giftCampaign.giftQuantity || 1).toString(),
+      ])
+    }
     const userBasket = Buffer.from(JSON.stringify(basketItems)).toString('base64')
 
     const noInstallment = '0'

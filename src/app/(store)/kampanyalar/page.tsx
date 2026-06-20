@@ -14,9 +14,17 @@ export const metadata = {
 export default async function CampaignsPage() {
   const now = new Date()
 
+  // Regular campaigns
   const campaigns = await (prisma as any).campaign.findMany({
     where: { isActive: true, startDate: { lte: now }, endDate: { gte: now } },
     include: { tiers: { orderBy: { minQuantity: 'asc' } } },
+    orderBy: { createdAt: 'desc' },
+  })
+
+  // Gift campaigns
+  const giftCampaigns = await (prisma as any).giftCampaign.findMany({
+    where: { isActive: true, startDate: { lte: now }, endDate: { gte: now } },
+    include: { groups: { orderBy: { sortOrder: 'asc' } } },
     orderBy: { createdAt: 'desc' },
   })
 
@@ -77,7 +85,7 @@ export default async function CampaignsPage() {
         </div>
       </div>
 
-      {activeCampaigns.length === 0 ? (
+      {activeCampaigns.length === 0 && giftCampaigns.length === 0 ? (
         <div className="text-center py-20 card">
           <span className="text-5xl block mb-4">📦</span>
           <p className="text-gray-500 text-lg mb-4">Şu anda aktif kampanya bulunmuyor.</p>
@@ -135,6 +143,55 @@ export default async function CampaignsPage() {
                     )
                   })}
                 </div>
+              </div>
+            </div>
+          ))}
+
+          {/* === Hediye Kampanyaları === */}
+          {giftCampaigns.map((gc: any) => (
+            <div key={gc.id} className="rounded-xl border-2 border-amber-200 overflow-hidden bg-white shadow-sm">
+              {/* Üst bant */}
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-200 px-5 py-4">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-2xl">🎁</span>
+                      <h2 className="text-lg font-bold text-gray-800">{gc.name}</h2>
+                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-500 text-white">
+                        HEDİYE KAMPANYASI
+                      </span>
+                    </div>
+                    {gc.description && (
+                      <p className="text-sm text-gray-500 mt-1">{gc.description}</p>
+                    )}
+                    <p className="text-sm font-medium text-amber-700 mt-1">
+                      🎁 Hediye: <strong>{gc.giftName}</strong> — Değer: {formatPrice(gc.giftValue)}
+                      {gc.giftQuantity > 1 && ` (${gc.giftQuantity} Adet)`}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">📅 {fmt(gc.startDate)} — {fmt(gc.endDate)}</p>
+                  </div>
+
+                  {/* Grup eşikleri */}
+                  <div className="flex items-center gap-2 flex-wrap flex-shrink-0">
+                    {gc.groups?.map((group: any, idx: number) => (
+                      <div key={idx} className="bg-white border-2 border-amber-300 rounded-lg px-3 py-2 text-center min-w-[90px]">
+                        <div className="text-[10px] text-gray-500 font-medium leading-tight">{group.name}</div>
+                        <div className="text-base font-bold text-amber-600">{group.threshold}+ adet</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* CTA */}
+              <div className="p-5 text-center">
+                <Link
+                  href={`/kampanyalar/hediye/${gc.slug}`}
+                  className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-bold px-8 py-3 rounded-xl transition-colors text-lg"
+                >
+                  🎁 Kampanyaya Git
+                  <span className="text-sm font-normal opacity-80">→ {gc.giftName} kazanın</span>
+                </Link>
               </div>
             </div>
           ))}

@@ -58,32 +58,6 @@ export default async function ProductDetailPage({ params }: Props) {
 
   // Fiyatı TL'ye çevir
   const priceTRY = calculateTRYPrice(product.priceOriginal, product.priceCurrency, exchangeRates)
-  const productWithConvertedPrice = {
-    ...product,
-    priceTRY
-  }
-  
-  // Try to fetch videos and documents separately
-  let videos: any[] = []
-  let documents: any[] = []
-  
-  try {
-    videos = await (prisma as any).productVideo.findMany({
-      where: { productId: product.id },
-      orderBy: { sortOrder: 'asc' }
-    })
-  } catch (e) {
-    // Table doesn't exist yet
-  }
-  
-  try {
-    documents = await (prisma as any).productDocument.findMany({
-      where: { productId: product.id },
-      orderBy: { sortOrder: 'asc' }
-    })
-  } catch (e) {
-    // Table doesn't exist yet
-  }
 
   // Fetch price tiers for this product
   const priceTiers = await prisma.priceTier.findMany({
@@ -94,6 +68,44 @@ export default async function ProductDetailPage({ params }: Props) {
     minQuantity: t.minQuantity,
     unitPriceTRY: t.unitPriceTRY,
   }))
+
+  // En ucuz kademe fiyatını bul (toplan fiyatı)
+  const cheapestTierPrice = priceTiers.length > 0
+    ? Math.min(...priceTiers.map(t => t.unitPriceTRY))
+    : null
+  const displayPrice = cheapestTierPrice && cheapestTierPrice < priceTRY
+    ? cheapestTierPrice
+    : priceTRY
+  const hasTierDiscount = cheapestTierPrice !== null && cheapestTierPrice < priceTRY
+
+  const productWithConvertedPrice = {
+    ...product,
+    priceTRY: displayPrice,
+    retailPriceTRY: priceTRY,
+    hasTierDiscount,
+  }
+
+  // Try to fetch videos and documents separately
+  let videos: any[] = []
+  let documents: any[] = []
+
+  try {
+    videos = await (prisma as any).productVideo.findMany({
+      where: { productId: product.id },
+      orderBy: { sortOrder: 'asc' }
+    })
+  } catch (e) {
+    // Table doesn't exist yet
+  }
+
+  try {
+    documents = await (prisma as any).productDocument.findMany({
+      where: { productId: product.id },
+      orderBy: { sortOrder: 'asc' }
+    })
+  } catch (e) {
+    // Table doesn't exist yet
+  }
 
   // Fetch active campaigns for this product
   const campaigns = await getActiveCampaignsForProduct(product.id)
@@ -124,7 +136,7 @@ export default async function ProductDetailPage({ params }: Props) {
               '@type': 'Offer',
               url: `https://mekanikparcadeposu.com/urun/${product.slug}`,
               priceCurrency: 'TRY',
-              price: product.priceTRY || product.priceOriginal,
+              price: productWithConvertedPrice.priceTRY || productWithConvertedPrice.retailPriceTRY || product.priceOriginal,
               availability:
                 product.trackStock
                   ? product.stock > 0
@@ -224,7 +236,21 @@ export default async function ProductDetailPage({ params }: Props) {
 
           {/* Pricing */}
           <div className="bg-gray-50 rounded-xl p-6 mb-6">
-            <span className="text-3xl font-bold text-primary-500">{formatPrice(productWithConvertedPrice.priceTRY)}</span>
+            <div className="flex items-baseline gap-3 flex-wrap">
+              <span className="text-3xl font-bold text-primary-500">
+                {formatPrice(productWithConvertedPrice.priceTRY)}
+              </span>
+              {productWithConvertedPrice.hasTierDiscount && (
+                <>
+                  <span className="text-lg text-gray-400 line-through">
+                    {formatPrice(productWithConvertedPrice.retailPriceTRY)}
+                  </span>
+                  <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                    {`'den başlayan`}
+                  </span>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Stock */}
@@ -247,6 +273,7 @@ export default async function ProductDetailPage({ params }: Props) {
             stock={productWithConvertedPrice.stock}
             trackStock={(productWithConvertedPrice as any).trackStock}
             priceTRY={productWithConvertedPrice.priceTRY}
+            retailPriceTRY={productWithConvertedPrice.retailPriceTRY ?? productWithConvertedPrice.priceTRY}
             campaigns={campaignsData}
             boxQuantity={product.boxQuantity}
             priceTiers={priceTiersData}

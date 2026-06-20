@@ -25,6 +25,7 @@ type ProductRecord = {
   name: string
   slug: string
   priceTRY: number
+  retailPriceTRY?: number
   stock: number
   trackStock: boolean
   images: { url: string; alt: string | null }[]
@@ -76,7 +77,7 @@ export default function BrandLandingPage({ brand, brandRecord, products }: Props
       offers: {
         '@type': 'Offer',
         priceCurrency: 'TRY',
-        price: p.priceTRY,
+        price: p.retailPriceTRY ?? p.priceTRY,
         availability:
           p.trackStock !== false && p.stock === 0
             ? 'https://schema.org/OutOfStock'
@@ -377,6 +378,14 @@ export default function BrandLandingPage({ brand, brandRecord, products }: Props
                               </div>
                               <div className="text-2xl md:text-[1.75rem] font-bold text-slate-900 tabular-nums leading-tight">
                                 {formatPrice(p.priceTRY)}
+                                {p.retailPriceTRY && p.retailPriceTRY > p.priceTRY && (
+                                  <>
+                                    {' '}
+                                    <span className="text-sm font-normal text-slate-400 line-through">
+                                      {formatPrice(p.retailPriceTRY)}
+                                    </span>
+                                  </>
+                                )}
                               </div>
                             </div>
                           </div>

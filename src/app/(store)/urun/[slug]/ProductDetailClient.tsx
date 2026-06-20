@@ -34,17 +34,21 @@ interface Props {
   stock: number
   trackStock?: boolean
   priceTRY: number
+  retailPriceTRY?: number
   campaigns?: CampaignInfo[]
   boxQuantity?: number | null
   priceTiers?: PriceTierInfo[]
 }
 
-export default function ProductDetailClient({ productId, productName, stock, trackStock = true, priceTRY, campaigns = [], boxQuantity, priceTiers = [] }: Props) {
+export default function ProductDetailClient({ productId, productName, stock, trackStock = true, priceTRY, retailPriceTRY, campaigns = [], boxQuantity, priceTiers = [] }: Props) {
   const { data: session } = useSession()
   const router = useRouter()
   const [quantity, setQuantity] = useState(1)
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const [isAdded, setIsAdded] = useState(false)
+
+  // Tier tabloları için perakende baz fiyat (karşılaştırma amaçlı)
+  const basePriceForTiers = retailPriceTRY ?? priceTRY
 
   const handleAddToCart = () => {
     if (isAddingToCart || isAdded) return
@@ -223,7 +227,7 @@ export default function ProductDetailClient({ productId, productName, stock, tra
         <PriceTierTable
           tiers={priceTiers}
           boxQuantity={boxQuantity || null}
-          basePriceTRY={priceTRY}
+          basePriceTRY={basePriceForTiers}
           currentQuantity={quantity}
         />
       )}
@@ -235,7 +239,7 @@ export default function ProductDetailClient({ productId, productName, stock, tra
           tiers={campaign.tiers}
           type={campaign.type}
           campaignName={campaign.name}
-          basePriceTRY={priceTRY}
+          basePriceTRY={basePriceForTiers}
           currentQuantity={quantity}
         />
       ))}

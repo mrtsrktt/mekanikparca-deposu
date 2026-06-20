@@ -28,6 +28,7 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
       category: true,
       brand: true,
       images: { orderBy: { sortOrder: 'asc' } },
+      priceTiers: { orderBy: { unitPriceTRY: 'asc' } },
     },
   })
 
@@ -39,18 +40,28 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
         category: true,
         brand: true,
         images: { orderBy: { sortOrder: 'asc' } },
+        priceTiers: { orderBy: { unitPriceTRY: 'asc' } },
       },
     })
   }
 
   if (!product) return NextResponse.json({ error: 'Ürün bulunamadı.' }, { status: 404 })
-  
+
   // Fiyatı TL'ye çevir
   const priceTRY = calculateTRYPrice(product.priceOriginal, product.priceCurrency, exchangeRates)
+  // En ucuz kademe fiyatını kullan
+  const cheapestTierPrice = product.priceTiers?.length > 0
+    ? Math.min(...product.priceTiers.map(t => t.unitPriceTRY))
+    : null
+  const displayPrice = cheapestTierPrice && cheapestTierPrice < priceTRY
+    ? cheapestTierPrice
+    : priceTRY
   const productWithConvertedPrice = {
     ...product,
-    priceTRY
+    priceTRY: displayPrice,
+    retailPriceTRY: priceTRY,
+    hasTierDiscount: cheapestTierPrice !== null && cheapestTierPrice < priceTRY,
   }
-  
+
   return NextResponse.json(productWithConvertedPrice)
 }

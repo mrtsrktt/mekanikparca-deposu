@@ -118,18 +118,31 @@ export default async function ProductsPage({ searchParams }: Props) {
           brandId: brandRecord.id,
           OR: [{ category: { isActive: true } }, { categoryId: null }],
         },
-        include: { images: { take: 1, orderBy: { sortOrder: 'asc' } } },
+        include: {
+          images: { take: 1, orderBy: { sortOrder: 'asc' } },
+          priceTiers: { orderBy: { unitPriceTRY: 'asc' } },
+        },
         orderBy: { name: 'asc' },
       })
-      const productsWithTRY = brandProducts.map((p) => ({
-        id: p.id,
-        name: p.name,
-        slug: p.slug,
-        priceTRY: calculateTRYPrice(p.priceOriginal, p.priceCurrency, exchangeRates),
-        stock: p.stock,
-        trackStock: p.trackStock,
-        images: p.images.map((img) => ({ url: img.url, alt: img.alt })),
-      }))
+      const productsWithTRY = brandProducts.map((p) => {
+        const priceTRY = calculateTRYPrice(p.priceOriginal, p.priceCurrency, exchangeRates)
+        const cheapestTierPrice = p.priceTiers?.length > 0
+          ? Math.min(...p.priceTiers.map(t => t.unitPriceTRY))
+          : null
+        const displayPrice = cheapestTierPrice && cheapestTierPrice < priceTRY
+          ? cheapestTierPrice
+          : priceTRY
+        return {
+          id: p.id,
+          name: p.name,
+          slug: p.slug,
+          priceTRY: displayPrice,
+          retailPriceTRY: priceTRY,
+          stock: p.stock,
+          trackStock: p.trackStock,
+          images: p.images.map((img) => ({ url: img.url, alt: img.alt })),
+        }
+      })
       // Sort by capacity ascending; VA values are normalized to KVA (1 KVA = 1000 VA).
       // Products without a parsable capacity fall to the end, name-asc among themselves.
       const getCapacityKva = (name: string): number | null => {

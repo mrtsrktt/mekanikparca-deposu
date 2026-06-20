@@ -270,3 +270,33 @@ model CampaignTier {
   value       Float
   @@unique([campaignId, minQuantity])
 }
+
+model GiftCampaign {
+  id            String              @id @default(cuid())
+  name          String
+  slug          String              @unique
+  description   String?
+  giftName      String              // Hediye cihaz adı
+  giftStockCode String              // Stok kodu
+  giftValue     Float               // Yaklaşık değer (TL)
+  giftQuantity  Int                 @default(1) // Her kazanımda verilecek adet
+  giftImage     String?             // Hediye cihaz görseli
+  isActive      Boolean             @default(true)
+  startDate     DateTime
+  endDate       DateTime
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  groups        GiftCampaignGroup[]
+}
+
+model GiftCampaignGroup {
+  id         String       @id @default(cuid())
+  campaignId String
+  campaign   GiftCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  name       String       // "Grup A - 500ml"
+  productIds String[]     // Bu gruptaki ürünlerin ID'leri
+  threshold  Int          // Bu gruptan alınması gereken toplam adet
+  sortOrder  Int          @default(0)
+
+  @@index([campaignId])
+}

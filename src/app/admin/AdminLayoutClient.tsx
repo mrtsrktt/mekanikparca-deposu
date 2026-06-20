@@ -18,6 +18,7 @@ const menuItems = [
   { href: '/admin/markalar', label: 'Markalar', icon: FiTag },
   { href: '/admin/siparisler', label: 'Siparişler', icon: FiShoppingCart },
   { href: '/admin/kampanyalar', label: 'Kampanyalar', icon: FiGift },
+  { href: '/admin/hediye-kampanyalari', label: 'Hediye Kampanyaları', icon: FiGift },
   { href: '/admin/teklifler', label: 'Teklif Talepleri', icon: FiFileText, badgeKey: 'pendingQuotes' },
   { href: '/admin/doviz', label: 'Döviz Kurları', icon: FiDollarSign },
   { href: '/admin/blog', label: 'Blog', icon: FiFileText },
