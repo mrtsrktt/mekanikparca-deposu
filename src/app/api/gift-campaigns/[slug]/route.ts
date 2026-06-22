@@ -55,8 +55,31 @@ export async function GET(
       .filter(Boolean),
   }))
 
+  // Hediye cihazı sitedeki ürünle eşleştir (stok kodu = SKU) → ürün sayfası linki + görsel
+  const norm = (s: string) =>
+    (s || '').toLowerCase().replace(/\s+/g, '')
+      .replace(/ğ/g, 'g').replace(/ı/g, 'i').replace(/ş/g, 's')
+      .replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/ç/g, 'c')
+
+  // SKU normalize gerektirdiği için adayları çekip bellekte eşleştiriyoruz
+  let giftProduct: { slug: string; image: string | null } | null = null
+  if (campaign.giftStockCode) {
+    const target = norm(campaign.giftStockCode)
+    const candidates = await prisma.product.findMany({
+      where: { isActive: true, sku: { not: null } },
+      select: { sku: true, slug: true, images: { orderBy: { sortOrder: 'asc' }, take: 1, select: { url: true } } },
+    })
+    const found = candidates.find(p => p.sku && norm(p.sku) === target) || null
+    if (found) {
+      giftProduct = { slug: found.slug, image: found.images?.[0]?.url || null }
+    }
+  }
+
   return NextResponse.json({
     ...campaign,
+    giftImage: campaign.giftImage || giftProduct?.image || null,
+    giftProductSlug: giftProduct?.slug || null,
+    installmentCount: 6, // Hediye kampanyalarında peşin fiyatına 6 taksit
     groups: enrichedGroups,
   })
 }

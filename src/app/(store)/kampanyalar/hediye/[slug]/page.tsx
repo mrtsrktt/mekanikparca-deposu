@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { FiMinus, FiPlus, FiShoppingCart, FiCheck, FiClock, FiGift, FiShare2, FiTruck, FiPackage, FiChevronRight, FiStar } from 'react-icons/fi'
+import { FiMinus, FiPlus, FiShoppingCart, FiCheck, FiClock, FiGift, FiShare2, FiTruck, FiPackage, FiChevronRight, FiStar, FiCreditCard, FiExternalLink } from 'react-icons/fi'
 import { formatPrice } from '@/lib/pricing'
 import { getStorageArray } from '@/lib/safeStorage'
 
@@ -37,6 +37,8 @@ interface Campaign {
   giftValue: number
   giftQuantity: number
   giftImage?: string
+  giftProductSlug?: string | null
+  installmentCount?: number
   startDate: string
   endDate: string
   groups: Group[]
@@ -414,6 +416,11 @@ export default function GiftCampaignPage() {
               <FiStar className="w-4 h-4 fill-white" />
               HEDİYE KAMPANYASI
             </div>
+            {/* Peşin fiyatına 6 taksit — çok belirgin */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-bold rounded-full shadow-lg shadow-green-500/30">
+              <FiCreditCard className="w-4 h-4" />
+              PEŞİN FİYATINA {campaign.installmentCount || 6} TAKSİT
+            </div>
             <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-white/10 backdrop-blur-sm text-white/80 text-xs font-medium rounded-full border border-white/10">
               <FiClock className="w-3.5 h-3.5" />
               Sınırlı Süre
@@ -505,6 +512,104 @@ export default function GiftCampaignPage() {
           <FiChevronRight className="w-3 h-3" />
           <span className="text-gray-700 font-medium truncate">{campaign.giftName}</span>
         </nav>
+
+        {/* ============================================================ */}
+        {/* BÜYÜK HEDİYE VİTRİNİ — Ne kazanacaksınız? */}
+        {/* ============================================================ */}
+        <div className="relative overflow-hidden rounded-3xl mb-8 bg-white border-2 border-amber-300 shadow-xl shadow-amber-100/50">
+          {/* Üst şerit */}
+          <div className="bg-gradient-to-r from-amber-400 via-orange-400 to-amber-400 px-6 py-2.5 flex items-center justify-center gap-2">
+            <FiGift className="w-5 h-5 text-white" />
+            <span className="text-white font-black text-sm md:text-base uppercase tracking-wider">Bu Kampanyada Kazanacağınız Hediye</span>
+          </div>
+
+          <div className="p-6 md:p-8">
+            <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10">
+              {/* BÜYÜK GÖRSEL — tıklanabilir */}
+              {(() => {
+                const ShowcaseImage = (
+                  <div className="relative group">
+                    <div className="absolute -inset-4 bg-gradient-to-br from-amber-200/40 to-orange-200/30 rounded-3xl blur-2xl" />
+                    <div className="relative w-56 h-56 md:w-72 md:h-72 bg-gradient-to-br from-gray-50 to-white rounded-3xl p-5 flex items-center justify-center border border-gray-100 shadow-lg group-hover:shadow-2xl transition-shadow duration-300">
+                      {campaign.giftImage ? (
+                        <Image
+                          src={campaign.giftImage}
+                          alt={campaign.giftName}
+                          width={280}
+                          height={280}
+                          className="object-contain max-w-full max-h-full group-hover:scale-105 transition-transform duration-300"
+                          priority
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center gap-3 text-gray-300">
+                          <FiGift className="w-20 h-20" />
+                          <span className="text-sm font-medium">Görsel Yakında</span>
+                        </div>
+                      )}
+                    </div>
+                    {/* ÜCRETSİZ damgası */}
+                    <div className="absolute -top-2 -right-2 md:top-2 md:right-2 bg-gradient-to-br from-green-500 to-emerald-600 text-white text-xs md:text-sm font-black px-4 py-2 rounded-2xl shadow-xl shadow-green-500/30 rotate-3">
+                      ÜCRETSİZ 🎉
+                    </div>
+                  </div>
+                )
+                return campaign.giftProductSlug ? (
+                  <Link href={`/urun/${campaign.giftProductSlug}`} className="flex-shrink-0">{ShowcaseImage}</Link>
+                ) : (
+                  <div className="flex-shrink-0">{ShowcaseImage}</div>
+                )
+              })()}
+
+              {/* Bilgiler */}
+              <div className="flex-1 text-center md:text-left">
+                <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-gray-900 leading-tight mb-2">
+                  {campaign.giftName}
+                </h2>
+                {campaign.giftQuantity > 1 && (
+                  <p className="text-base text-amber-600 font-bold mb-2">
+                    🎁 {campaign.giftQuantity} Adet birden hediye!
+                  </p>
+                )}
+
+                {/* Değer + Ücretsiz */}
+                <div className="flex items-center gap-3 justify-center md:justify-start flex-wrap mb-4">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-sm text-gray-400">Piyasa Değeri:</span>
+                    <span className="text-2xl md:text-3xl font-black text-gray-900">{formatPrice(campaign.giftValue)}</span>
+                  </div>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-100 text-green-700 text-sm font-bold rounded-full">
+                    <FiCheck className="w-4 h-4" /> Tamamen Ücretsiz
+                  </span>
+                </div>
+
+                {/* Peşin fiyatına 6 taksit — büyük vurgu */}
+                <div className="inline-flex items-center gap-3 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-2xl px-5 py-3 mb-5">
+                  <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <FiCreditCard className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-lg font-black text-green-700 leading-tight">Peşin Fiyatına {campaign.installmentCount || 6} Taksit</p>
+                    <p className="text-xs text-green-600">Kampanya ürünlerinde faizsiz taksit imkanı</p>
+                  </div>
+                </div>
+
+                {/* Ürünü incele butonu */}
+                {campaign.giftProductSlug && (
+                  <div>
+                    <Link
+                      href={`/urun/${campaign.giftProductSlug}`}
+                      className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 py-3 rounded-xl transition-colors shadow-lg"
+                    >
+                      <FiExternalLink className="w-4 h-4" />
+                      Hediye Ürünü İncele
+                    </Link>
+                    <p className="text-xs text-gray-400 mt-2">Stok Kodu: <span className="font-mono">{campaign.giftStockCode}</span></p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Description banner */}
         {campaign.description && (
@@ -755,6 +860,17 @@ export default function GiftCampaignPage() {
                     <span className="font-semibold text-gray-800">Genel Toplam</span>
                     <span className="font-bold text-lg text-gray-900 tabular-nums">{formatPrice(currentSubtotal)}</span>
                   </div>
+                  {currentSubtotal > 0 && (
+                    <div className="flex items-center justify-between gap-2 mt-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-green-700">
+                        <FiCreditCard className="w-3.5 h-3.5" />
+                        Peşin fiyatına {campaign.installmentCount || 6} taksit
+                      </span>
+                      <span className="text-xs font-bold text-green-700 tabular-nums">
+                        {campaign.installmentCount || 6} x {formatPrice(currentSubtotal / (campaign.installmentCount || 6))}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* CTA Button */}
@@ -805,9 +921,10 @@ export default function GiftCampaignPage() {
                 <div className="space-y-2.5">
                   {[
                     { icon: FiGift, text: `${campaign.giftName} ücretsiz`, color: 'text-green-500' },
+                    { icon: FiCreditCard, text: `Peşin fiyatına ${campaign.installmentCount || 6} taksit`, color: 'text-emerald-500' },
                     { icon: FiTruck, text: 'Aynı gün kargo', color: 'text-blue-500' },
                     { icon: FiPackage, text: 'Orijinal ürün garantisi', color: 'text-purple-500' },
-                    { icon: FiStar, text: `${campaign.giftValue} TL değerinde hediye`, color: 'text-amber-500' },
+                    { icon: FiStar, text: `${formatPrice(campaign.giftValue)} değerinde hediye`, color: 'text-amber-500' },
                   ].map((benefit, i) => (
                     <div key={i} className="flex items-center gap-2.5 text-sm">
                       <benefit.icon className={`w-4 h-4 ${benefit.color} flex-shrink-0`} />

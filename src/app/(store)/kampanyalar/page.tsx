@@ -191,6 +191,9 @@ export default async function CampaignsPage() {
                       <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-500 text-white">
                         HEDİYE KAMPANYASI
                       </span>
+                      <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 text-white">
+                        💳 PEŞİN FİYATINA 6 TAKSİT
+                      </span>
                       <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-500">
                         ⏱ Sınırlı Süre
                       </span>

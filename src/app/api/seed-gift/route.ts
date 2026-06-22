@@ -101,6 +101,12 @@ const GROUP_DEFS = [
   { name: 'Grup D - Yalnızca 20 Litre', sortOrder: 3, match: (name: string) => (/HP-5C|HP-15C|HP-EG|ALPHI\s*11/i.test(name) && /20\s*L/i.test(name)) },
 ]
 
+// SKU/isim normalize (boşluk, Türkçe karakter)
+const norm = (s: string) =>
+  (s || '').toLowerCase().replace(/\s+/g, '')
+    .replace(/ğ/g, 'g').replace(/ı/g, 'i').replace(/ş/g, 's')
+    .replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/ç/g, 'c')
+
 export async function GET() {
   try {
     const fernox = await prisma.brand.findFirst({ where: { slug: 'fernox' } })
@@ -110,6 +116,19 @@ export async function GET() {
       where: { brandId: fernox.id, isActive: true },
       select: { id: true, name: true, sku: true },
     })
+
+    // Hediye cihazları stok koduyla eşleştirmek için TÜM ürünleri çek (Testo, MRU, Lega, Regen)
+    const everyProduct = await prisma.product.findMany({
+      where: { isActive: true },
+      select: {
+        id: true, name: true, sku: true, slug: true,
+        images: { orderBy: { sortOrder: 'asc' }, take: 1, select: { url: true } },
+      },
+    })
+    const findGiftProduct = (stockCode: string) => {
+      const target = norm(stockCode)
+      return everyProduct.find(p => p.sku && norm(p.sku) === target) || null
+    }
 
     // Gruplandır
     const groupProductIds: string[][] = GROUP_DEFS.map(def =>
@@ -125,6 +144,9 @@ export async function GET() {
 
     const results = []
     for (const c of CAMPAIGNS) {
+      const giftProduct = findGiftProduct(c.giftStockCode)
+      const giftImage = giftProduct?.images?.[0]?.url || null
+
       const campaign = await prisma.giftCampaign.create({
         data: {
           name: c.name,
@@ -134,6 +156,7 @@ export async function GET() {
           giftStockCode: c.giftStockCode,
           giftValue: c.giftValue,
           giftQuantity: c.giftQuantity,
+          giftImage,
           isActive: true,
           startDate,
           endDate,
@@ -147,7 +170,7 @@ export async function GET() {
           },
         },
       })
-      results.push({ id: campaign.id, slug: campaign.slug, name: campaign.name, giftName: c.giftName })
+      results.push({ id: campaign.id, slug: campaign.slug, name: campaign.name, giftName: c.giftName, giftImage, giftProductSlug: giftProduct?.slug || null })
     }
 
     const groupSummary = GROUP_DEFS.map((def, i) =>
