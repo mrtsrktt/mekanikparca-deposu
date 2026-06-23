@@ -121,6 +121,12 @@ export default function OdemePage() {
     router.push('/giris?redirect=/odeme')
   }, [status, loadData, router])
 
+  // Sayfa açıldığında ve içerik yüklendiğinde en üstten başla
+  // (kampanya sayfasından gelindiğinde ekran aşağıda kalmasın)
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [loading])
+
   const handleAddAddress = async () => {
     if (!newAddr.title || !newAddr.fullName || !newAddr.phone || !newAddr.city || !newAddr.district || !newAddr.address) {
       toast.error('Tüm alanları doldurun.')
