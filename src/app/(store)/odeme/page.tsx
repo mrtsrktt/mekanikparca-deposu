@@ -88,12 +88,20 @@ export default function OdemePage() {
 
     setItems(validItems)
 
-    // Check for active gift campaign
+    // Hediye kampanyası — yalnızca mevcut sepet kampanyayı gerçekten karşılıyorsa uygula.
+    // Önceki bir hediye-kampanya ziyaretinden kalan değer normal siparişe yapışmasın
+    // (aksi halde sağda kampanya görünür, ayrıca 6 taksit + bedava hediye uygulanır).
     try {
       const gcRaw = localStorage.getItem('giftCampaign')
       if (gcRaw) {
         const gc = JSON.parse(gcRaw)
-        if (gc.campaignId) setGiftCampaign(gc)
+        const cartQtyById = new Map<string, number>()
+        for (const ci of cart) cartQtyById.set(ci.productId, (cartQtyById.get(ci.productId) || 0) + (ci.quantity || 0))
+        const stillValid = gc.campaignId
+          && Array.isArray(gc.products) && gc.products.length > 0
+          && gc.products.every((p: any) => (cartQtyById.get(p.productId) || 0) >= p.quantity)
+        if (stillValid) setGiftCampaign(gc)
+        else localStorage.removeItem('giftCampaign')
       }
     } catch {}
 

@@ -12,6 +12,7 @@ function BasariliContent() {
 
   useEffect(() => {
     localStorage.removeItem('cart')
+    localStorage.removeItem('giftCampaign')
     window.dispatchEvent(new Event('cartUpdated'))
 
     const sendPurchaseEvent = async () => {
