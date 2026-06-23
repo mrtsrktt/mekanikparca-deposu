@@ -452,13 +452,21 @@ export default function GiftCampaignPage() {
                 )}
               </div>
 
-              {/* Aciliyet — stoklarla sınırlı */}
+              {/* Aciliyet — stoklarla sınırlı (BÜYÜK, animasyonlu) */}
               <div className="flex justify-center lg:justify-start">
-                <div className="inline-flex items-center gap-3 bg-red-500/15 backdrop-blur-sm rounded-2xl px-5 py-3 border border-red-400/30">
-                  <span className="text-2xl">🔥</span>
-                  <div className="text-left">
-                    <div className="text-base md:text-lg font-black text-white leading-tight">Kampanya Stoklarla Sınırlı</div>
-                    <div className="text-xs text-red-200/90 font-medium">Hediye cihaz stoğu tükenmeden fırsatı kaçırmayın!</div>
+                <div className="relative animate-taksit-pop">
+                  <span className="absolute -inset-2 bg-red-500/50 rounded-2xl blur-lg animate-taksit-glow pointer-events-none" />
+                  <div className="relative inline-flex items-center gap-3 bg-gradient-to-r from-red-600 to-rose-600 rounded-2xl px-5 py-3 md:px-6 md:py-3.5 border-2 border-red-400/50 ring-2 ring-red-300/30 overflow-hidden shadow-xl shadow-red-500/40">
+                    {/* Parıltı süpürme */}
+                    <span
+                      className="absolute inset-y-0 -left-1/3 w-1/3 bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none"
+                      style={{ animation: 'shimmer 2.8s infinite' }}
+                    />
+                    <span className="relative text-2xl md:text-3xl animate-pulse">🔥</span>
+                    <div className="relative text-left">
+                      <div className="text-base md:text-xl font-black text-white leading-tight">Kampanya Stoklarla Sınırlı</div>
+                      <div className="text-xs md:text-sm text-red-50/90 font-medium">Hediye cihaz stoğu tükenmeden fırsatı kaçırmayın!</div>
+                    </div>
                   </div>
                 </div>
               </div>
