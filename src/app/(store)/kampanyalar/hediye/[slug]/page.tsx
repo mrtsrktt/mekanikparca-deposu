@@ -45,60 +45,6 @@ interface Campaign {
 }
 
 // ============================================================
-// Countdown Timer
-// ============================================================
-function CountdownTimer({ endDate }: { endDate: string }) {
-  const [now, setNow] = useState(Date.now())
-  const end = new Date(endDate).getTime()
-
-  useEffect(() => {
-    const interval = setInterval(() => setNow(Date.now()), 1000)
-    return () => clearInterval(interval)
-  }, [])
-
-  const diff = Math.max(0, end - now)
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24)
-  const minutes = Math.floor((diff / (1000 * 60)) % 60)
-  const seconds = Math.floor((diff / 1000) % 60)
-
-  if (diff <= 0) {
-    return (
-      <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-500/20 rounded-xl border border-red-400/30 text-red-200 text-sm font-bold">
-        <FiClock className="w-4 h-4" />
-        Kampanya Sona Erdi
-      </div>
-    )
-  }
-
-  const timeBlocks = [
-    { label: 'Gün', value: days },
-    { label: 'Saat', value: hours },
-    { label: 'Dk', value: minutes },
-    { label: 'Sn', value: seconds },
-  ]
-
-  return (
-    <div className="inline-flex items-center gap-4 bg-white/10 backdrop-blur-sm rounded-2xl px-5 py-3 border border-white/10">
-      <FiClock className="w-4 h-4 text-amber-400" />
-      {timeBlocks.map((block, i) => (
-        <div key={block.label} className="flex items-center gap-3">
-          <div className="text-center">
-            <div className="text-2xl font-black text-white tabular-nums leading-tight">
-              {String(block.value).padStart(2, '0')}
-            </div>
-            <div className="text-[10px] text-white/50 uppercase tracking-wider font-medium">{block.label}</div>
-          </div>
-          {i < timeBlocks.length - 1 && (
-            <span className="text-white/30 text-lg font-light">:</span>
-          )}
-        </div>
-      ))}
-    </div>
-  )
-}
-
-// ============================================================
 // Product Card
 // ============================================================
 function ProductCard({
@@ -421,9 +367,9 @@ export default function GiftCampaignPage() {
               <FiCreditCard className="w-4 h-4" />
               PEŞİN FİYATINA {campaign.installmentCount || 6} TAKSİT
             </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-white/10 backdrop-blur-sm text-white/80 text-xs font-medium rounded-full border border-white/10">
+            <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-red-500/20 backdrop-blur-sm text-red-200 text-xs font-bold rounded-full border border-red-400/30">
               <FiClock className="w-3.5 h-3.5" />
-              Sınırlı Süre
+              Stoklarla Sınırlı
             </div>
             <button
               onClick={copyShareLink}
@@ -488,9 +434,15 @@ export default function GiftCampaignPage() {
                 )}
               </div>
 
-              {/* Countdown */}
+              {/* Aciliyet — stoklarla sınırlı */}
               <div className="flex justify-center lg:justify-start">
-                <CountdownTimer endDate={campaign.endDate} />
+                <div className="inline-flex items-center gap-3 bg-red-500/15 backdrop-blur-sm rounded-2xl px-5 py-3 border border-red-400/30">
+                  <span className="text-2xl">🔥</span>
+                  <div className="text-left">
+                    <div className="text-base md:text-lg font-black text-white leading-tight">Kampanya Stoklarla Sınırlı</div>
+                    <div className="text-xs text-red-200/90 font-medium">Hediye cihaz stoğu tükenmeden fırsatı kaçırmayın!</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

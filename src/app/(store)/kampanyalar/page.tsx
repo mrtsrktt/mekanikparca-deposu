@@ -88,7 +88,6 @@ export default async function CampaignsPage() {
 
   const activeCampaigns = campaignDetails.filter((c: any) => c.products.length > 0)
   const scopeMap: Record<string, string> = { PRODUCT: 'Ürün', BRAND: 'Marka', CATEGORY: 'Kategori' }
-  const fmt = (d: string) => new Date(d).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -208,7 +207,9 @@ export default async function CampaignsPage() {
                     {campaign.description && (
                       <p className="text-sm text-gray-500 mt-1.5 leading-relaxed">{campaign.description}</p>
                     )}
-                    <p className="text-xs text-gray-400 mt-1.5">📅 {fmt(campaign.startDate)} — {fmt(campaign.endDate)}</p>
+                    <p className="inline-flex items-center gap-1.5 text-xs font-bold text-red-600 mt-2">
+                      🔥 Stoklarla sınırlıdır — fırsatı kaçırmayın!
+                    </p>
                   </div>
 
                   {/* Kademe bilgileri */}
@@ -278,8 +279,8 @@ export default async function CampaignsPage() {
                       <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 text-white">
                         💳 PEŞİN FİYATINA 6 TAKSİT
                       </span>
-                      <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-500">
-                        ⏱ Sınırlı Süre
+                      <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-red-100 text-red-600">
+                        🔥 Stoklarla Sınırlı
                       </span>
                     </div>
                     <h2 className="text-xl font-extrabold text-gray-800 mt-1">{gc.name}</h2>
@@ -309,7 +310,13 @@ export default async function CampaignsPage() {
                       </p>
                     </div>
 
-                    <p className="text-xs text-gray-400 mt-3">📅 Kampanya tarihleri: {fmt(gc.startDate)} — {fmt(gc.endDate)}</p>
+                    {/* Aciliyet ibaresi — karar vermeyi hızlandırır */}
+                    <div className="flex items-center gap-2 mt-3 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                      <span className="text-base">🔥</span>
+                      <p className="text-xs md:text-sm font-bold text-red-600">
+                        Kampanya stoklarla sınırlıdır — fırsatı kaçırmayın!
+                      </p>
+                    </div>
                   </div>
                 </div>
 
