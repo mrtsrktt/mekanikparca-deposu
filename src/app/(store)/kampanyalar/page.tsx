@@ -242,10 +242,6 @@ export default async function CampaignsPage() {
                         </div>
                       )}
                     </div>
-                    {/* Value badge */}
-                    <div className="absolute -bottom-2 left-4 bg-green-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-md whitespace-nowrap">
-                      {formatPrice(gc.giftValue)}
-                    </div>
                   </div>
 
                   {/* Campaign info */}
