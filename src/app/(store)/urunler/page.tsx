@@ -1,27 +1,10 @@
 import { prisma } from '@/lib/prisma'
-import { calculateTRYPrice } from '@/lib/pricing'
 import ProductCard from '@/components/ProductCard'
 import Link from 'next/link'
 import { getBrandContent } from '@/lib/brand-content'
 import BrandLandingPage from '@/components/brand-landing/BrandLandingPage'
 
 export const dynamic = 'force-dynamic'
-
-async function getExchangeRates() {
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/exchange-rates`, {
-      next: { revalidate: 3600 } // 1 saat cache
-    })
-    if (!response.ok) {
-      throw new Error('Exchange rates fetch failed')
-    }
-    return await response.json()
-  } catch (error) {
-    console.error('Failed to fetch exchange rates:', error)
-    // Fallback rates
-    return { USD: 44.0, EUR: 55.0, TRY: 1 }
-  }
-}
 
 interface Props {
   searchParams: { q?: string; category?: string; brand?: string; page?: string; sort?: string }
@@ -111,7 +94,6 @@ export default async function ProductsPage({ searchParams }: Props) {
       where: { slug: brandContent.slug },
     })
     if (brandRecord) {
-      const exchangeRates = await getExchangeRates()
       const brandProducts = await prisma.product.findMany({
         where: {
           isActive: true,
@@ -125,7 +107,7 @@ export default async function ProductsPage({ searchParams }: Props) {
         orderBy: { name: 'asc' },
       })
       const productsWithTRY = brandProducts.map((p) => {
-        const priceTRY = calculateTRYPrice(p.priceOriginal, p.priceCurrency, exchangeRates)
+        const priceTRY = p.priceTRY
         const cheapestTierPrice = p.priceTiers?.length > 0
           ? Math.min(...p.priceTiers.map(t => t.unitPriceTRY))
           : null
@@ -195,8 +177,7 @@ export default async function ProductsPage({ searchParams }: Props) {
     : sort === 'name' ? { name: 'asc' }
     : { createdAt: 'desc' }
 
-  const [exchangeRates, products, total, categories, brands] = await Promise.all([
-    getExchangeRates(),
+  const [products, total, categories, brands] = await Promise.all([
     prisma.product.findMany({
       where,
       include: { brand: true, category: true, images: { orderBy: { sortOrder: 'asc' }, take: 1 }, priceTiers: { orderBy: { unitPriceTRY: 'asc' }, take: 1 } },
@@ -209,10 +190,10 @@ export default async function ProductsPage({ searchParams }: Props) {
     prisma.brand.findMany({ where: { isActive: true }, orderBy: { name: 'asc' } }),
   ])
 
-  // Fiyatları TL'ye çevir
+  // Saklı priceTRY tek doğru fiyat kaynağıdır (kur güncellemesinde recalculateProductPrices ile güncellenir).
   const productsWithConvertedPrices = products.map(product => ({
     ...product,
-    priceTRY: calculateTRYPrice(product.priceOriginal, product.priceCurrency, exchangeRates)
+    priceTRY: product.priceTRY,
   }))
 
   const totalPages = Math.ceil(total / limit)

@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import { formatPrice, calculateTRYPrice } from '@/lib/pricing'
+import { formatPrice } from '@/lib/pricing'
 import { getActiveCampaignsForProduct } from '@/lib/campaignPricing'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -8,22 +8,6 @@ import ProductMediaGallery from '@/components/ProductMediaGallery'
 import EnrichedDescription, { hasEnrichedDescription } from '@/components/product/EnrichedDescription'
 
 export const revalidate = 3600
-
-async function getExchangeRates() {
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/exchange-rates`, {
-      next: { revalidate: 3600 } // 1 saat cache
-    })
-    if (!response.ok) {
-      throw new Error('Exchange rates fetch failed')
-    }
-    return await response.json()
-  } catch (error) {
-    console.error('Failed to fetch exchange rates:', error)
-    // Fallback rates
-    return { USD: 44.0, EUR: 55.0, TRY: 1 }
-  }
-}
 
 interface Props {
   params: { slug: string }
@@ -42,22 +26,21 @@ export async function generateMetadata({ params }: Props) {
 }
 
 export default async function ProductDetailPage({ params }: Props) {
-  const [exchangeRates, product] = await Promise.all([
-    getExchangeRates(),
-    prisma.product.findUnique({
-      where: { slug: params.slug },
-      include: { 
-        category: true, 
-        brand: true, 
-        images: { orderBy: { sortOrder: 'asc' } },
-      },
-    })
-  ])
+  const product = await prisma.product.findUnique({
+    where: { slug: params.slug },
+    include: {
+      category: true,
+      brand: true,
+      images: { orderBy: { sortOrder: 'asc' } },
+    },
+  })
 
   if (!product || (product.category && !product.category.isActive)) notFound()
 
-  // Fiyatı TL'ye çevir
-  const priceTRY = calculateTRYPrice(product.priceOriginal, product.priceCurrency, exchangeRates)
+  // Saklı priceTRY tek doğru fiyat kaynağıdır (kur güncellemesinde recalculateProductPrices
+  // ile güncellenir). Eskiden canlı kur ile yeniden hesaplanıyordu ama self-fetch prod'da
+  // başarısız olup yanlış kura (EUR 55) düşüyor, ürün sayfası fiyatı sepet/ödeme ile uyuşmuyordu.
+  const priceTRY = product.priceTRY
 
   // Fetch price tiers for this product
   const priceTiers = await prisma.priceTier.findMany({

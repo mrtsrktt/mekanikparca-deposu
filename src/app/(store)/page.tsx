@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
-import { calculateTRYPrice } from '@/lib/pricing'
 import ProductCard from '@/components/ProductCard'
 import HeroSlider from '@/components/HeroSlider'
 
@@ -12,22 +11,6 @@ export const metadata: Metadata = {
 }
 
 export const revalidate = 3600
-
-async function getExchangeRates() {
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/exchange-rates`, {
-      next: { revalidate: 3600 } // 1 saat cache
-    })
-    if (!response.ok) {
-      throw new Error('Exchange rates fetch failed')
-    }
-    return await response.json()
-  } catch (error) {
-    console.error('Failed to fetch exchange rates:', error)
-    // Fallback rates
-    return { USD: 44.0, EUR: 55.0, TRY: 1 }
-  }
-}
 
 const catColors = [
   { bg: 'from-blue-500 to-blue-700', hover: 'hover:shadow-blue-200', icon: '🧪' },
@@ -52,8 +35,7 @@ const brandColors: Record<string, { bg: string; text: string; dot: string; accen
 }
 
 export default async function HomePage() {
-  const [exchangeRates, featuredProducts, categories, brandsWithProducts] = await Promise.all([
-    getExchangeRates(),
+  const [featuredProducts, categories, brandsWithProducts] = await Promise.all([
     prisma.product.findMany({
       where: { isActive: true, isFeatured: true, OR: [{ category: { isActive: true } }, { categoryId: null }] },
       include: { brand: true, category: true, images: { orderBy: { sortOrder: 'asc' }, take: 1 }, priceTiers: { orderBy: { unitPriceTRY: 'asc' }, take: 1 } },
@@ -84,20 +66,10 @@ export default async function HomePage() {
     }),
   ])
 
-  // Fiyatları TL'ye çevir
-  const convertProductPrices = (products: any[]) => {
-    return products.map(product => {
-      const priceTRY = calculateTRYPrice(
-        product.priceOriginal,
-        product.priceCurrency,
-        exchangeRates
-      )
-      return {
-        ...product,
-        priceTRY
-      }
-    })
-  }
+  // Saklı priceTRY tek doğru fiyat kaynağıdır (kur güncellemesinde recalculateProductPrices ile
+  // güncellenir). Eskiden canlı kurla yeniden hesaplanıyordu ama self-fetch prod'da başarısız olup
+  // yanlış kura düşüyor ve fiyatlar sepet/ödeme ile uyuşmuyordu.
+  const convertProductPrices = (products: any[]) => products
 
   const featuredProductsConverted = convertProductPrices(featuredProducts)
 
