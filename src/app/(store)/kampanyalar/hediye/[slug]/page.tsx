@@ -5,8 +5,12 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { FiMinus, FiPlus, FiShoppingCart, FiCheck, FiClock, FiGift, FiShare2, FiTruck, FiPackage, FiChevronRight, FiStar, FiCreditCard, FiExternalLink } from 'react-icons/fi'
+import { FaWhatsapp } from 'react-icons/fa'
 import { formatPrice } from '@/lib/pricing'
 import { getStorageArray } from '@/lib/safeStorage'
+import { trackWhatsAppClick } from '@/lib/gtm'
+
+const WHATSAPP_NUMBER = '905326404086'
 
 // ============================================================
 // Types
@@ -338,6 +342,10 @@ export default function GiftCampaignPage() {
   // ============================================================
   // Render: Campaign Page
   // ============================================================
+  // WhatsApp: kampanya adıyla hazır mesaj — kullanıcı sadece gönder'e basar
+  const waMessage = encodeURIComponent(`Merhaba, "${campaign.giftName}" kampanyası için detaylı bilgi almak istiyorum.`)
+  const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${waMessage}`
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ================================================================ */}
@@ -362,10 +370,20 @@ export default function GiftCampaignPage() {
               <FiStar className="w-4 h-4 fill-white" />
               HEDİYE KAMPANYASI
             </div>
-            {/* Peşin fiyatına 6 taksit — çok belirgin */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-bold rounded-full shadow-lg shadow-green-500/30">
-              <FiCreditCard className="w-4 h-4" />
-              PEŞİN FİYATINA {campaign.installmentCount || 6} TAKSİT
+            {/* Peşin fiyatına taksit — BÜYÜK, animasyonlu, çok dikkat çekici */}
+            <div className="relative animate-taksit-pop">
+              <span className="absolute -inset-2 bg-green-400/60 rounded-2xl blur-lg animate-taksit-glow pointer-events-none" />
+              <div className="relative inline-flex items-center gap-3 px-5 py-3 md:px-6 md:py-3.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl shadow-xl shadow-green-500/40 ring-2 ring-green-300/50 overflow-hidden">
+                {/* Parıltı süpürme */}
+                <span
+                  className="absolute inset-y-0 -left-1/3 w-1/3 bg-gradient-to-r from-transparent via-white/50 to-transparent pointer-events-none"
+                  style={{ animation: 'shimmer 2.5s infinite' }}
+                />
+                <FiCreditCard className="relative w-6 h-6 md:w-7 md:h-7 flex-shrink-0" />
+                <span className="relative text-base md:text-2xl font-black tracking-tight whitespace-nowrap leading-none">
+                  PEŞİN FİYATINA {campaign.installmentCount || 6} TAKSİT
+                </span>
+              </div>
             </div>
             <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-red-500/20 backdrop-blur-sm text-red-200 text-xs font-bold rounded-full border border-red-400/30">
               <FiClock className="w-3.5 h-3.5" />
@@ -562,6 +580,47 @@ export default function GiftCampaignPage() {
             </div>
           </div>
         </div>
+
+        {/* ============================================================ */}
+        {/* WHATSAPP CTA — Ana dönüşüm kanalı, büyük ve belirgin */}
+        {/* ============================================================ */}
+        <a
+          href={waLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => trackWhatsAppClick('kampanya-detay')}
+          className="group block mb-8"
+        >
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-green-500 to-emerald-600 shadow-xl shadow-green-500/30 hover:shadow-2xl hover:shadow-green-500/40 transition-all duration-300 active:scale-[0.99] ring-2 ring-green-400/30">
+            {/* Dekoratif */}
+            <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute -bottom-14 left-1/3 w-52 h-52 bg-white/5 rounded-full blur-3xl pointer-events-none" />
+            {/* Animasyonlu nabız halkası ikon arkasında */}
+            <div className="relative flex flex-col md:flex-row items-center gap-5 p-6 md:p-8">
+              <div className="flex-shrink-0 relative">
+                <span className="absolute inset-0 rounded-2xl bg-white/40 animate-ping" />
+                <div className="relative w-16 h-16 md:w-20 md:h-20 bg-white rounded-2xl flex items-center justify-center shadow-lg">
+                  <FaWhatsapp className="w-10 h-10 md:w-12 md:h-12 text-green-500" />
+                </div>
+              </div>
+              <div className="flex-1 text-center md:text-left text-white">
+                <h2 className="text-xl md:text-2xl font-black leading-tight">
+                  Kampanya karışık mı geldi? WhatsApp&apos;tan sorun!
+                </h2>
+                <p className="text-green-50/90 text-sm md:text-base mt-1.5 leading-relaxed">
+                  Tek tıkla bize yazın, <strong className="text-white">{campaign.giftName}</strong> kampanyasının tüm detaylarını anında iletelim.
+                  Mesajınız hazır — sadece <strong className="text-white">Gönder</strong>&apos;e basmanız yeterli.
+                </p>
+              </div>
+              <div className="flex-shrink-0 w-full md:w-auto">
+                <span className="flex md:inline-flex items-center justify-center gap-2 bg-white text-green-600 font-black text-base md:text-lg px-6 md:px-8 py-4 rounded-2xl shadow-lg group-hover:scale-105 transition-transform whitespace-nowrap">
+                  <FaWhatsapp className="w-5 h-5 md:w-6 md:h-6" />
+                  WhatsApp&apos;tan Bilgi Al
+                </span>
+              </div>
+            </div>
+          </div>
+        </a>
 
         {/* Description banner */}
         {campaign.description && (
@@ -885,6 +944,21 @@ export default function GiftCampaignPage() {
                   ))}
                 </div>
               </div>
+
+              {/* WhatsApp — sidebar (kaydırırken hep görünür) */}
+              <a
+                href={waLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackWhatsAppClick('kampanya-detay-sidebar')}
+                className="flex items-center justify-center gap-2.5 w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-green-500/20 hover:shadow-green-500/30 transition-all active:scale-[0.98]"
+              >
+                <FaWhatsapp className="w-6 h-6" />
+                <div className="text-left leading-tight">
+                  <div className="text-base font-black">WhatsApp&apos;tan Sor</div>
+                  <div className="text-[11px] font-medium text-green-50/90">Kampanya detayını anında öğren</div>
+                </div>
+              </a>
             </div>
           </div>
         </div>
@@ -993,6 +1067,21 @@ export default function GiftCampaignPage() {
         .scrollbar-hide {
           -ms-overflow-style: none;
           scrollbar-width: none;
+        }
+        /* Peşin fiyatına taksit rozeti — dikkat çekici nabız + parıltı */
+        @keyframes taksit-pop {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+        }
+        .animate-taksit-pop {
+          animation: taksit-pop 1.5s ease-in-out infinite;
+        }
+        @keyframes taksit-glow {
+          0%, 100% { opacity: 0.45; }
+          50% { opacity: 0.9; }
+        }
+        .animate-taksit-glow {
+          animation: taksit-glow 1.5s ease-in-out infinite;
         }
       `}</style>
     </div>
