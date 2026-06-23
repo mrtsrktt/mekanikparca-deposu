@@ -94,11 +94,18 @@ export default function CartPage() {
     localStorage.setItem('cart', JSON.stringify(updated.map(({ productId, quantity }) => ({ productId, quantity }))))
   }
 
+  // Birim fiyat: adede göre hesaplanmış fiyatı (calculate/resolveBestPrice) kullan.
+  // item.product.priceTRY en UCUZ kademe fiyatıdır (adetten bağımsız) — birim fiyat olarak kullanılmaz,
+  // aksi halde 1 adet alımda bile koli/kademe fiyatı görünür ve ödeme tutarıyla uyuşmaz.
   const getUnitPrice = (item: CartItem) => {
-    if (item.campaignPrice?.discountedPrice && item.campaignPrice.discountedPrice < (item.product?.priceTRY || Infinity)) {
-      return item.campaignPrice.discountedPrice
-    }
-    return item.product?.priceTRY || 0
+    if (item.campaignPrice?.discountedPrice != null) return item.campaignPrice.discountedPrice
+    return item.product?.retailPriceTRY ?? item.product?.priceTRY ?? 0
+  }
+
+  // Liste (indirimsiz) birim fiyat — üstü çizili gösterim ve ara toplam için.
+  const getOriginalPrice = (item: CartItem) => {
+    if (item.campaignPrice?.originalPrice != null) return item.campaignPrice.originalPrice
+    return item.product?.retailPriceTRY ?? item.product?.priceTRY ?? 0
   }
 
   const getDiscountLabel = (item: CartItem): { type: 'campaign' | 'tier' | null; label: string } => {
@@ -122,7 +129,7 @@ export default function CartPage() {
   }
 
   const subtotal = items.reduce((sum, item) => sum + getUnitPrice(item) * item.quantity, 0)
-  const originalTotal = items.reduce((sum, item) => sum + (item.product?.priceTRY || 0) * item.quantity, 0)
+  const originalTotal = items.reduce((sum, item) => sum + getOriginalPrice(item) * item.quantity, 0)
   const totalDiscount = originalTotal - subtotal
 
   if (loading) return <div className="max-w-7xl mx-auto px-4 py-16 text-center">Yükleniyor...</div>
@@ -160,7 +167,7 @@ export default function CartPage() {
                       {hasDiscount ? (
                         <div>
                           <span className="text-sm text-gray-400 line-through mr-2">
-                            {formatPrice(item.product?.priceTRY || 0)}
+                            {formatPrice(getOriginalPrice(item))}
                           </span>
                           <span className={`font-semibold ${discount.type === 'campaign' ? 'text-red-500' : discount.type === 'tier' ? 'text-blue-600' : 'text-primary-500'}`}>
                             {formatPrice(unitPrice)}

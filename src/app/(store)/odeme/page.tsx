@@ -157,11 +157,18 @@ export default function OdemePage() {
     }
   }
 
+  // Birim fiyat: adede göre hesaplanmış fiyatı (calculate/resolveBestPrice) kullan.
+  // item.product.priceTRY en UCUZ kademe fiyatıdır (adetten bağımsız) — birim fiyat olarak kullanılmaz,
+  // aksi halde 1 adet alımda bile koli/kademe fiyatı görünür ve PayTR tutarıyla uyuşmaz.
   const getUnitPrice = (item: CartItem) => {
-    if (item.campaignPrice?.discountedPrice && item.campaignPrice.discountedPrice < (item.product?.priceTRY || Infinity)) {
-      return item.campaignPrice.discountedPrice
-    }
-    return item.product?.priceTRY || 0
+    if (item.campaignPrice?.discountedPrice != null) return item.campaignPrice.discountedPrice
+    return item.product?.retailPriceTRY ?? item.product?.priceTRY ?? 0
+  }
+
+  // Liste (indirimsiz) birim fiyat — üstü çizili gösterim ve ara toplam için.
+  const getOriginalPrice = (item: CartItem) => {
+    if (item.campaignPrice?.originalPrice != null) return item.campaignPrice.originalPrice
+    return item.product?.retailPriceTRY ?? item.product?.priceTRY ?? 0
   }
 
   const getDiscountLabel = (item: CartItem): { type: 'campaign' | 'tier' | null; label: string } => {
@@ -232,7 +239,7 @@ export default function OdemePage() {
   }
 
   const subtotal = items.reduce((sum, item) => sum + getUnitPrice(item) * item.quantity, 0)
-  const originalTotal = items.reduce((sum, item) => sum + (item.product?.priceTRY || 0) * item.quantity, 0)
+  const originalTotal = items.reduce((sum, item) => sum + getOriginalPrice(item) * item.quantity, 0)
   const totalDiscount = originalTotal - subtotal
 
   if (loading || status === 'loading') {
@@ -456,7 +463,7 @@ export default function OdemePage() {
                         {discount.label}
                       </span>
                       <span className="text-gray-400 line-through">
-                        {formatPrice((item.product?.priceTRY || 0) * item.quantity)}
+                        {formatPrice(getOriginalPrice(item) * item.quantity)}
                       </span>
                     </div>
                   )}
