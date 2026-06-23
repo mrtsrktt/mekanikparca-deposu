@@ -1,26 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { calculateTRYPrice } from '@/lib/pricing'
-
-async function getExchangeRates() {
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/exchange-rates`, {
-      next: { revalidate: 3600 } // 1 saat cache
-    })
-    if (!response.ok) {
-      throw new Error('Exchange rates fetch failed')
-    }
-    return await response.json()
-  } catch (error) {
-    console.error('Failed to fetch exchange rates:', error)
-    // Fallback rates
-    return { USD: 44.0, EUR: 55.0, TRY: 1 }
-  }
-}
 
 export async function GET(req: Request, { params }: { params: { slug: string } }) {
-  const exchangeRates = await getExchangeRates()
-  
   // slug veya id ile arama yap
   let product = await prisma.product.findUnique({
     where: { slug: params.slug },
@@ -47,21 +28,24 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
 
   if (!product) return NextResponse.json({ error: 'Ürün bulunamadı.' }, { status: 404 })
 
-  // Fiyatı TL'ye çevir
-  const priceTRY = calculateTRYPrice(product.priceOriginal, product.priceCurrency, exchangeRates)
-  // En ucuz kademe fiyatını kullan
+  // Saklı priceTRY tek doğru fiyat kaynağıdır. Kur güncellendiğinde
+  // recalculateProductPrices, priceTRY ve kademe unitPriceTRY değerlerini birlikte günceller.
+  // NOT: Eskiden burada canlı kur ile yeniden hesap yapılıyordu; ancak kurlar self-fetch ile
+  // localhost'tan çekiliyordu ve production'da bu istek başarısız olup yanlış fallback kura
+  // (EUR 55) düşüyordu. Sonuç: ürün sayfası fiyatı sepet/ödeme fiyatından farklı çıkıyordu.
+  // Artık doğrudan saklı priceTRY kullanılıyor; sepet, ödeme ve PayTR ile birebir aynı.
+  const retailPriceTRY = product.priceTRY
   const cheapestTierPrice = product.priceTiers?.length > 0
     ? Math.min(...product.priceTiers.map(t => t.unitPriceTRY))
     : null
-  const displayPrice = cheapestTierPrice && cheapestTierPrice < priceTRY
+  const displayPrice = cheapestTierPrice && cheapestTierPrice < retailPriceTRY
     ? cheapestTierPrice
-    : priceTRY
-  const productWithConvertedPrice = {
+    : retailPriceTRY
+
+  return NextResponse.json({
     ...product,
     priceTRY: displayPrice,
-    retailPriceTRY: priceTRY,
-    hasTierDiscount: cheapestTierPrice !== null && cheapestTierPrice < priceTRY,
-  }
-
-  return NextResponse.json(productWithConvertedPrice)
+    retailPriceTRY,
+    hasTierDiscount: cheapestTierPrice !== null && cheapestTierPrice < retailPriceTRY,
+  })
 }
