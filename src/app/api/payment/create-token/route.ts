@@ -161,8 +161,11 @@ export async function POST(req: NextRequest) {
     }
     const userBasket = Buffer.from(JSON.stringify(basketItems)).toString('base64')
 
-    const noInstallment = '0'
-    const maxInstallment = '6' // En fazla 6 taksit göster (peşin fiyatına 6 taksit)
+    // Taksit yalnızca hediye kampanyası siparişlerinde açık (peşin fiyatına 6 taksit).
+    // Kampanya dışı normal siparişlerde tek çekim zorunlu (taksit gösterilmez).
+    const isGiftCampaign = !!giftCampaign
+    const noInstallment = isGiftCampaign ? '0' : '1' // PayTR: 1 = taksit yok (tek çekim)
+    const maxInstallment = isGiftCampaign ? '6' : '0' // tek çekimde etkisiz (0)
     const currency = 'TL'
     const testMode = process.env.PAYTR_TEST_MODE || '0'
     const lang = 'tr'
