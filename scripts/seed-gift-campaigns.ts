@@ -117,9 +117,11 @@ const GROUP_DEFS = [
   {
     name: 'Grup B - Express 400ml',
     sortOrder: 1,
-    // F1 Express 400ml, F3 Express 400ml, F9 Express 400ml, F4 Express 400ml
+    // F1 Express 400ml, F3 Express 400ml, F9 Express 400ml ve
+    // F4 Express = "LEAK SEALER EXPRESS 400ml" (isminde F4 geçmez).
+    // Bu yüzden F-kodu yerine doğrudan "Express" + "400ml" ile eşleştiriyoruz.
     match: (name: string) =>
-      /F[1349]\s+Express/i.test(name) && /400\s*ml/i.test(name),
+      /express/i.test(name) && /400\s*ml/i.test(name),
   },
   {
     name: 'Grup C - 265ml & 20 Litre',
