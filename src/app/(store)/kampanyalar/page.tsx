@@ -114,22 +114,38 @@ export default async function CampaignsPage() {
                 Kampanyalar
               </h1>
               <p className="text-slate-300/70 text-sm md:text-base mt-3 max-w-xl mx-auto md:mx-0 leading-relaxed">
-                Adet arttıkça fiyat düşer. Hediyeli kampanyalar ve peşin fiyatına taksit fırsatlarını kaçırmayın.
+                Hediyeli kampanyalar ve peşin fiyatına taksit fırsatlarını kaçırmayın.
               </p>
             </div>
 
             {/* Özellik rozetleri */}
-            <div className="flex flex-row md:flex-col flex-wrap gap-2.5 justify-center flex-shrink-0">
-              {[
-                { icon: '🎁', text: 'Hediyeli Kampanyalar' },
-                { icon: '💳', text: 'Peşin Fiyatına 6 Taksit' },
-                { icon: '🚚', text: 'Aynı Gün Kargo' },
-              ].map((f, i) => (
-                <div key={i} className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.06] backdrop-blur-sm border border-white/10 text-white/90 text-xs md:text-sm font-medium whitespace-nowrap">
-                  <span>{f.icon}</span>
-                  {f.text}
+            <div className="flex flex-col gap-3 justify-center flex-shrink-0 w-full md:w-auto">
+              {/* Öne çıkan: Peşin Fiyatına 6 Taksit */}
+              <div className="relative">
+                <div className="absolute -inset-1 bg-green-400/30 rounded-2xl blur-lg" />
+                <div className="relative inline-flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-600 shadow-xl shadow-green-500/30 ring-1 ring-green-300/30 w-full md:w-auto justify-center">
+                  <svg className="w-7 h-7 md:w-8 md:h-8 text-white flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+                  </svg>
+                  <div className="text-left">
+                    <div className="text-lg md:text-2xl font-black text-white leading-none tracking-tight">Peşin Fiyatına 6 Taksit</div>
+                    <div className="text-[11px] md:text-xs text-green-50/90 font-medium mt-1">Faizsiz · Tüm hediye kampanyalarında</div>
+                  </div>
                 </div>
-              ))}
+              </div>
+
+              {/* İkincil rozetler */}
+              <div className="flex flex-row flex-wrap gap-2.5 justify-center md:justify-start">
+                {[
+                  { icon: '🎁', text: 'Hediyeli Kampanyalar' },
+                  { icon: '🚚', text: 'Aynı Gün Kargo' },
+                ].map((f, i) => (
+                  <div key={i} className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.06] backdrop-blur-sm border border-white/10 text-white/90 text-xs md:text-sm font-medium whitespace-nowrap">
+                    <span>{f.icon}</span>
+                    {f.text}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
