@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+// DİKKAT: Bu route tüm hediye kampanyalarını SİLİP yeniden oluşturur (deleteMany).
+// 'force-dynamic' olmazsa Next.js build sırasında bu GET'i prerender ederken çalıştırır
+// ve her deploy'da kampanyalar sıfırlanır (manuel/admin değişiklikleri dahil silinir).
+export const dynamic = 'force-dynamic'
+
 const CAMPAIGNS = [
   {
     name: 'Testo 310 II Yazıcısız Set Kampanyası',
@@ -96,7 +101,7 @@ const CAMPAIGNS = [
 
 const GROUP_DEFS = [
   { name: 'Grup A - 500ml', sortOrder: 0, match: (name: string) => /F[1349]\b/i.test(name) && /500\s*ml/i.test(name) && !/express/i.test(name) },
-  { name: 'Grup B - Express 400ml', sortOrder: 1, match: (name: string) => /F[1349]\s+Express/i.test(name) && /400\s*ml/i.test(name) },
+  { name: 'Grup B - Express 400ml', sortOrder: 1, match: (name: string) => /express/i.test(name) && /400\s*ml/i.test(name) },
   { name: 'Grup C - 265ml & 20 Litre', sortOrder: 2, match: (name: string) => (/F[139]\b/i.test(name) && /265\s*ml/i.test(name)) || (/HP-5C|HP-15C|HP-EG/i.test(name) && /20\s*L/i.test(name)) },
   { name: 'Grup D - Yalnızca 20 Litre', sortOrder: 3, match: (name: string) => (/HP-5C|HP-15C|HP-EG|ALPHI\s*11/i.test(name) && /20\s*L/i.test(name)) },
 ]
