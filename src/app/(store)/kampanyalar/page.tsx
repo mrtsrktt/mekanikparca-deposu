@@ -262,34 +262,29 @@ export default async function CampaignsPage() {
                       <p className="text-sm text-gray-500 mt-1.5 leading-relaxed max-w-2xl">{gc.description}</p>
                     )}
 
-                    {/* Gift info highlight */}
-                    <div className="mt-3 inline-flex items-center gap-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl px-4 py-2.5">
-                      <span className="text-xl">🎁</span>
-                      <div>
-                        <p className="text-sm font-bold text-amber-800">
+                    {/* Hediye vurgusu + ikna edici pazarlama metni */}
+                    <div className="mt-4 bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50 border border-amber-200 rounded-2xl p-4 md:p-5">
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
+                        <span className="text-xl">🎁</span>
+                        <h3 className="text-base md:text-lg font-extrabold text-gray-900">
                           {gc.giftName}
                           {gc.giftQuantity > 1 && (
-                            <span className="text-xs font-normal text-amber-600 ml-1">({gc.giftQuantity} Adet)</span>
+                            <span className="text-sm font-bold text-amber-600 ml-1.5">× {gc.giftQuantity} Adet</span>
                           )}
-                        </p>
-                        <p className="text-xs text-amber-600">
-                          <span className="text-green-600 font-bold">ÜCRETSİZ</span> — Değer: {formatPrice(gc.giftValue)}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Group thresholds */}
-                    <div className="flex flex-wrap items-center gap-2 mt-3">
-                      <span className="text-xs text-gray-400 font-medium">📦 Gruplar:</span>
-                      {gc.groups?.map((group: any, idx: number) => (
-                        <span key={idx} className="inline-flex items-center gap-1.5 bg-white border-2 border-amber-200 rounded-lg px-3 py-1.5 text-xs">
-                          <span className="text-gray-500 font-medium">{group.name}</span>
-                          <span className="font-bold text-amber-600 tabular-nums">{group.threshold}+</span>
+                        </h3>
+                        <span className="inline-flex items-center text-xs font-black px-2.5 py-1 rounded-full bg-green-500 text-white shadow-sm">
+                          ÜCRETSİZ HEDİYE
                         </span>
-                      ))}
+                      </div>
+                      <p className="text-sm md:text-[15px] text-gray-600 leading-relaxed">
+                        Tam <strong className="text-amber-700">{formatPrice(gc.giftValue)}</strong> değerindeki bu
+                        <strong className="text-gray-900"> profesyonel cihazı tamamen ücretsiz</strong> hediye ediyoruz!
+                        Kampanyaya katılıp belirtilen ürünlerden alışverişinizi tamamladığınızda, bu değerli cihaz sizin oluyor.
+                        Hem kazançlı alışveriş yapın hem de profesyonel ekipmanınızı hediye kazanın.
+                      </p>
                     </div>
 
-                    <p className="text-xs text-gray-400 mt-3">📅 {fmt(gc.startDate)} — {fmt(gc.endDate)}</p>
+                    <p className="text-xs text-gray-400 mt-3">📅 Kampanya tarihleri: {fmt(gc.startDate)} — {fmt(gc.endDate)}</p>
                   </div>
                 </div>
 
