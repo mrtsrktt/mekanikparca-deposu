@@ -18,6 +18,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Sepet boş.' }, { status: 400 })
     }
 
+    // PayTR yapılandırmasını DB'ye yazmadan önce doğrula (boş sipariş/hesap oluşmasın)
+    const merchantId = process.env.PAYTR_MERCHANT_ID
+    const merchantKey = process.env.PAYTR_MERCHANT_KEY
+    const merchantSalt = process.env.PAYTR_MERCHANT_SALT
+    if (!merchantId || !merchantKey || !merchantSalt) {
+      console.error('PayTR environment variables missing:', { merchantId: !!merchantId, merchantKey: !!merchantKey, merchantSalt: !!merchantSalt })
+      return NextResponse.json({ error: 'Ödeme sistemi yapılandırma hatası.' }, { status: 500 })
+    }
+
     // Sipariş sahibini belirle — üye girişi veya misafir
     let userId: string
     let buyerEmail: string
@@ -125,16 +134,7 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // PayTR token isteği
-    const merchantId = process.env.PAYTR_MERCHANT_ID
-    const merchantKey = process.env.PAYTR_MERCHANT_KEY
-    const merchantSalt = process.env.PAYTR_MERCHANT_SALT
-
-    if (!merchantId || !merchantKey || !merchantSalt) {
-      console.error('PayTR environment variables missing:', { merchantId: !!merchantId, merchantKey: !!merchantKey, merchantSalt: !!merchantSalt })
-      return NextResponse.json({ error: 'Ödeme sistemi yapılandırma hatası.' }, { status: 500 })
-    }
-
+    // PayTR token isteği (config en başta doğrulandı)
     const userIp = req.headers.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1'
     const email = buyerEmail
     // PayTR kuruş cinsinden integer bekler, nokta/ondalık olmamalı
