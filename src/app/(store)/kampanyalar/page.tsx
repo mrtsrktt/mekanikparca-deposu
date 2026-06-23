@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma'
+import { prisma, withDbRetry } from '@/lib/prisma'
 import Link from 'next/link'
 import { formatPrice } from '@/lib/pricing'
 import ProductCard from '@/components/ProductCard'
@@ -11,55 +11,80 @@ export const metadata = {
   alternates: { canonical: '/kampanyalar' },
 }
 
+// Geçici DB kesintisinde (Neon soğuk başlangıç) çökmek yerine gösterilecek mesaj
+function DbUnavailable() {
+  return (
+    <div className="max-w-7xl mx-auto px-4 py-20 text-center">
+      <span className="text-5xl block mb-4">⏳</span>
+      <h1 className="text-xl font-bold text-gray-800 mb-2">Kampanyalar şu anda yüklenemedi</h1>
+      <p className="text-gray-500 mb-6">Geçici bir bağlantı sorunu oluştu. Lütfen birkaç saniye sonra sayfayı yenileyin.</p>
+      <Link href="/kampanyalar" className="btn-primary">Yeniden Dene</Link>
+    </div>
+  )
+}
+
 export default async function CampaignsPage() {
   const now = new Date()
 
-  // Regular campaigns
-  const campaigns = await (prisma as any).campaign.findMany({
-    where: { isActive: true, startDate: { lte: now }, endDate: { gte: now } },
-    include: { tiers: { orderBy: { minQuantity: 'asc' } } },
-    orderBy: { createdAt: 'desc' },
-  })
+  let campaigns: any[]
+  let giftCampaigns: any[]
+  try {
+    // Regular campaigns
+    campaigns = await withDbRetry(() => (prisma as any).campaign.findMany({
+      where: { isActive: true, startDate: { lte: now }, endDate: { gte: now } },
+      include: { tiers: { orderBy: { minQuantity: 'asc' } } },
+      orderBy: { createdAt: 'desc' },
+    }))
 
-  // Gift campaigns
-  const giftCampaigns = await (prisma as any).giftCampaign.findMany({
-    where: { isActive: true, startDate: { lte: now }, endDate: { gte: now } },
-    include: { groups: { orderBy: { sortOrder: 'asc' } } },
-    orderBy: { createdAt: 'desc' },
-  })
+    // Gift campaigns
+    giftCampaigns = await withDbRetry(() => (prisma as any).giftCampaign.findMany({
+      where: { isActive: true, startDate: { lte: now }, endDate: { gte: now } },
+      include: { groups: { orderBy: { sortOrder: 'asc' } } },
+      orderBy: { createdAt: 'desc' },
+    }))
+  } catch (e) {
+    console.error('Kampanyalar yüklenemedi (DB):', e)
+    return <DbUnavailable />
+  }
 
-  const campaignDetails = await Promise.all(
-    campaigns.map(async (campaign: any) => {
-      let products: any[] = []
-      let scopeLabel = ''
+  let campaignDetails: any[]
+  try {
+    campaignDetails = await Promise.all(
+      campaigns.map(async (campaign: any) => {
+        let products: any[] = []
+        let scopeLabel = ''
 
-      if (campaign.scopeType === 'PRODUCT' && campaign.productId) {
-        const product = await prisma.product.findUnique({
-          where: { id: campaign.productId },
-          include: { brand: true, category: true, images: { orderBy: { sortOrder: 'asc' }, take: 1 }, priceTiers: { orderBy: { unitPriceTRY: 'asc' }, take: 1 } },
-        })
-        if (product && product.isActive) products = [product]
-        scopeLabel = product?.name || ''
-      } else if (campaign.scopeType === 'BRAND' && campaign.brandId) {
-        const brand = await prisma.brand.findUnique({ where: { id: campaign.brandId } })
-        products = await prisma.product.findMany({
-          where: { brandId: campaign.brandId, isActive: true },
-          include: { brand: true, category: true, images: { orderBy: { sortOrder: 'asc' }, take: 1 }, priceTiers: { orderBy: { unitPriceTRY: 'asc' }, take: 1 } },
-          take: 12, orderBy: { createdAt: 'desc' },
-        })
-        scopeLabel = brand?.name || ''
-      } else if (campaign.scopeType === 'CATEGORY' && campaign.categoryId) {
-        const cat = await prisma.category.findUnique({ where: { id: campaign.categoryId } })
-        products = await prisma.product.findMany({
-          where: { categoryId: campaign.categoryId, isActive: true },
-          include: { brand: true, category: true, images: { orderBy: { sortOrder: 'asc' }, take: 1 }, priceTiers: { orderBy: { unitPriceTRY: 'asc' }, take: 1 } },
-          take: 12, orderBy: { createdAt: 'desc' },
-        })
-        scopeLabel = cat?.name || ''
-      }
-      return { ...campaign, products, scopeLabel }
-    })
-  )
+        if (campaign.scopeType === 'PRODUCT' && campaign.productId) {
+          const product = await withDbRetry(() => prisma.product.findUnique({
+            where: { id: campaign.productId },
+            include: { brand: true, category: true, images: { orderBy: { sortOrder: 'asc' }, take: 1 }, priceTiers: { orderBy: { unitPriceTRY: 'asc' }, take: 1 } },
+          }))
+          if (product && product.isActive) products = [product]
+          scopeLabel = product?.name || ''
+        } else if (campaign.scopeType === 'BRAND' && campaign.brandId) {
+          const brand = await withDbRetry(() => prisma.brand.findUnique({ where: { id: campaign.brandId } }))
+          products = await withDbRetry(() => prisma.product.findMany({
+            where: { brandId: campaign.brandId, isActive: true },
+            include: { brand: true, category: true, images: { orderBy: { sortOrder: 'asc' }, take: 1 }, priceTiers: { orderBy: { unitPriceTRY: 'asc' }, take: 1 } },
+            take: 12, orderBy: { createdAt: 'desc' },
+          }))
+          scopeLabel = brand?.name || ''
+        } else if (campaign.scopeType === 'CATEGORY' && campaign.categoryId) {
+          const cat = await withDbRetry(() => prisma.category.findUnique({ where: { id: campaign.categoryId } }))
+          products = await withDbRetry(() => prisma.product.findMany({
+            where: { categoryId: campaign.categoryId, isActive: true },
+            include: { brand: true, category: true, images: { orderBy: { sortOrder: 'asc' }, take: 1 }, priceTiers: { orderBy: { unitPriceTRY: 'asc' }, take: 1 } },
+            take: 12, orderBy: { createdAt: 'desc' },
+          }))
+          scopeLabel = cat?.name || ''
+        }
+        return { ...campaign, products, scopeLabel }
+      })
+    )
+  } catch (e) {
+    console.error('Kampanya ürünleri yüklenemedi (DB):', e)
+    return <DbUnavailable />
+  }
 
   const activeCampaigns = campaignDetails.filter((c: any) => c.products.length > 0)
   const scopeMap: Record<string, string> = { PRODUCT: 'Ürün', BRAND: 'Marka', CATEGORY: 'Kategori' }

@@ -1,18 +1,19 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma, withDbRetry } from '@/lib/prisma'
 
 export async function GET(
   _req: Request,
   { params }: { params: { slug: string } }
 ) {
-  const campaign = await prisma.giftCampaign.findUnique({
+ try {
+  const campaign = await withDbRetry(() => prisma.giftCampaign.findUnique({
     where: { slug: params.slug },
     include: {
       groups: {
         orderBy: { sortOrder: 'asc' },
       },
     },
-  })
+  }))
 
   if (!campaign || !campaign.isActive) {
     return NextResponse.json({ error: 'Kampanya bulunamadı.' }, { status: 404 })
@@ -27,14 +28,14 @@ export async function GET(
   const allProductIds = campaign.groups.flatMap(g => g.productIds)
   const uniqueIds = Array.from(new Set(allProductIds))
 
-  const products = await prisma.product.findMany({
+  const products = await withDbRetry(() => prisma.product.findMany({
     where: { id: { in: uniqueIds }, isActive: true },
     include: {
       brand: true,
       images: { orderBy: { sortOrder: 'asc' }, take: 1 },
       priceTiers: { orderBy: { unitPriceTRY: 'asc' }, take: 1 },
     },
-  })
+  }))
 
   const productMap = Object.fromEntries(products.map(p => [p.id, p]))
 
@@ -65,10 +66,10 @@ export async function GET(
   let giftProduct: { slug: string; image: string | null } | null = null
   if (campaign.giftStockCode) {
     const target = norm(campaign.giftStockCode)
-    const candidates = await prisma.product.findMany({
+    const candidates = await withDbRetry(() => prisma.product.findMany({
       where: { isActive: true, sku: { not: null } },
       select: { sku: true, slug: true, images: { orderBy: { sortOrder: 'asc' }, take: 1, select: { url: true } } },
-    })
+    }))
     const found = candidates.find(p => p.sku && norm(p.sku) === target) || null
     if (found) {
       giftProduct = { slug: found.slug, image: found.images?.[0]?.url || null }
@@ -82,4 +83,8 @@ export async function GET(
     installmentCount: 6, // Hediye kampanyalarında peşin fiyatına 6 taksit
     groups: enrichedGroups,
   })
+ } catch (e) {
+    console.error('Hediye kampanyası yüklenemedi (DB):', e)
+    return NextResponse.json({ error: 'Kampanya geçici olarak yüklenemedi. Lütfen tekrar deneyin.' }, { status: 503 })
+ }
 }
