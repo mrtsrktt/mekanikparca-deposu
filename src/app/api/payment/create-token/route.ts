@@ -104,6 +104,44 @@ export async function POST(req: NextRequest) {
       orderItems.push({ productId: product.id, quantity: item.quantity, unitPrice, total })
     }
 
+    // Hediye kampanyasını SUNUCUDA doğrula — istemciden gelen değere asla körü körüne güvenme.
+    // Bayat localStorage veya önbelleğe alınmış istemci JS yüzünden normal siparişe yanlışlıkla
+    // taksit + bedava hediye uygulanmasını engeller. Sipariş gerçekten bir grubun eşiğini
+    // karşılamıyorsa kampanya uygulanmaz (tek çekim, hediye yok).
+    let validatedGift: {
+      campaignId: string; campaignName: string; giftName: string; giftStockCode: string;
+      giftValue: number; giftQuantity: number; groupName: string; totalQuantity: number;
+    } | null = null
+    if (giftCampaign?.campaignId) {
+      const camp = await prisma.giftCampaign.findUnique({
+        where: { id: giftCampaign.campaignId },
+        include: { groups: { orderBy: { sortOrder: 'asc' } } },
+      })
+      const now = new Date()
+      if (camp && camp.isActive && now >= new Date(camp.startDate) && now <= new Date(camp.endDate)) {
+        const orderQtyById = new Map<string, number>()
+        for (const it of orderItems) orderQtyById.set(it.productId, (orderQtyById.get(it.productId) || 0) + it.quantity)
+        for (const g of camp.groups) {
+          if (g.threshold <= 0) continue
+          const groupTotal = g.productIds.reduce((s, pid) => s + (orderQtyById.get(pid) || 0), 0)
+          if (groupTotal >= g.threshold) {
+            const timesReached = Math.floor(groupTotal / g.threshold)
+            validatedGift = {
+              campaignId: camp.id,
+              campaignName: camp.name,
+              giftName: camp.giftName,
+              giftStockCode: camp.giftStockCode,
+              giftValue: camp.giftValue,
+              giftQuantity: camp.giftQuantity * timesReached,
+              groupName: g.name,
+              totalQuantity: groupTotal,
+            }
+            break
+          }
+        }
+      }
+    }
+
     // Sipariş numarası oluştur (PayTR için alfanumerik olmalı)
     const timestamp = Date.now()
     const random = Math.floor(Math.random() * 1000)
@@ -127,7 +165,7 @@ export async function POST(req: NextRequest) {
         taxOffice: invoiceType === 'CORPORATE' ? (taxOffice || null) : null,
         billingAddress: invoiceType === 'CORPORATE' ? `${companyName}, ${billingAddress}, ${billingDistrict}/${billingCity}` : null,
         notes: notes || null,
-        adminNotes: giftCampaign ? `🎁 Hediye Kampanyası: ${giftCampaign.giftName} (${giftCampaign.giftStockCode}) — ${giftCampaign.groupName}, ${giftCampaign.totalQuantity} adet, ${giftCampaign.giftQuantity} adet hediye` : null,
+        adminNotes: validatedGift ? `🎁 Hediye Kampanyası: ${validatedGift.giftName} (${validatedGift.giftStockCode}) — ${validatedGift.groupName}, ${validatedGift.totalQuantity} adet, ${validatedGift.giftQuantity} adet hediye` : null,
         items: {
           create: orderItems,
         },
@@ -151,19 +189,20 @@ export async function POST(req: NextRequest) {
       return [product.name, unitPriceKurus.toString(), item.quantity.toString()]
     })
 
-    // Add gift campaign item to basket (0 TL)
-    if (giftCampaign) {
+    // Add gift campaign item to basket (0 TL) — yalnızca sunucu doğrulamasından geçen kampanya
+    if (validatedGift) {
       basketItems.push([
-        `🎁 HEDİYE: ${giftCampaign.giftName} (${giftCampaign.giftStockCode})`,
+        `🎁 HEDİYE: ${validatedGift.giftName} (${validatedGift.giftStockCode})`,
         '0',
-        (giftCampaign.giftQuantity || 1).toString(),
+        (validatedGift.giftQuantity || 1).toString(),
       ])
     }
     const userBasket = Buffer.from(JSON.stringify(basketItems)).toString('base64')
 
-    // Taksit yalnızca hediye kampanyası siparişlerinde açık (peşin fiyatına 6 taksit).
-    // Kampanya dışı normal siparişlerde tek çekim zorunlu (taksit gösterilmez).
-    const isGiftCampaign = !!giftCampaign
+    // Taksit yalnızca SUNUCU TARAFINDA doğrulanmış hediye kampanyası siparişlerinde açık
+    // (peşin fiyatına 6 taksit). Kampanya dışı / eşiği karşılamayan siparişlerde tek çekim
+    // zorunlu — istemci ne gönderirse göndersin (bayat localStorage / önbellek korumalı).
+    const isGiftCampaign = !!validatedGift
     const noInstallment = isGiftCampaign ? '0' : '1' // PayTR: 1 = taksit yok (tek çekim)
     const maxInstallment = isGiftCampaign ? '6' : '0' // tek çekimde etkisiz (0)
     const currency = 'TL'
