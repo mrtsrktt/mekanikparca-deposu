@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { formatPrice } from '@/lib/pricing'
 import { getStorageArray } from '@/lib/safeStorage'
 import toast from 'react-hot-toast'
@@ -43,6 +44,9 @@ export default function OdemePage() {
   const [showNewAddress, setShowNewAddress] = useState(false)
   const [giftCampaign, setGiftCampaign] = useState<any>(null)
   const [newAddr, setNewAddr] = useState({ title: '', fullName: '', phone: '', city: '', district: '', address: '', zipCode: '' })
+  // Misafir ödemesi (kayıt olmadan devam et)
+  const [isGuest, setIsGuest] = useState(false)
+  const [guestInfo, setGuestInfo] = useState({ fullName: '', email: '', phone: '', city: '', district: '', address: '', zipCode: '' })
 
   const loadData = useCallback(async () => {
     const cart = getStorageArray('cart')
@@ -93,21 +97,28 @@ export default function OdemePage() {
       }
     } catch {}
 
-    const addrRes = await fetch('/api/account/addresses')
-    if (addrRes.ok) {
-      const addrData = await addrRes.json()
-      setAddresses(addrData)
-      const def = addrData.find((a: Address) => a.isDefault)
-      if (def) setSelectedAddressId(def.id)
-      else if (addrData.length > 0) setSelectedAddressId(addrData[0].id)
+    // Adresler yalnızca üye girişinde çekilir
+    if (status === 'authenticated') {
+      const addrRes = await fetch('/api/account/addresses')
+      if (addrRes.ok) {
+        const addrData = await addrRes.json()
+        setAddresses(addrData)
+        const def = addrData.find((a: Address) => a.isDefault)
+        if (def) setSelectedAddressId(def.id)
+        else if (addrData.length > 0) setSelectedAddressId(addrData[0].id)
+      }
     }
 
     setLoading(false)
-  }, [router])
+  }, [router, status])
 
   useEffect(() => {
-    if (status === 'unauthenticated') { router.push('/giris?redirect=/odeme'); return }
-    if (status === 'authenticated') loadData()
+    if (status === 'loading') return
+    if (status === 'authenticated') { setIsGuest(false); loadData(); return }
+    // Misafir: "Kayıt Olmadan Devam Et" ile gelindiyse devam et, yoksa girişe yönlendir
+    const guestFlag = typeof window !== 'undefined' && sessionStorage.getItem('guestCheckout') === '1'
+    if (guestFlag) { setIsGuest(true); loadData(); return }
+    router.push('/giris?redirect=/odeme')
   }, [status, loadData, router])
 
   const handleAddAddress = async () => {
@@ -160,8 +171,21 @@ export default function OdemePage() {
   }
 
   const handlePayment = async () => {
-    if (!selectedAddressId) { toast.error('Lütfen bir adres seçin.'); return }
     if (items.length === 0) { toast.error('Sepetiniz boş.'); return }
+
+    // Adres/iletişim doğrulaması — üye veya misafir
+    if (isGuest) {
+      const g = guestInfo
+      if (!g.fullName || !g.email || !g.phone || !g.city || !g.district || !g.address) {
+        toast.error('Lütfen iletişim ve teslimat bilgilerinizi eksiksiz doldurun.'); return
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(g.email.trim())) {
+        toast.error('Geçerli bir e-posta adresi girin.'); return
+      }
+    } else if (!selectedAddressId) {
+      toast.error('Lütfen bir adres seçin.'); return
+    }
+
     if (invoiceType === 'CORPORATE') {
       if (!invoiceData.companyName || !invoiceData.taxNumber || !invoiceData.taxOffice || !invoiceData.billingCity || !invoiceData.billingDistrict || !invoiceData.billingAddress) {
         toast.error('Kurumsal fatura bilgilerini eksiksiz doldurun.'); return
@@ -175,7 +199,8 @@ export default function OdemePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           items: items.map(i => ({ productId: i.productId, quantity: i.quantity, unitPrice: getUnitPrice(i) })),
-          addressId: selectedAddressId,
+          addressId: isGuest ? null : selectedAddressId,
+          guest: isGuest ? guestInfo : null,
           notes,
           invoiceType,
           giftCampaign: giftCampaign || null,
@@ -184,6 +209,7 @@ export default function OdemePage() {
       })
       const data = await res.json()
       if (!res.ok) { toast.error(data.error || 'Ödeme başlatılamadı.'); setSubmitting(false); return }
+      if (isGuest) sessionStorage.removeItem('guestCheckout')
       router.push(`/odeme/iframe?token=${data.token}`)
     } catch {
       toast.error('Bir hata oluştu.')
@@ -208,12 +234,41 @@ export default function OdemePage() {
         <div className="lg:col-span-2 space-y-6">
           <div className="card p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold flex items-center gap-2"><FiMapPin className="text-primary-500" /> Teslimat Adresi</h2>
-              <button onClick={() => setShowNewAddress(!showNewAddress)} className="btn-secondary text-sm gap-1">
-                <FiPlus className="w-4 h-4" /> Yeni Adres
-              </button>
+              <h2 className="font-semibold flex items-center gap-2"><FiMapPin className="text-primary-500" /> {isGuest ? 'İletişim & Teslimat Bilgileri' : 'Teslimat Adresi'}</h2>
+              {!isGuest && (
+                <button onClick={() => setShowNewAddress(!showNewAddress)} className="btn-secondary text-sm gap-1">
+                  <FiPlus className="w-4 h-4" /> Yeni Adres
+                </button>
+              )}
             </div>
 
+            {/* MİSAFİR FORMU */}
+            {isGuest ? (
+              <div>
+                <div className="flex items-center gap-2 mb-4 text-xs bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-blue-700">
+                  <span>👤</span>
+                  <span>Misafir olarak devam ediyorsunuz. Üyeyseniz <Link href="/giris?redirect=/odeme" className="font-bold underline">giriş yapın</Link>, adresleriniz hazır gelsin.</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div><label className="text-xs font-medium text-gray-600 block mb-1">Ad Soyad *</label>
+                    <input className="input-field text-sm" value={guestInfo.fullName} onChange={e => setGuestInfo({...guestInfo, fullName: e.target.value})} placeholder="Adınız Soyadınız" /></div>
+                  <div><label className="text-xs font-medium text-gray-600 block mb-1">E-posta *</label>
+                    <input type="email" className="input-field text-sm" value={guestInfo.email} onChange={e => setGuestInfo({...guestInfo, email: e.target.value})} placeholder="ornek@eposta.com" /></div>
+                  <div><label className="text-xs font-medium text-gray-600 block mb-1">Telefon *</label>
+                    <input className="input-field text-sm" value={guestInfo.phone} onChange={e => setGuestInfo({...guestInfo, phone: e.target.value})} placeholder="05XX XXX XX XX" /></div>
+                  <div><label className="text-xs font-medium text-gray-600 block mb-1">İl *</label>
+                    <input className="input-field text-sm" value={guestInfo.city} onChange={e => setGuestInfo({...guestInfo, city: e.target.value})} /></div>
+                  <div><label className="text-xs font-medium text-gray-600 block mb-1">İlçe *</label>
+                    <input className="input-field text-sm" value={guestInfo.district} onChange={e => setGuestInfo({...guestInfo, district: e.target.value})} /></div>
+                  <div><label className="text-xs font-medium text-gray-600 block mb-1">Posta Kodu</label>
+                    <input className="input-field text-sm" value={guestInfo.zipCode} onChange={e => setGuestInfo({...guestInfo, zipCode: e.target.value})} /></div>
+                  <div className="md:col-span-2"><label className="text-xs font-medium text-gray-600 block mb-1">Açık Adres *</label>
+                    <textarea className="input-field text-sm" rows={2} value={guestInfo.address} onChange={e => setGuestInfo({...guestInfo, address: e.target.value})} placeholder="Mahalle, cadde, sokak, kapı no..." /></div>
+                </div>
+                <p className="text-[11px] text-gray-400 mt-2">E-posta adresinize sipariş bilgileri ve fatura iletilecektir.</p>
+              </div>
+            ) : (
+            <>
             {showNewAddress && (
               <div className="border rounded-lg p-4 mb-4 bg-gray-50">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
@@ -259,6 +314,8 @@ export default function OdemePage() {
                 </label>
               ))}
             </div>
+            </>
+            )}
 
             <div className="mt-4">
               <label className="text-sm font-medium text-gray-700 block mb-1">Sipariş Notu (opsiyonel)</label>
@@ -417,7 +474,7 @@ export default function OdemePage() {
           </div>
           <button
             onClick={handlePayment}
-            disabled={submitting || !selectedAddressId}
+            disabled={submitting || (!isGuest && !selectedAddressId)}
             className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? 'Yönlendiriliyor...' : 'Ödemeye Geç'}

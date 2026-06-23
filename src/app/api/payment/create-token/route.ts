@@ -5,30 +5,70 @@ import { prisma } from '@/lib/prisma'
 import { getActiveCampaignsForProduct } from '@/lib/campaignPricing'
 import { getPriceTiersForProduct } from '@/lib/tierPricing'
 import { resolveBestPrice } from '@/lib/bestPrice'
+import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Giriş yapmanız gerekiyor.' }, { status: 401 })
-    }
 
-    const { items, addressId, notes, invoiceType, companyName, taxNumber, taxOffice, billingCity, billingDistrict, billingAddress, giftCampaign } = await req.json()
+    const { items, addressId, notes, invoiceType, companyName, taxNumber, taxOffice, billingCity, billingDistrict, billingAddress, giftCampaign, guest } = await req.json()
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: 'Sepet boş.' }, { status: 400 })
     }
-    if (!addressId) {
-      return NextResponse.json({ error: 'Adres seçiniz.' }, { status: 400 })
-    }
 
-    // Adresi çek
-    const address = await prisma.address.findFirst({
-      where: { id: addressId, userId: session.user.id },
-    })
-    if (!address) {
-      return NextResponse.json({ error: 'Adres bulunamadı.' }, { status: 404 })
+    // Sipariş sahibini belirle — üye girişi veya misafir
+    let userId: string
+    let buyerEmail: string
+    let buyerName: string
+    let buyerPhone: string
+    let shippingAddressStr: string
+
+    if (session?.user?.id) {
+      // Üye girişi: kayıtlı adresi kullan
+      if (!addressId) {
+        return NextResponse.json({ error: 'Adres seçiniz.' }, { status: 400 })
+      }
+      const address = await prisma.address.findFirst({
+        where: { id: addressId, userId: session.user.id },
+      })
+      if (!address) {
+        return NextResponse.json({ error: 'Adres bulunamadı.' }, { status: 404 })
+      }
+      userId = session.user.id
+      buyerEmail = session.user.email!
+      buyerName = session.user.name || address.fullName
+      buyerPhone = address.phone
+      shippingAddressStr = `${address.fullName}, ${address.address}, ${address.district}/${address.city} ${address.zipCode || ''} - ${address.phone}`
+    } else {
+      // Misafir ödemesi: e-posta ile arka planda hesap aç/bul (kullanıcı şifre girmez)
+      if (!guest?.fullName || !guest?.email || !guest?.phone || !guest?.address || !guest?.city || !guest?.district) {
+        return NextResponse.json({ error: 'Lütfen iletişim ve teslimat bilgilerinizi eksiksiz doldurun.' }, { status: 400 })
+      }
+      const email = String(guest.email).trim().toLowerCase()
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return NextResponse.json({ error: 'Geçerli bir e-posta adresi girin.' }, { status: 400 })
+      }
+      let user = await prisma.user.findUnique({ where: { email } })
+      if (!user) {
+        const randomPassword = await bcrypt.hash(`${crypto.randomUUID()}-${Date.now()}`, 10)
+        user = await prisma.user.create({
+          data: { email, name: guest.fullName, phone: guest.phone, password: randomPassword, role: 'CUSTOMER' },
+        })
+        // Adresi kaydet — sonraki siparişlerde hazır gelsin
+        await prisma.address.create({
+          data: {
+            userId: user.id, title: 'Teslimat Adresi', fullName: guest.fullName, phone: guest.phone,
+            city: guest.city, district: guest.district, address: guest.address, zipCode: guest.zipCode || null, isDefault: true,
+          },
+        })
+      }
+      userId = user.id
+      buyerEmail = email
+      buyerName = guest.fullName
+      buyerPhone = guest.phone
+      shippingAddressStr = `${guest.fullName}, ${guest.address}, ${guest.district}/${guest.city} ${guest.zipCode || ''} - ${guest.phone}`
     }
 
     // Ürünleri ve fiyatları doğrula
@@ -61,13 +101,11 @@ export async function POST(req: NextRequest) {
     const orderNumber = `ORD${timestamp}${random}`
     const merchantOid = orderNumber // Zaten alfanumerik
 
-    const shippingAddressStr = `${address.fullName}, ${address.address}, ${address.district}/${address.city} ${address.zipCode || ''} - ${address.phone}`
-
     // DB'ye PENDING sipariş kaydet
     const order = await (prisma as any).order.create({
       data: {
         orderNumber,
-        userId: session.user.id,
+        userId,
         status: 'PENDING',
         paymentStatus: 'PENDING',
         paytrMerchantOid: merchantOid,
@@ -98,7 +136,7 @@ export async function POST(req: NextRequest) {
     }
 
     const userIp = req.headers.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1'
-    const email = session.user.email!
+    const email = buyerEmail
     // PayTR kuruş cinsinden integer bekler, nokta/ondalık olmamalı
     const paymentAmount = Math.round(totalAmount * 100)
     if (paymentAmount <= 0) {
@@ -148,9 +186,9 @@ export async function POST(req: NextRequest) {
     params.append('debug_on', process.env.PAYTR_DEBUG || '0')
     params.append('no_installment', noInstallment)
     params.append('max_installment', maxInstallment)
-    params.append('user_name', session.user.name || '')
+    params.append('user_name', buyerName || '')
     params.append('user_address', shippingAddressStr)
-    params.append('user_phone', address.phone)
+    params.append('user_phone', buyerPhone)
     params.append('merchant_ok_url', `${process.env.NEXTAUTH_URL || 'https://mekanikparcadeposu.com'}/odeme/basarili?orderId=${order.id}`)
     params.append('merchant_fail_url', `${process.env.NEXTAUTH_URL || 'https://mekanikparcadeposu.com'}/odeme/basarisiz`)
     params.append('timeout_limit', '30')

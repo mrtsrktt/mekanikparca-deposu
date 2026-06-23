@@ -1,7 +1,7 @@
 'use client'
 
 import { signIn } from 'next-auth/react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
@@ -10,6 +10,17 @@ export default function LoginPage() {
   const router = useRouter()
   const [form, setForm] = useState({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
+  const [redirectTo, setRedirectTo] = useState('/')
+  const [isCheckoutFlow, setIsCheckoutFlow] = useState(false)
+
+  // redirect parametresini oku (örn. ödemeye geç → /giris?redirect=/odeme)
+  useEffect(() => {
+    const r = new URLSearchParams(window.location.search).get('redirect')
+    if (r) {
+      setRedirectTo(r)
+      setIsCheckoutFlow(r.startsWith('/odeme'))
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,9 +36,15 @@ export default function LoginPage() {
       toast.error('E-posta veya şifre hatalı.')
     } else {
       toast.success('Giriş başarılı!')
-      router.push('/')
+      router.push(redirectTo)
       router.refresh()
     }
+  }
+
+  // Kayıt olmadan misafir olarak devam et
+  const handleGuestContinue = () => {
+    sessionStorage.setItem('guestCheckout', '1')
+    router.push(redirectTo)
   }
 
   return (
@@ -55,6 +72,26 @@ export default function LoginPage() {
             {loading ? 'Giriş yapılıyor...' : 'Giriş Yap'}
           </button>
         </form>
+
+        {/* Misafir devam — ödeme akışında göster */}
+        {isCheckoutFlow && (
+          <div className="mt-5">
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200" /></div>
+              <div className="relative flex justify-center"><span className="bg-white px-3 text-xs text-gray-400">veya</span></div>
+            </div>
+            <button
+              onClick={handleGuestContinue}
+              className="w-full border-2 border-primary-500 text-primary-600 hover:bg-primary-50 font-bold py-3 rounded-lg transition-colors"
+            >
+              Kayıt Olmadan Devam Et →
+            </button>
+            <p className="text-xs text-gray-400 text-center mt-2">
+              Üyelik gerekmez — bilgilerinizi girip hızlıca ödemeye geçin.
+            </p>
+          </div>
+        )}
+
         <div className="mt-6 text-center text-sm text-gray-500">
           <p>Hesabınız yok mu? <Link href="/kayit" className="text-primary-500 hover:underline">Kayıt Ol</Link></p>
         </div>
