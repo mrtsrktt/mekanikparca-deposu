@@ -346,6 +346,15 @@ export default function GiftCampaignPage() {
   const waMessage = encodeURIComponent(`Merhaba, "${campaign.giftName}" kampanyası için detaylı bilgi almak istiyorum.`)
   const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${waMessage}`
 
+  // Ana hedef adet: grupların en sık görülen eşiği (örn. A/B/C=100, D=25 → 100)
+  const groupThresholds = campaign.groups.map(g => g.threshold)
+  const thresholdCounts: Record<number, number> = {}
+  groupThresholds.forEach(t => { thresholdCounts[t] = (thresholdCounts[t] || 0) + 1 })
+  const mainThreshold = Number(
+    Object.entries(thresholdCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || groupThresholds[0] || 0
+  )
+  const allThresholdsSame = Object.keys(thresholdCounts).length <= 1
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ================================================================ */}
@@ -630,16 +639,30 @@ export default function GiftCampaignPage() {
           </div>
         </a>
 
-        {/* Description banner */}
-        {campaign.description && (
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-50 via-orange-50 to-yellow-50 border border-amber-200 p-5 mb-8">
-            <div className="absolute top-0 right-0 text-6xl opacity-10">🎁</div>
-            <div className="relative">
-              <h2 className="text-lg font-bold text-amber-800 mb-1">📢 Kampanya Detayları</h2>
-              <p className="text-sm text-amber-700 leading-relaxed">{campaign.description}</p>
+        {/* Nasıl Kazanılır — net ve belirgin bilgi */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-100 via-orange-100 to-amber-100 border-2 border-amber-300 p-5 md:p-6 mb-8 shadow-md">
+          <div className="absolute -top-5 -right-3 text-7xl opacity-10 rotate-12 pointer-events-none">🎁</div>
+          <div className="relative flex items-start gap-4">
+            <div className="flex-shrink-0 w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-400/30">
+              <FiGift className="w-6 h-6 md:w-7 md:h-7 text-white" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-xs font-bold text-amber-600 uppercase tracking-[0.15em] mb-1.5">Nasıl Hediye Kazanılır?</h2>
+              <p className="text-lg md:text-2xl font-black text-gray-900 leading-snug">
+                Aşağıdaki ürünlerden{' '}
+                {allThresholdsSame ? 'toplam ' : 'bir grupta '}
+                <span className="text-orange-600">{mainThreshold} adet</span> alın,{' '}
+                <span className="text-green-600">{campaign.giftName}</span>
+                {campaign.giftQuantity > 1 ? ` (${campaign.giftQuantity} adet)` : ''} hediye kazanın!
+              </p>
+              {!allThresholdsSame && (
+                <p className="text-sm text-amber-700 mt-2 font-medium">
+                  ℹ️ Bazı ürün gruplarında daha az adet yeterli — aşağıdaki gruplardan size uygun olanı seçin.
+                </p>
+              )}
             </div>
           </div>
-        )}
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* ============================================================ */}
