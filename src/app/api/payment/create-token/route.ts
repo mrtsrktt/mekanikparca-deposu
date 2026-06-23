@@ -162,7 +162,7 @@ export async function POST(req: NextRequest) {
     const userBasket = Buffer.from(JSON.stringify(basketItems)).toString('base64')
 
     const noInstallment = '0'
-    const maxInstallment = '0'
+    const maxInstallment = '6' // En fazla 6 taksit göster (peşin fiyatına 6 taksit)
     const currency = 'TL'
     const testMode = process.env.PAYTR_TEST_MODE || '0'
     const lang = 'tr'
