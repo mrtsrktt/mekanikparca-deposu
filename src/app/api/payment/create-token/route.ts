@@ -199,23 +199,11 @@ export async function POST(req: NextRequest) {
     }
     const userBasket = Buffer.from(JSON.stringify(basketItems)).toString('base64')
 
-    // Taksit yalnızca SUNUCU TARAFINDA doğrulanmış hediye kampanyası siparişlerinde açık
-    // (peşin fiyatına 6 taksit). Kampanya dışı / eşiği karşılamayan siparişlerde tek çekim
-    // zorunlu — istemci ne gönderirse göndersin (bayat localStorage / önbellek korumalı).
-    const isGiftCampaign = !!validatedGift
-    const noInstallment = isGiftCampaign ? '0' : '1' // PayTR: 1 = taksit yok (tek çekim)
-    const maxInstallment = isGiftCampaign ? '6' : '0' // tek çekimde etkisiz (0)
-
-    // TEŞHİS LOGU: gerçekte PayTR'ye hangi taksit kararı gidiyor?
-    console.log('PayTR installment decision:', JSON.stringify({
-      merchantOid,
-      clientGiftCampaignId: giftCampaign?.campaignId ?? null,
-      validatedGift: isGiftCampaign,
-      noInstallment,
-      maxInstallment,
-      items: orderItems.map((i) => ({ id: i.productId, q: i.quantity })),
-      totalAmount,
-    }))
+    // Tüm siparişlerde peşin fiyatına 6 taksit açık (kampanya/kampanya dışı fark etmez).
+    // Not: PayTR mağaza paneli taksit kampanyasını zaten mağaza-geneli uyguladığı için
+    // taksiti yalnızca kampanyada sınırlamak mümkün değildi; bu yüzden tüm ürünlerde açık.
+    const noInstallment = '0' // taksit açık
+    const maxInstallment = '6' // en fazla 6 taksit
     const currency = 'TL'
     const testMode = process.env.PAYTR_TEST_MODE || '0'
     const lang = 'tr'
