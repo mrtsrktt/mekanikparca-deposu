@@ -205,6 +205,17 @@ export async function POST(req: NextRequest) {
     const isGiftCampaign = !!validatedGift
     const noInstallment = isGiftCampaign ? '0' : '1' // PayTR: 1 = taksit yok (tek çekim)
     const maxInstallment = isGiftCampaign ? '6' : '0' // tek çekimde etkisiz (0)
+
+    // TEŞHİS LOGU: gerçekte PayTR'ye hangi taksit kararı gidiyor?
+    console.log('PayTR installment decision:', JSON.stringify({
+      merchantOid,
+      clientGiftCampaignId: giftCampaign?.campaignId ?? null,
+      validatedGift: isGiftCampaign,
+      noInstallment,
+      maxInstallment,
+      items: orderItems.map((i) => ({ id: i.productId, q: i.quantity })),
+      totalAmount,
+    }))
     const currency = 'TL'
     const testMode = process.env.PAYTR_TEST_MODE || '0'
     const lang = 'tr'
