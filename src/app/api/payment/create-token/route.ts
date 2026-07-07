@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { getActiveCampaignsForProduct } from '@/lib/campaignPricing'
 import { getPriceTiersForProduct } from '@/lib/tierPricing'
 import { resolveBestPrice } from '@/lib/bestPrice'
+import { applySalePrice } from '@/lib/pricing'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 
@@ -97,7 +98,8 @@ export async function POST(req: NextRequest) {
       const campaigns = await getActiveCampaignsForProduct(product.id)
       const { tiers: priceTiers, boxQuantity } = await getPriceTiersForProduct(product.id)
       const bestPrice = resolveBestPrice(product.priceTRY, item.quantity, campaigns, priceTiers, boxQuantity)
-      const unitPrice = bestPrice.finalUnitPriceTRY
+      // Taban fiyata %20 KDV + %4 PayTR komisyonu ekle (sitede gösterilen satış fiyatı)
+      const unitPrice = applySalePrice(bestPrice.finalUnitPriceTRY)
 
       const total = unitPrice * item.quantity
       totalAmount += total

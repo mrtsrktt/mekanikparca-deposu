@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getActiveCampaignsForProduct } from '@/lib/campaignPricing'
 import { getPriceTiersForProduct } from '@/lib/tierPricing'
 import { resolveBestPrice } from '@/lib/bestPrice'
+import { applySalePrice } from '@/lib/pricing'
 import { prisma } from '@/lib/prisma'
 
 export async function POST(req: NextRequest) {
@@ -34,13 +35,14 @@ export async function POST(req: NextRequest) {
       return {
         productId: item.productId,
         quantity: item.quantity,
-        originalPrice: bestPrice.originalPriceTRY,
-        discountedPrice: bestPrice.finalUnitPriceTRY,
+        // Satış fiyatı = taban + %20 KDV + %4 PayTR komisyonu (PayTR tahsilatıyla birebir aynı)
+        originalPrice: applySalePrice(bestPrice.originalPriceTRY),
+        discountedPrice: applySalePrice(bestPrice.finalUnitPriceTRY),
         source: bestPrice.source,
         // Kampanya bilgileri (geriye uyumlu)
         appliedCampaign: bestPrice.campaignResult?.appliedCampaign || null,
         appliedTier: bestPrice.campaignResult?.appliedTier || null,
-        totalSavings: bestPrice.totalSavingsPerUnit * item.quantity,
+        totalSavings: applySalePrice(bestPrice.totalSavingsPerUnit) * item.quantity,
         // Kademe bilgileri
         appliedPriceTier: bestPrice.tierResult?.appliedTier || null,
         boxQuantity: boxQuantity,

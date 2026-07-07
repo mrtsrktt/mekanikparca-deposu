@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import { formatPrice } from '@/lib/pricing'
+import { formatPrice, applySalePrice } from '@/lib/pricing'
 import { getActiveCampaignsForProduct } from '@/lib/campaignPricing'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -47,12 +47,13 @@ export default async function ProductDetailPage({ params }: Props) {
     where: { productId: product.id },
     orderBy: { minQuantity: 'asc' },
   })
+  // Kademe fiyatları da satış fiyatına çevrilir (taban + %20 KDV + %4 PayTR komisyonu)
   const priceTiersData = priceTiers.map(t => ({
     minQuantity: t.minQuantity,
-    unitPriceTRY: t.unitPriceTRY,
+    unitPriceTRY: applySalePrice(t.unitPriceTRY),
   }))
 
-  // En ucuz kademe fiyatını bul (toplan fiyatı)
+  // En ucuz kademe fiyatını bul (toplu fiyatı)
   const cheapestTierPrice = priceTiers.length > 0
     ? Math.min(...priceTiers.map(t => t.unitPriceTRY))
     : null
@@ -61,10 +62,11 @@ export default async function ProductDetailPage({ params }: Props) {
     : priceTRY
   const hasTierDiscount = cheapestTierPrice !== null && cheapestTierPrice < priceTRY
 
+  // Gösterilen ve tahsil edilen fiyat = satış fiyatı (taban × 1,248). PayTR de aynısını çeker.
   const productWithConvertedPrice = {
     ...product,
-    priceTRY: displayPrice,
-    retailPriceTRY: priceTRY,
+    priceTRY: applySalePrice(displayPrice),
+    retailPriceTRY: applySalePrice(priceTRY),
     hasTierDiscount,
   }
 
@@ -217,42 +219,20 @@ export default async function ProductDetailPage({ params }: Props) {
             <p className="text-sm text-gray-500 mb-4">Stok Kodu: {productWithConvertedPrice.sku}</p>
           )}
 
-          {/* Pricing */}
-          {productWithConvertedPrice.slug === 'testo-760-1-multimetre-testo-760-1-dijital-multimetre' ? (
-            /* === DEMO: tek fiyat = taban + %20 KDV + %4 PayTR komisyonu === */
-            (() => {
-              const base = productWithConvertedPrice.priceTRY // admin'de kayıtlı taban fiyat
-              const KDV = 0.20        // %20 KDV
-              const KOMISYON = 0.04   // %4 PayTR komisyonu
-              const total = base * (1 + KDV) * (1 + KOMISYON)
-              return (
-                <div className="bg-gray-50 rounded-xl p-6 mb-6">
-                  <div className="flex items-baseline gap-2.5 flex-wrap">
-                    <span className="text-3xl md:text-4xl font-black text-primary-500">{formatPrice(total)}</span>
-                    <span className="text-sm font-semibold text-gray-500">KDV Dahildir</span>
-                  </div>
-                </div>
-              )
-            })()
-          ) : (
-            <div className="bg-gray-50 rounded-xl p-6 mb-6">
-              <div className="flex items-baseline gap-3 flex-wrap">
-                <span className="text-3xl font-bold text-primary-500">
-                  {formatPrice(productWithConvertedPrice.priceTRY)}
+          {/* Pricing — satış fiyatı (%20 KDV + %4 PayTR komisyonu dahil) */}
+          <div className="bg-gray-50 rounded-xl p-6 mb-6">
+            <div className="flex items-baseline gap-2.5 flex-wrap">
+              <span className="text-3xl md:text-4xl font-black text-primary-500">
+                {formatPrice(productWithConvertedPrice.priceTRY)}
+              </span>
+              <span className="text-sm font-semibold text-gray-500">KDV Dahildir</span>
+              {productWithConvertedPrice.hasTierDiscount && (
+                <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                  Toplu alımda daha uygun
                 </span>
-                {productWithConvertedPrice.hasTierDiscount && (
-                  <>
-                    <span className="text-lg text-gray-400 line-through">
-                      {formatPrice(productWithConvertedPrice.retailPriceTRY)}
-                    </span>
-                    <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
-                      {`'den başlayan`}
-                    </span>
-                  </>
-                )}
-              </div>
+              )}
             </div>
-          )}
+          </div>
 
           {/* Stock */}
           <div className="mb-6 flex flex-wrap items-center gap-3">

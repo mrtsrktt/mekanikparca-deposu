@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { applySalePrice } from '@/lib/pricing'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,12 +33,13 @@ export async function GET(req: Request) {
     orderBy: { name: 'asc' },
   })
 
-  // En ucuz kademe fiyatı varsa onu kullan
+  // En ucuz kademe fiyatı varsa onu kullan + satış fiyatına çevir (KDV + PayTR komisyonu dahil)
   const enriched = products.map(p => {
     const cheapestTier = p.priceTiers?.[0]?.unitPriceTRY
+    const base = cheapestTier && cheapestTier < p.priceTRY ? cheapestTier : p.priceTRY
     return {
       ...p,
-      priceTRY: cheapestTier && cheapestTier < p.priceTRY ? cheapestTier : p.priceTRY,
+      priceTRY: applySalePrice(base),
       priceTiers: undefined, // client'a gönderme
     }
   })

@@ -22,6 +22,20 @@ export async function recalculateProductPrices(currency: string, rate: number) {
   }
 }
 
+// ============================================================
+// Satış fiyatı = admin'de kayıtlı taban fiyat + %20 KDV + %4 PayTR komisyonu
+// Tek kaynak: hem gösterimde hem PayTR tahsilatında bu fonksiyon kullanılır.
+// Admin taban fiyatı değiştirince satış fiyatı otomatik güncellenir.
+// Oran değişirse yalnızca buradaki sabitler güncellenir.
+// ============================================================
+export const SALE_KDV_RATE = 0.20        // %20 KDV
+export const SALE_COMMISSION_RATE = 0.04  // %4 PayTR komisyonu
+export const SALE_MULTIPLIER = (1 + SALE_KDV_RATE) * (1 + SALE_COMMISSION_RATE) // 1.248
+
+export function applySalePrice(baseTRY: number): number {
+  return Math.round(baseTRY * SALE_MULTIPLIER * 100) / 100
+}
+
 export function formatPrice(amount: number, currency: string = 'TRY'): string {
   const cur = currency === 'TL' ? 'TRY' : currency
   return new Intl.NumberFormat('tr-TR', {

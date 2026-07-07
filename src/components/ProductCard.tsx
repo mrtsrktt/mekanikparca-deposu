@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { formatPrice } from '@/lib/pricing'
+import { formatPrice, applySalePrice } from '@/lib/pricing'
 import { FiShoppingCart, FiEye, FiCheck } from 'react-icons/fi'
 import CampaignBadge from './CampaignBadge'
 import { getStorageArray } from '@/lib/safeStorage'
@@ -75,15 +75,15 @@ export default function ProductCard({ product, hasCampaign, campaignLowestPrice,
             {hasAnyDiscount ? (
               <>
                 <span className="text-xs text-gray-400 line-through block">
-                  {formatPrice(product.priceTRY)}
+                  {formatPrice(applySalePrice(product.priceTRY))}
                 </span>
                 <span className={`text-sm font-bold ${hasCampaignDiscount && (!hasTierDiscount || campaignLowestPrice <= tierLowestPrice) ? 'text-red-500' : 'text-blue-600'}`}>
-                  {formatPrice(bestLowestPrice)} <span className="text-[10px] font-normal opacity-70">&#39;den başlayan</span>
+                  {formatPrice(applySalePrice(bestLowestPrice))} <span className="text-[10px] font-normal opacity-70">&#39;den başlayan</span>
                 </span>
               </>
             ) : (
               <span className="text-lg font-bold text-primary-500">
-                {formatPrice(product.priceTRY)}
+                {formatPrice(applySalePrice(product.priceTRY))} <span className="text-[10px] font-normal text-gray-400">KDV Dahil</span>
               </span>
             )}
           </div>
@@ -117,7 +117,7 @@ export default function ProductCard({ product, hasCampaign, campaignLowestPrice,
                 }
                 localStorage.setItem('cart', JSON.stringify(cart))
                 window.dispatchEvent(new Event('cart-updated'))
-                trackAddToCart(product.name, product.id, product.priceTRY)
+                trackAddToCart(product.name, product.id, applySalePrice(product.priceTRY))
 
                 // Toast bildirimi göster
                 toast.custom((t) => (

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { formatPrice } from '@/lib/pricing'
+import { formatPrice, applySalePrice } from '@/lib/pricing'
 import type { BrandContent } from '@/lib/brand-content'
 import { parseKvaFromName } from '@/lib/brand-content'
 import BrandAddToCartButton from './BrandAddToCartButton'
@@ -77,7 +77,7 @@ export default function BrandLandingPage({ brand, brandRecord, products }: Props
       offers: {
         '@type': 'Offer',
         priceCurrency: 'TRY',
-        price: p.retailPriceTRY ?? p.priceTRY,
+        price: applySalePrice(p.retailPriceTRY ?? p.priceTRY),
         availability:
           p.trackStock !== false && p.stock === 0
             ? 'https://schema.org/OutOfStock'
@@ -377,12 +377,13 @@ export default function BrandLandingPage({ brand, brandRecord, products }: Props
                                 Fiyat
                               </div>
                               <div className="text-2xl md:text-[1.75rem] font-bold text-slate-900 tabular-nums leading-tight">
-                                {formatPrice(p.priceTRY)}
+                                {formatPrice(applySalePrice(p.priceTRY))}
+                                <span className="text-[11px] font-normal text-slate-400 ml-1">KDV Dahil</span>
                                 {p.retailPriceTRY && p.retailPriceTRY > p.priceTRY && (
                                   <>
                                     {' '}
                                     <span className="text-sm font-normal text-slate-400 line-through">
-                                      {formatPrice(p.retailPriceTRY)}
+                                      {formatPrice(applySalePrice(p.retailPriceTRY))}
                                     </span>
                                   </>
                                 )}

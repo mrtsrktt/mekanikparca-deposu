@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { applySalePrice } from '@/lib/pricing'
 
 export async function GET(req: Request, { params }: { params: { slug: string } }) {
   // slug veya id ile arama yap
@@ -42,10 +43,13 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
     ? cheapestTierPrice
     : retailPriceTRY
 
+  // Satış fiyatı = taban + %20 KDV + %4 PayTR komisyonu. Kademe fiyatları da çevrilir.
+  // Sepet, ödeme ve PayTR ile birebir aynı tutar.
   return NextResponse.json({
     ...product,
-    priceTRY: displayPrice,
-    retailPriceTRY,
+    priceTRY: applySalePrice(displayPrice),
+    retailPriceTRY: applySalePrice(retailPriceTRY),
     hasTierDiscount: cheapestTierPrice !== null && cheapestTierPrice < retailPriceTRY,
+    priceTiers: product.priceTiers?.map(t => ({ ...t, unitPriceTRY: applySalePrice(t.unitPriceTRY) })),
   })
 }
