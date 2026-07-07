@@ -83,6 +83,7 @@ export default function CartPage() {
     const updated = items.map(i => i.productId === productId ? { ...i, quantity } : i)
     setItems(updated)
     localStorage.setItem('cart', JSON.stringify(updated.map(({ productId, quantity }) => ({ productId, quantity }))))
+    window.dispatchEvent(new Event('cart-updated')) // sepet ikonundaki sayı güncellensin
 
     // Recalculate campaign prices
     try {
@@ -107,6 +108,7 @@ export default function CartPage() {
     const updated = items.filter(i => i.productId !== productId)
     setItems(updated)
     localStorage.setItem('cart', JSON.stringify(updated.map(({ productId, quantity }) => ({ productId, quantity }))))
+    window.dispatchEvent(new Event('cart-updated')) // sepet ikonundaki sayı güncellensin
   }
 
   // Birim fiyat: adede göre hesaplanmış fiyatı (calculate/resolveBestPrice) kullan.
