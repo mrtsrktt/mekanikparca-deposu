@@ -255,10 +255,7 @@ export default async function ProductDetailPage({ params }: Props) {
                         <span className="text-3xl font-black text-slate-800">{formatPrice(krediKarti)}</span>
                       </div>
                       <p className="text-xs text-gray-500 mt-1.5">
-                        %20 KDV + %4 komisyon dahil
-                      </p>
-                      <p className="text-xs text-green-600 font-semibold mt-1">
-                        💳 Peşin fiyatına 6 taksit
+                        KDV Dahildir
                       </p>
                     </div>
                   </div>

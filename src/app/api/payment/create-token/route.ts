@@ -199,11 +199,11 @@ export async function POST(req: NextRequest) {
     }
     const userBasket = Buffer.from(JSON.stringify(basketItems)).toString('base64')
 
-    // Tüm siparişlerde peşin fiyatına 6 taksit açık (kampanya/kampanya dışı fark etmez).
-    // Not: PayTR mağaza paneli taksit kampanyasını zaten mağaza-geneli uyguladığı için
-    // taksiti yalnızca kampanyada sınırlamak mümkün değildi; bu yüzden tüm ürünlerde açık.
-    const noInstallment = '0' // taksit açık
-    const maxInstallment = '6' // en fazla 6 taksit
+    // Taksit KAPALI — tüm siparişlerde yalnızca tek çekim (hiçbir üründe taksit yok).
+    // Not: PayTR panelinde taksit kampanyası açıksa API'deki no_installment=1'e rağmen
+    // taksit gösterebilir; kesin kapatmak için PayTR mağaza panelinden de kapatılmalı.
+    const noInstallment = '1' // 1 = taksit yapılmasın (sadece tek çekim)
+    const maxInstallment = '0' // taksit kapalı olduğu için etkisiz
     const currency = 'TL'
     const testMode = process.env.PAYTR_TEST_MODE || '0'
     const lang = 'tr'
