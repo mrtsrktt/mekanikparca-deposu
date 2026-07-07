@@ -66,6 +66,17 @@ export default function OdemePage() {
     )
     const validItems = enriched.filter((i: CartItem) => i.product)
 
+    // Minimum sipariş adedini uygula — altındaki adetleri otomatik tamamla
+    let bumped = false
+    for (const item of validItems) {
+      const minQty = item.product?.minOrder && item.product.minOrder > 0 ? item.product.minOrder : 1
+      if (item.quantity < minQty) { item.quantity = minQty; bumped = true }
+    }
+    if (bumped) {
+      localStorage.setItem('cart', JSON.stringify(validItems.map(i => ({ productId: i.productId, quantity: i.quantity }))))
+      window.dispatchEvent(new Event('cart-updated'))
+    }
+
     // Fetch campaign prices
     if (validItems.length > 0) {
       try {

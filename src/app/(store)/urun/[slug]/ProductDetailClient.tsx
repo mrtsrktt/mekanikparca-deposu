@@ -38,12 +38,14 @@ interface Props {
   campaigns?: CampaignInfo[]
   boxQuantity?: number | null
   priceTiers?: PriceTierInfo[]
+  minOrder?: number
 }
 
-export default function ProductDetailClient({ productId, productName, stock, trackStock = true, priceTRY, retailPriceTRY, campaigns = [], boxQuantity, priceTiers = [] }: Props) {
+export default function ProductDetailClient({ productId, productName, stock, trackStock = true, priceTRY, retailPriceTRY, campaigns = [], boxQuantity, priceTiers = [], minOrder = 1 }: Props) {
   const { data: session } = useSession()
   const router = useRouter()
-  const [quantity, setQuantity] = useState(1)
+  const minQty = minOrder && minOrder > 0 ? minOrder : 1
+  const [quantity, setQuantity] = useState(minQty)
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const [isAdded, setIsAdded] = useState(false)
 
@@ -135,9 +137,9 @@ export default function ProductDetailClient({ productId, productName, stock, tra
       {priceTiers.length > 0 && boxQuantity && boxQuantity > 1 && (
         <div className="flex flex-wrap gap-2 mb-3">
           <span className="text-xs text-gray-500 self-center mr-1">Hızlı Seçim:</span>
-          <button type="button" onClick={() => setQuantity(1)}
-            className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors ${quantity === 1 ? 'bg-blue-500 text-white border-blue-500' : 'border-gray-300 hover:border-blue-400 text-gray-600'}`}>
-            1 Adet
+          <button type="button" onClick={() => setQuantity(minQty)}
+            className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors ${quantity === minQty ? 'bg-blue-500 text-white border-blue-500' : 'border-gray-300 hover:border-blue-400 text-gray-600'}`}>
+            {minQty} Adet
           </button>
           <button type="button" onClick={() => setQuantity(boxQuantity)}
             className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors ${quantity === boxQuantity ? 'bg-blue-500 text-white border-blue-500' : 'border-gray-300 hover:border-blue-400 text-gray-600'}`}>
@@ -152,20 +154,27 @@ export default function ProductDetailClient({ productId, productName, stock, tra
         </div>
       )}
 
+      {/* Minimum sipariş uyarısı */}
+      {minQty > 1 && (
+        <div className="mb-3 inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg">
+          ⚠️ Bu ürün minimum <strong>{minQty} adet</strong> sipariş edilebilir.
+        </div>
+      )}
+
       {/* Quantity & Add to Cart */}
       <div className="flex items-center gap-3 mb-4">
         <div className="flex items-center border rounded-lg">
           <button
-            onClick={() => setQuantity(Math.max(1, quantity - 1))}
+            onClick={() => setQuantity(Math.max(minQty, quantity - 1))}
             className="px-3 py-2 text-gray-600 hover:bg-gray-50"
             aria-label="Azalt"
           >-</button>
           <input
             type="number"
             value={quantity}
-            onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+            onChange={(e) => setQuantity(Math.max(minQty, parseInt(e.target.value) || minQty))}
             className="w-16 text-center border-x py-2"
-            min="1"
+            min={minQty}
           />
           <button
             onClick={() => setQuantity(quantity + 1)}

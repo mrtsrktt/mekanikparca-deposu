@@ -258,6 +258,7 @@ export default async function ProductDetailPage({ params }: Props) {
             campaigns={campaignsData}
             boxQuantity={product.boxQuantity}
             priceTiers={priceTiersData}
+            minOrder={(product as any).minOrder ?? 1}
           />
 
           {/* Technical Details (sadece enriched yoksa göster — enriched kendi techSpecs tablosunu render ediyor) */}

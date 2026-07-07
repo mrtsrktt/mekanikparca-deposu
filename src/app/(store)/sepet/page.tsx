@@ -37,6 +37,17 @@ export default function CartPage() {
     )
     const validItems = enriched.filter((i: CartItem) => i.product)
 
+    // Minimum sipariş adedini uygula — altındaki adetleri otomatik tamamla
+    let bumped = false
+    for (const item of validItems) {
+      const minQty = item.product?.minOrder && item.product.minOrder > 0 ? item.product.minOrder : 1
+      if (item.quantity < minQty) { item.quantity = minQty; bumped = true }
+    }
+    if (bumped) {
+      localStorage.setItem('cart', JSON.stringify(validItems.map(({ productId, quantity }) => ({ productId, quantity }))))
+      window.dispatchEvent(new Event('cart-updated'))
+    }
+
     // Fetch campaign prices
     if (validItems.length > 0) {
       try {
@@ -65,6 +76,10 @@ export default function CartPage() {
 
   const updateQuantity = async (productId: string, quantity: number) => {
     if (quantity < 1) return removeItem(productId)
+    // Minimum sipariş adedinin altına düşürme (silmek için çöp kutusu kullanılır)
+    const current = items.find(i => i.productId === productId)
+    const minQty = current?.product?.minOrder && current.product.minOrder > 0 ? current.product.minOrder : 1
+    if (quantity < minQty) quantity = minQty
     const updated = items.map(i => i.productId === productId ? { ...i, quantity } : i)
     setItems(updated)
     localStorage.setItem('cart', JSON.stringify(updated.map(({ productId, quantity }) => ({ productId, quantity }))))

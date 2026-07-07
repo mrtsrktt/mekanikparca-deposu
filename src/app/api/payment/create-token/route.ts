@@ -94,6 +94,12 @@ export async function POST(req: NextRequest) {
       const product = products.find((p) => p.id === item.productId)
       if (!product) return NextResponse.json({ error: `Ürün bulunamadı: ${item.productId}` }, { status: 400 })
 
+      // Minimum sipariş adedi kontrolü (istemci bypass edemesin)
+      const minOrder = (product as any).minOrder && (product as any).minOrder > 0 ? (product as any).minOrder : 1
+      if (item.quantity < minOrder) {
+        return NextResponse.json({ error: `"${product.name}" ürününden en az ${minOrder} adet sipariş edebilirsiniz. Lütfen sepetinizi güncelleyin.` }, { status: 400 })
+      }
+
       // En iyi fiyatı sunucu tarafında hesapla (kampanya + kademe)
       const campaigns = await getActiveCampaignsForProduct(product.id)
       const { tiers: priceTiers, boxQuantity } = await getPriceTiersForProduct(product.id)

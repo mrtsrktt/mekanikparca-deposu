@@ -20,6 +20,7 @@ interface ProductCardProps {
     category?: { name: string } | null
     stock: number
     trackStock?: boolean
+    minOrder?: number
   }
   hasCampaign?: boolean
   campaignLowestPrice?: number | null
@@ -107,13 +108,14 @@ export default function ProductCard({ product, hasCampaign, campaignLowestPrice,
                 
                 setIsAdding(true)
                 
-                // Sepete ekle
+                // Sepete ekle — minimum sipariş adedi kadar
+                const minQty = product.minOrder && product.minOrder > 0 ? product.minOrder : 1
                 const cart = getStorageArray('cart')
                 const existing = cart.find((item: any) => item.productId === product.id)
-                if (existing) { 
-                  existing.quantity += 1 
-                } else { 
-                  cart.push({ productId: product.id, quantity: 1 }) 
+                if (existing) {
+                  existing.quantity += minQty
+                } else {
+                  cart.push({ productId: product.id, quantity: minQty })
                 }
                 localStorage.setItem('cart', JSON.stringify(cart))
                 window.dispatchEvent(new Event('cart-updated'))
