@@ -1,11 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { FiShoppingCart, FiCheck } from 'react-icons/fi'
 import { getStorageArray } from '@/lib/safeStorage'
 import { trackAddToCart } from '@/lib/gtm'
-import toast from 'react-hot-toast'
 
 type Props = {
   productId: string
@@ -26,6 +25,7 @@ export default function BrandAddToCartButton({
   size = 'md',
   fullWidth,
 }: Props) {
+  const router = useRouter()
   const [isAdding, setIsAdding] = useState(false)
   const [added, setAdded] = useState(false)
 
@@ -45,43 +45,9 @@ export default function BrandAddToCartButton({
     window.dispatchEvent(new Event('cart-updated'))
     trackAddToCart(productName, productId, priceTRY)
 
-    toast.custom(
-      (t) => (
-        <div
-          className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
-        >
-          <div className="flex-1 w-0 p-4">
-            <div className="flex items-start">
-              <div className="flex-shrink-0 pt-0.5">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <FiCheck className="w-5 h-5 text-green-600" />
-                </div>
-              </div>
-              <div className="ml-3 flex-1">
-                <p className="text-sm font-medium text-gray-900">Ürün sepete eklendi!</p>
-                <p className="mt-1 text-sm text-gray-500">{productName}</p>
-              </div>
-            </div>
-          </div>
-          <div className="flex border-l border-gray-200">
-            <Link
-              href="/sepet"
-              onClick={() => toast.dismiss(t.id)}
-              className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-primary-600 hover:text-primary-500 focus:outline-none"
-            >
-              Sepete Git
-            </Link>
-          </div>
-        </div>
-      ),
-      { duration: 3000, position: 'top-right' }
-    )
-
-    setTimeout(() => {
-      setIsAdding(false)
-      setAdded(true)
-      setTimeout(() => setAdded(false), 1500)
-    }, 300)
+    // Sepete ekledikten sonra direkt sepet sayfasına git
+    setAdded(true)
+    router.push('/sepet')
   }
 
   const sizeCls =
