@@ -217,73 +217,52 @@ export default async function ProductDetailPage({ params }: Props) {
             <p className="text-sm text-gray-500 mb-4">Stok Kodu: {productWithConvertedPrice.sku}</p>
           )}
 
-          {/* Pricing */}
-          {productWithConvertedPrice.slug === 'testo-760-1-multimetre-testo-760-1-dijital-multimetre' ? (
-            /* === DEMO: Ödeme yöntemine göre iki fiyat === */
-            (() => {
-              const base = productWithConvertedPrice.priceTRY // taban fiyat (KDV hariç)
-              const KDV = 0.20
-              const KOMISYON = 0.04
-              const havaleKdvDahil = base * (1 + KDV)                 // havale: KDV dahil toplam
-              const krediKarti = base * (1 + KDV) * (1 + KOMISYON)    // kredi kartı: KDV + komisyon dahil
-              return (
-                <div className="mb-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {/* Havale / EFT */}
-                    <div className="relative rounded-2xl border-2 border-green-300 bg-gradient-to-br from-green-50 to-emerald-50 p-5">
-                      <div className="absolute -top-2.5 left-4 bg-green-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full">
-                        EN AVANTAJLI
-                      </div>
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-green-700 uppercase tracking-wide mb-2">
-                        🏦 Havale / EFT
-                      </div>
-                      <div className="flex items-baseline gap-1.5 flex-wrap">
-                        <span className="text-3xl font-black text-green-700">{formatPrice(base)}</span>
-                        <span className="text-sm font-bold text-green-600">+ KDV</span>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1.5">
-                        KDV dahil: <strong className="text-gray-700">{formatPrice(havaleKdvDahil)}</strong>
-                      </p>
+          {/* Pricing — ödeme yöntemine göre iki fiyat (tüm ürünlerde) */}
+          {(() => {
+            const base = productWithConvertedPrice.priceTRY // taban fiyat (KDV hariç)
+            const KDV = 0.20
+            const KOMISYON = 0.04
+            const havaleKdvDahil = base * (1 + KDV)                 // havale: KDV dahil toplam
+            const krediKarti = base * (1 + KDV) * (1 + KOMISYON)    // kredi kartı: KDV + komisyon dahil
+            return (
+              <div className="mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Havale / EFT */}
+                  <div className="relative rounded-2xl border-2 border-green-300 bg-gradient-to-br from-green-50 to-emerald-50 p-5">
+                    <div className="absolute -top-2.5 left-4 bg-green-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full">
+                      EN AVANTAJLI
                     </div>
-
-                    {/* Kredi Kartı */}
-                    <div className="rounded-2xl border-2 border-slate-200 bg-white p-5">
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">
-                        💳 Kredi Kartı
-                      </div>
-                      <div className="flex items-baseline gap-1.5 flex-wrap">
-                        <span className="text-3xl font-black text-slate-800">{formatPrice(krediKarti)}</span>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1.5">
-                        KDV Dahildir
-                      </p>
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-green-700 uppercase tracking-wide mb-2">
+                      🏦 Havale / EFT
                     </div>
+                    <div className="flex items-baseline gap-1.5 flex-wrap">
+                      <span className="text-3xl font-black text-green-700">{formatPrice(base)}</span>
+                      <span className="text-sm font-bold text-green-600">+ KDV</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1.5">
+                      KDV dahil: <strong className="text-gray-700">{formatPrice(havaleKdvDahil)}</strong>
+                    </p>
                   </div>
-                  <p className="text-[11px] text-gray-400 mt-2 text-center">
-                    Fiyatlar seçtiğiniz ödeme yöntemine göre değişir. Havale/EFT&apos;de KDV faturaya eklenir, kredi kartında toplam tutara dahildir.
-                  </p>
+
+                  {/* Kredi Kartı */}
+                  <div className="rounded-2xl border-2 border-slate-200 bg-white p-5">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">
+                      💳 Kredi Kartı
+                    </div>
+                    <div className="flex items-baseline gap-1.5 flex-wrap">
+                      <span className="text-3xl font-black text-slate-800">{formatPrice(krediKarti)}</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1.5">
+                      KDV Dahildir
+                    </p>
+                  </div>
                 </div>
-              )
-            })()
-          ) : (
-            <div className="bg-gray-50 rounded-xl p-6 mb-6">
-              <div className="flex items-baseline gap-3 flex-wrap">
-                <span className="text-3xl font-bold text-primary-500">
-                  {formatPrice(productWithConvertedPrice.priceTRY)}
-                </span>
-                {productWithConvertedPrice.hasTierDiscount && (
-                  <>
-                    <span className="text-lg text-gray-400 line-through">
-                      {formatPrice(productWithConvertedPrice.retailPriceTRY)}
-                    </span>
-                    <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
-                      {`'den başlayan`}
-                    </span>
-                  </>
-                )}
+                <p className="text-[11px] text-gray-400 mt-2 text-center">
+                  Fiyatlar seçtiğiniz ödeme yöntemine göre değişir. Havale/EFT&apos;de KDV faturaya eklenir, kredi kartında toplam tutara dahildir.
+                </p>
               </div>
-            </div>
-          )}
+            )
+          })()}
 
           {/* Stock */}
           <div className="mb-6 flex flex-wrap items-center gap-3">
