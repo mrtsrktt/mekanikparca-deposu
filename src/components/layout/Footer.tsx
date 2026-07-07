@@ -29,13 +29,12 @@ export default function Footer() {
                 { href: '/urunler', label: 'Ürünler' },
                 { href: '/kategoriler', label: 'Kategoriler' },
                 { href: '/markalar', label: 'Markalar' },
-                { href: '/kampanyalar', label: 'Kampanyalar', accent: true },
                 { href: '/blog', label: 'Blog' },
               ].map(item => (
                 <li key={item.href}>
-                  <Link href={item.href} className={`flex items-center gap-1.5 text-sm hover:text-white transition-colors group ${item.accent ? 'text-red-400' : ''}`}>
+                  <Link href={item.href} className="flex items-center gap-1.5 text-sm hover:text-white transition-colors group">
                     <FiChevronRight className="w-3 h-3 text-primary-400 group-hover:translate-x-0.5 transition-transform" />
-                    {item.accent && '🎁 '}{item.label}
+                    {item.label}
                   </Link>
                 </li>
               ))}

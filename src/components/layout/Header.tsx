@@ -260,11 +260,6 @@ export default function Header() {
                 )}
               </li>
 
-              <li>
-                <Link href="/kampanyalar" className="relative block px-4 py-3 text-white text-sm font-semibold bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 transition-all duration-200">
-                  🎁 Kampanyalar
-                </Link>
-              </li>
               {[
                 { href: '/blog', label: 'Blog' },
                 { href: '/hakkimizda', label: 'Hakkımızda' },
@@ -345,7 +340,6 @@ export default function Header() {
             )}
 
             <div className="border-t mt-3 pt-3 mx-4">
-              <Link href="/kampanyalar" className="block px-5 py-3 text-red-500 hover:bg-red-50 font-semibold rounded-lg transition-colors" onClick={() => setMobileOpen(false)}>🎁 Kampanyalar</Link>
               <Link href="/blog" className="block px-5 py-3 text-gray-700 hover:bg-gray-50 transition-colors" onClick={() => setMobileOpen(false)}>Blog</Link>
               <Link href="/hakkimizda" className="block px-5 py-3 text-gray-700 hover:bg-gray-50 transition-colors" onClick={() => setMobileOpen(false)}>Hakkımızda</Link>
               <Link href="/iletisim" className="block px-5 py-3 text-gray-700 hover:bg-gray-50 transition-colors" onClick={() => setMobileOpen(false)}>İletişim</Link>
