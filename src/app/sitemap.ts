@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma'
 
 const BASE_URL = 'https://mekanikparcadeposu.com'
 
+// Sitemap veritabanından güncel içerik aldığı için build sırasında değil, istek anında üretilir.
+export const dynamic = 'force-dynamic'
+
 // Statik sayfalar için sabit lastmod — her sitemap üretiminde "şimdi" yazmamak
 // için. Google "her gün değişiyor" yalanını güvenilmez bulup yok sayar.
 // İçerik gerçekten değişince bu tarihi manuel güncelleyin.
