@@ -207,11 +207,10 @@ export async function POST(req: NextRequest) {
     }
     const userBasket = Buffer.from(JSON.stringify(basketItems)).toString('base64')
 
-    // Taksit KAPALI — tüm siparişlerde yalnızca tek çekim (hiçbir üründe taksit yok).
-    // Not: PayTR panelinde taksit kampanyası açıksa API'deki no_installment=1'e rağmen
-    // taksit gösterebilir; kesin kapatmak için PayTR mağaza panelinden de kapatılmalı.
-    const noInstallment = '1' // 1 = taksit yapılmasın (sadece tek çekim)
-    const maxInstallment = '0' // taksit kapalı olduğu için etkisiz
+    // Normal taksit seçenekleri PayTR tarafından gösterilir; vade farkı müşteriye yansıtılır.
+    // PayTR panelindeki "peşin fiyatına taksit" ayarı kapalı kalmalıdır.
+    const noInstallment = '0' // 0 = kart ve mağaza ayarlarına uygun taksitleri göster
+    const maxInstallment = '0' // 0 = PayTR'ın izin verdiği en yüksek taksit sayısını kullan
     const currency = 'TL'
     const testMode = process.env.PAYTR_TEST_MODE || '0'
     const lang = 'tr'
