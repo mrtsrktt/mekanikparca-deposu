@@ -67,6 +67,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="tr">
       <head>
+        {/* GECICI TESHIS ISARETCISI - dogrulama sonrasi kaldirilacak */}
+        <meta
+          name="x-build-check"
+          content={`marker-v3|node:${process.env.NODE_ENV}|ga:${
+            process.env.NEXT_PUBLIC_GA_ID ? 'SET' : 'UNSET'
+          }|len:${(process.env.NEXT_PUBLIC_GA_ID || '').length}`}
+        />
         {/* Google Tag Manager */}
         <Script id="gtm-head" strategy="afterInteractive">
           {`
