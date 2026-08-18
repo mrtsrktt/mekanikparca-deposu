@@ -4,9 +4,14 @@ import { Suspense } from 'react'
 import './globals.css'
 import { Providers } from '@/components/Providers'
 import { MetaPixel } from '@/components/MetaPixel'
+import { GoogleAnalytics } from '@next/third-parties/google'
 import { Toaster } from 'react-hot-toast'
 
 const META_PIXEL_ID = '1479405256999357'
+
+// GA4 sadece production'da ve NEXT_PUBLIC_GA_ID tanimliysa yuklenir.
+const GA_ID =
+  process.env.NODE_ENV === 'production' ? process.env.NEXT_PUBLIC_GA_ID : undefined
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://mekanikparcadeposu.com'),
@@ -118,6 +123,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
           <Toaster position="top-right" />
         </Providers>
+        {GA_ID ? <GoogleAnalytics gaId={GA_ID} /> : null}
       </body>
     </html>
   )

@@ -10,7 +10,7 @@ export default function CerezPolitikasiPage() {
   return (
     <main className="max-w-4xl mx-auto px-4 py-12 text-gray-800">
       <h1 className="text-3xl font-bold mb-2 text-corporate-dark">Çerez (Cookie) Politikası</h1>
-      <p className="text-sm text-gray-500 mb-10">Son Güncelleme: 02/05/2026</p>
+      <p className="text-sm text-gray-500 mb-10">Son Güncelleme: 18/08/2026</p>
 
       <p className="mb-8 text-gray-700 leading-relaxed">
         Bu politika, mekanikparcadeposu.com (&quot;Site&quot;) üzerinden kullanılan çerezlere ilişkin açıklamaları içerir. Çerezler aracılığıyla işlenen kişisel veriler hakkında detaylı bilgi için{' '}
@@ -47,13 +47,13 @@ export default function CerezPolitikasiPage() {
             <div>
               <h3 className="font-semibold text-gray-800 mb-1">(c) Performans / Analitik Çerezleri</h3>
               <p className="text-gray-700">
-                Site performansını ve kullanım istatistiklerini ölçmeye yarar (sayfa görüntüleme, ziyaret süresi, e-ticaret etkileşimleri vb.). Sitemizde Google Tag Manager (GTM) altyapısı kullanılır; GTM container&apos;ı üzerinden Google Analytics ve benzeri analiz araçları çalıştırılabilir. Bu çerezler için açık rıza/onay gerekir.
+                Site performansını ve kullanım istatistiklerini ölçmeye yarar (sayfa görüntüleme, ziyaret süresi, e-ticaret etkileşimleri vb.). Sitemizde bu amaçla Google Analytics 4 (ölçüm kimliği: G-G0XCS3P4D9) kullanılır; Google Analytics doğrudan Site&apos;ye yüklenir, Google Tag Manager (GTM) container&apos;ı üzerinden çalıştırılmaz. Google Analytics, ziyaretçi ve oturum ayrımı için _ga ve _ga_* adlı çerezleri kullanır. Bu çerezler için açık rıza/onay gerekir.
               </p>
             </div>
             <div>
               <h3 className="font-semibold text-gray-800 mb-1">(d) Pazarlama / Reklam Çerezleri</h3>
               <p className="text-gray-700">
-                Kampanya ölçümü ve ilgi alanına uygun reklam gösterimi için kullanılır. Sitemizde Google Tag Manager (GTM) container&apos;ı üzerinden Google Ads dönüşüm ölçümü, yeniden pazarlama (remarketing) ve sosyal medya pazarlama pikselleri çalıştırılabilir. Bu çerezler için açık rıza/onay gerekir.
+                Kampanya ölçümü ve ilgi alanına uygun reklam gösterimi için kullanılır. Sitemizde Google Tag Manager (GTM) container&apos;ı yalnızca Google Ads dönüşüm ölçümü için kullanılır. Meta (Facebook) Pixel ise GTM üzerinden değil, doğrudan Site&apos;ye yüklenir. Bu çerezler için açık rıza/onay gerekir.
               </p>
             </div>
           </div>
@@ -83,7 +83,7 @@ export default function CerezPolitikasiPage() {
           <ul className="list-disc pl-6 space-y-1 text-gray-700">
             <li><strong>Oturum çerezleri (NextAuth dahil):</strong> tarayıcı oturumu kapatıldığında veya kullanıcı çıkış yaptığında silinir.</li>
             <li><strong>Kalıcı çerezler (tercih hatırlama vb.):</strong> işleve göre 1 oturumdan 24 aya kadar saklanır.</li>
-            <li><strong>Üçüncü taraf analitik/pazarlama çerezleri (GTM aracılığıyla bağlananlar dahil):</strong> ilgili hizmet sağlayıcısının saklama politikasına bağlıdır.</li>
+            <li><strong>Üçüncü taraf analitik/pazarlama çerezleri (doğrudan yüklenenler ve GTM aracılığıyla bağlananlar dahil):</strong> ilgili hizmet sağlayıcısının saklama politikasına bağlıdır.</li>
           </ul>
         </div>
 
@@ -111,10 +111,13 @@ export default function CerezPolitikasiPage() {
               <strong>Ödeme süreci:</strong> PayTR ödeme altyapısı (paytr.com domain&apos;inde) — ödeme adımı süresince kart işlemi için kullanılan 3rd-party çerezler.
             </li>
             <li>
-              <strong>Etiket yönetimi:</strong> Google Tag Manager (GTM) — site üzerinden tetiklenen analiz/pazarlama araçlarının kontrol katmanı.
+              <strong>Etiket yönetimi:</strong> Google Tag Manager (GTM) — yalnızca Google Ads dönüşüm ölçümü etiketlerinin yönetildiği kontrol katmanı.
             </li>
             <li>
-              <strong>GTM aracılığıyla bağlanan üçüncü taraf araçlar:</strong> Google Analytics, Google Ads (dönüşüm ölçümü ve yeniden pazarlama) ve sosyal medya pazarlama pikselleri gibi araçlar GTM container&apos;ı üzerinden çalıştırılabilir.
+              <strong>Analiz:</strong> Google Analytics 4 (ölçüm kimliği: G-G0XCS3P4D9) — doğrudan Site&apos;ye yüklenir, GTM container&apos;ı üzerinden çalıştırılmaz.
+            </li>
+            <li>
+              <strong>Reklam ve dönüşüm ölçümü:</strong> Google Ads dönüşüm ölçümü GTM container&apos;ı üzerinden, Meta (Facebook) Pixel ise doğrudan Site&apos;ye yüklenerek çalıştırılır.
             </li>
           </ul>
           <p className="mt-3 text-gray-700">
@@ -125,6 +128,12 @@ export default function CerezPolitikasiPage() {
               Google:{' '}
               <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
                 policies.google.com/privacy
+              </a>
+            </li>
+            <li>
+              Meta:{' '}
+              <a href="https://www.facebook.com/privacy/policy" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
+                facebook.com/privacy/policy
               </a>
             </li>
             <li>
