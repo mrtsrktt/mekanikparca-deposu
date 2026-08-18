@@ -13,15 +13,6 @@ const META_PIXEL_ID = '1479405256999357'
 const GA_ID =
   process.env.NODE_ENV === 'production' ? process.env.NEXT_PUBLIC_GA_ID : undefined
 
-// GECICI TESHIS: ortamdaki NEXT_PUBLIC*/GA anahtarlarinin ADLARI (deger yok).
-// Anahtar adinda gorunmez karakter var mi tespit etmek icin.
-const ENV_PROBE =
-  Object.keys(process.env)
-    .filter((k) => /NEXT_PUBLIC|GA_ID/i.test(k))
-    .sort()
-    .map((k) => `${JSON.stringify(k)}:${(process.env[k] || '').length}`)
-    .join(' ') || 'HIC-ANAHTAR-YOK'
-
 export const metadata: Metadata = {
   metadataBase: new URL('https://mekanikparcadeposu.com'),
   title: {
@@ -76,17 +67,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="tr">
       <head>
-        {/* GECICI TESHIS ISARETCISI - dogrulama sonrasi kaldirilacak */}
-        <meta
-          name="x-build-check"
-          content={`marker-v5|probe:${ENV_PROBE}|node:${process.env.NODE_ENV}|vercelEnv:${
-            process.env.VERCEL_ENV || 'YOK'
-          }|targetEnv:${process.env.VERCEL_TARGET_ENV || 'YOK'}|branch:${
-            process.env.VERCEL_GIT_COMMIT_REF || 'YOK'
-          }|ga:${process.env.NEXT_PUBLIC_GA_ID ? 'SET' : 'UNSET'}|len:${
-            (process.env.NEXT_PUBLIC_GA_ID || '').length
-          }`}
-        />
         {/* Google Tag Manager */}
         <Script id="gtm-head" strategy="afterInteractive">
           {`
