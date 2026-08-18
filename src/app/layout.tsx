@@ -70,9 +70,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* GECICI TESHIS ISARETCISI - dogrulama sonrasi kaldirilacak */}
         <meta
           name="x-build-check"
-          content={`marker-v3|node:${process.env.NODE_ENV}|ga:${
-            process.env.NEXT_PUBLIC_GA_ID ? 'SET' : 'UNSET'
-          }|len:${(process.env.NEXT_PUBLIC_GA_ID || '').length}`}
+          content={`marker-v4|node:${process.env.NODE_ENV}|vercelEnv:${
+            process.env.VERCEL_ENV || 'YOK'
+          }|targetEnv:${process.env.VERCEL_TARGET_ENV || 'YOK'}|branch:${
+            process.env.VERCEL_GIT_COMMIT_REF || 'YOK'
+          }|ga:${process.env.NEXT_PUBLIC_GA_ID ? 'SET' : 'UNSET'}|len:${
+            (process.env.NEXT_PUBLIC_GA_ID || '').length
+          }`}
         />
         {/* Google Tag Manager */}
         <Script id="gtm-head" strategy="afterInteractive">
