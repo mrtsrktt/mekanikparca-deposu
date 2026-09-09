@@ -150,7 +150,7 @@ export default function OrderDetailPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Kargo</span>
-                  <span className="text-green-600">Ücretsiz</span>
+                  <span className="text-amber-600 font-medium">Alıcı Öder</span>
                 </div>
                 <div className="flex justify-between text-lg font-bold pt-2 border-t">
                   <span>Toplam</span>
