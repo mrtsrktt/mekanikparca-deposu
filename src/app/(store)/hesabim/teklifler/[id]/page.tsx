@@ -1,10 +1,11 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
-import { redirect } from 'next/navigation'
+import { redirect, useRouter } from 'next/navigation'
 import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
-import { FiArrowLeft, FiDownload } from 'react-icons/fi'
+import toast from 'react-hot-toast'
+import { FiArrowLeft, FiDownload, FiShoppingCart } from 'react-icons/fi'
 import { formatPrice, convertFromTRY } from '@/lib/pricing'
 
 const currencySymbol = (c: string) => (c === 'USD' ? '$' : c === 'EUR' ? '€' : '₺')
@@ -19,6 +20,7 @@ const statusLabels: Record<string, { label: string; class: string }> = {
 
 export default function QuoteDetailPage({ params }: { params: { id: string } }) {
   const { data: session, status: authStatus } = useSession()
+  const router = useRouter()
   const [quote, setQuote] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const printRef = useRef<HTMLDivElement>(null)
@@ -54,6 +56,25 @@ export default function QuoteDetailPage({ params }: { params: { id: string } }) 
 
   const handlePrint = () => {
     window.print()
+  }
+
+  const handleAcceptAndLoadCart = () => {
+    try {
+      const items = (quote.items || []).map((i: any) => ({
+        productId: i.productId,
+        quantity: i.quantity,
+      }))
+      if (items.length === 0) {
+        toast.error('Teklifte sepete eklenecek ürün bulunamadı.')
+        return
+      }
+      localStorage.setItem('cart', JSON.stringify(items))
+      window.dispatchEvent(new Event('cart-updated'))
+      toast.success('Teklif ürünleri sepete yüklendi.')
+      router.push('/sepet')
+    } catch {
+      toast.error('Ürünler sepete yüklenirken bir hata oluştu.')
+    }
   }
 
   return (
@@ -97,6 +118,14 @@ export default function QuoteDetailPage({ params }: { params: { id: string } }) 
             </div>
             <div className="flex items-center gap-3">
               <span className={`badge ${st.class} text-sm no-print`}>{st.label}</span>
+              {(quote.status === 'QUOTED' || quote.status === 'ACCEPTED') && hasQuotedPrices && (
+                <button
+                  onClick={handleAcceptAndLoadCart}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-lg inline-flex items-center gap-2 no-print transition-colors"
+                >
+                  <FiShoppingCart className="w-4 h-4" /> Teklifi Kabul Et ve Sepete Yükle
+                </button>
+              )}
               {hasQuotedPrices && (
                 <button onClick={handlePrint} className="btn-secondary text-sm inline-flex items-center gap-1 no-print">
                   <FiDownload className="w-4 h-4" /> PDF İndir

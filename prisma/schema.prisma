@@ -19,6 +19,9 @@ model User {
   orders        Order[]
   addresses     Address[]
   quotes        QuoteRequest[]
+  corporateApplications       CorporateApplication[]
+  decidedCorporateApplications CorporateApplication[] @relation("CorporateApplicationDecidedBy")
+  corporateApplicationEvents  CorporateApplicationEvent[]
 }
 
 model Address {
@@ -299,4 +302,72 @@ model GiftCampaignGroup {
   sortOrder  Int          @default(0)
 
   @@index([campaignId])
+}
+
+// Kurumsal başvuru durumu. APPROVED yalnızca başvurunun onayıdır;
+// fiyat, limit, ödeme veya mevcut yetkileri değiştirmez.
+enum CorporateApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REVOKED
+}
+
+model CorporateApplication {
+  id     String                      @id @default(cuid())
+  userId String
+  user   User                        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  status CorporateApplicationStatus  @default(PENDING)
+
+  // Firma kimliği — şifreli veri zarfı (JSON): { ciphertext, iv, tag, keyVersion }
+  // Şifreleme/çözme kodu bu adımda yok.
+  companyName      Json
+  taxNumber        Json
+  taxOffice        Json
+  companyAddress   Json
+  companyPhone     Json
+  authorizedPerson Json
+
+  applicationNote String?
+  submittedAt     DateTime  @default(now())
+  // Karar verilene kadar null.
+  decidedAt       DateTime?
+  decidedByUserId String?
+  decidedByUser   User?     @relation("CorporateApplicationDecidedBy", fields: [decidedByUserId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events CorporateApplicationEvent[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([decidedByUserId])
+  // NOT: Aynı kullanıcı için aynı anda en fazla bir PENDING veya APPROVED
+  // başvuru olması PostgreSQL kısmi unique index gerektirir:
+  //   CREATE UNIQUE INDEX ... ON "CorporateApplication"("userId")
+  //   WHERE "status" IN ('PENDING','APPROVED');
+  // Prisma şeması kısmi index ifade edemediği için SQL/migration ile
+  // uygulanacaktır. HENÜZ DB'DE UYGULANMADI.
+}
+
+model CorporateApplicationEvent {
+  id            String              @id @default(cuid())
+  applicationId String
+  application   CorporateApplication @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+
+  // İlk olayda (başvuru oluşturma) fromStatus null olabilir.
+  fromStatus CorporateApplicationStatus?
+  toStatus   CorporateApplicationStatus
+
+  // Aktör: müşteri başvuruyu oluşturur, admin karar verir.
+  actorUserId String
+  actorUser   User   @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+  actorRole   String // "CUSTOMER" | "ADMIN"
+
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@index([applicationId])
+  @@index([actorUserId])
 }

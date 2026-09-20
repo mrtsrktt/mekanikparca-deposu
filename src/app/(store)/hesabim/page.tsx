@@ -4,10 +4,11 @@ import { useSession } from 'next-auth/react'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
-import { FiUser, FiShoppingCart, FiMapPin, FiFileText, FiEdit, FiTrash2, FiPlus, FiCheck } from 'react-icons/fi'
+import { FiUser, FiShoppingCart, FiMapPin, FiFileText, FiEdit, FiTrash2, FiPlus, FiCheck, FiBriefcase } from 'react-icons/fi'
 import toast from 'react-hot-toast'
+import CorporateApplicationSection from '@/components/account/CorporateApplicationSection'
 
-type Tab = 'profile' | 'orders' | 'addresses' | 'quotes'
+type Tab = 'profile' | 'orders' | 'addresses' | 'quotes' | 'corporate'
 
 export default function AccountPage() {
   const { data: session, status } = useSession()
@@ -21,6 +22,7 @@ export default function AccountPage() {
     { id: 'orders' as Tab, label: 'Siparişlerim', icon: FiShoppingCart, color: 'text-green-500' },
     { id: 'addresses' as Tab, label: 'Adreslerim', icon: FiMapPin, color: 'text-blue-500' },
     { id: 'quotes' as Tab, label: 'Teklif Taleplerim', icon: FiFileText, color: 'text-orange-500' },
+    { id: 'corporate' as Tab, label: 'Kurumsal Başvuru', icon: FiBriefcase, color: 'text-purple-500' },
   ]
 
   return (
@@ -28,7 +30,7 @@ export default function AccountPage() {
       <h1 className="text-3xl font-bold mb-6">Hesabım</h1>
 
       {/* Tab Buttons */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
         {tabs.map((tab) => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
             className={`card p-4 text-left transition-all duration-200 cursor-pointer ${activeTab === tab.id ? 'ring-2 ring-primary-500 bg-primary-50/50' : 'hover:shadow-md'}`}>
@@ -51,6 +53,7 @@ export default function AccountPage() {
           <p className="text-gray-500 text-sm">Teklif taleplerinizi detaylı görüntülemek için yukarıdaki butona tıklayın.</p>
         </div>
       )}
+      {activeTab === 'corporate' && <CorporateApplicationSection />}
     </div>
   )
 }

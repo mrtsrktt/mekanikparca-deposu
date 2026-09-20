@@ -3,8 +3,10 @@
 import { useSession } from 'next-auth/react'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { FiArrowLeft, FiPackage, FiTruck, FiCheckCircle, FiClock, FiXCircle, FiBox } from 'react-icons/fi'
+import { FiArrowLeft, FiPackage, FiTruck, FiCheckCircle, FiClock, FiXCircle, FiBox, FiPrinter, FiRefreshCw } from 'react-icons/fi'
 import { formatPrice } from '@/lib/pricing'
+import { getStorageArray } from '@/lib/safeStorage'
+import toast from 'react-hot-toast'
 import Link from 'next/link'
 
 const statusConfig: Record<string, { label: string; icon: any; color: string; bgColor: string }> = {
@@ -51,6 +53,33 @@ export default function OrderDetailPage() {
     }
   }
 
+  const handleReorder = () => {
+    if (!order?.items?.length) {
+      toast.error('Siparişte ürün bulunamadı.')
+      return
+    }
+
+    const cart: { productId: string; quantity: number }[] = getStorageArray('cart')
+
+    for (const item of order.items) {
+      const existing = cart.find((c) => c.productId === item.productId)
+      if (existing) {
+        existing.quantity += item.quantity
+      } else {
+        cart.push({ productId: item.productId, quantity: item.quantity })
+      }
+    }
+
+    localStorage.setItem('cart', JSON.stringify(cart))
+    window.dispatchEvent(new Event('cart-updated'))
+    toast.success('Sipariş ürünleri sepete eklendi.')
+    router.push('/sepet')
+  }
+
+  const handlePrint = () => {
+    window.print()
+  }
+
   if (status === 'loading' || loading) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16">
@@ -85,9 +114,17 @@ export default function OrderDetailPage() {
           <h1 className="text-2xl font-bold">Sipariş Detayı</h1>
           <p className="text-gray-500">Sipariş No: {order.orderNumber}</p>
         </div>
-        <Link href="/hesabim" className="btn-secondary">
-          <FiArrowLeft className="inline mr-2" /> Siparişlerime Dön
-        </Link>
+        <div className="flex flex-wrap items-center gap-2 no-print">
+          <button type="button" onClick={handleReorder} className="btn-primary">
+            <FiRefreshCw className="inline mr-2" /> Tekrar Sipariş Ver
+          </button>
+          <button type="button" onClick={handlePrint} className="btn-secondary no-print">
+            <FiPrinter className="inline mr-2" /> Proforma Fatura Yazdır
+          </button>
+          <Link href="/hesabim" className="btn-secondary no-print">
+            <FiArrowLeft className="inline mr-2" /> Siparişlerime Dön
+          </Link>
+        </div>
       </div>
 
       {/* Status Card */}
@@ -234,6 +271,20 @@ export default function OrderDetailPage() {
           )}
         </div>
       </div>
+
+      <style jsx global>{`
+        @media print {
+          .no-print {
+            display: none !important;
+          }
+          @page {
+            margin: 12mm;
+          }
+          body {
+            background: #fff !important;
+          }
+        }
+      `}</style>
     </div>
   )
 }

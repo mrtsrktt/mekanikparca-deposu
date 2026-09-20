@@ -6,6 +6,8 @@ import Link from 'next/link'
 import { FiTrash2, FiShoppingBag } from 'react-icons/fi'
 import { formatPrice } from '@/lib/pricing'
 import { getStorageArray } from '@/lib/safeStorage'
+import { validateAndAdjustQuantity } from '@/lib/orderQuantityValidation'
+import CartQuoteProgress from '@/components/cart/CartQuoteProgress'
 
 interface CartItem {
   productId: string
@@ -37,11 +39,15 @@ export default function CartPage() {
     )
     const validItems = enriched.filter((i: CartItem) => i.product)
 
-    // Minimum sipariş adedini uygula — altındaki adetleri otomatik tamamla
+    // Minimum sipariş adedi ve koli katı kurallarını uygula — gerekirse otomatik tamamla
     let bumped = false
     for (const item of validItems) {
-      const minQty = item.product?.minOrder && item.product.minOrder > 0 ? item.product.minOrder : 1
-      if (item.quantity < minQty) { item.quantity = minQty; bumped = true }
+      const adjusted = validateAndAdjustQuantity(
+        item.quantity,
+        item.product?.minOrder,
+        item.product?.boxQuantity
+      )
+      if (adjusted.wasAdjusted) { item.quantity = adjusted.validQuantity; bumped = true }
     }
     if (bumped) {
       localStorage.setItem('cart', JSON.stringify(validItems.map(({ productId, quantity }) => ({ productId, quantity }))))
@@ -76,10 +82,14 @@ export default function CartPage() {
 
   const updateQuantity = async (productId: string, quantity: number) => {
     if (quantity < 1) return removeItem(productId)
-    // Minimum sipariş adedinin altına düşürme (silmek için çöp kutusu kullanılır)
+    // Minimum sipariş adedinin ve koli katının altına düşürme (silmek için çöp kutusu kullanılır)
     const current = items.find(i => i.productId === productId)
-    const minQty = current?.product?.minOrder && current.product.minOrder > 0 ? current.product.minOrder : 1
-    if (quantity < minQty) quantity = minQty
+    const adjusted = validateAndAdjustQuantity(
+      quantity,
+      current?.product?.minOrder,
+      current?.product?.boxQuantity
+    )
+    if (adjusted.wasAdjusted) quantity = adjusted.validQuantity
     const updated = items.map(i => i.productId === productId ? { ...i, quantity } : i)
     setItems(updated)
     localStorage.setItem('cart', JSON.stringify(updated.map(({ productId, quantity }) => ({ productId, quantity }))))
@@ -236,6 +246,11 @@ export default function CartPage() {
                 <span className="text-primary-500">{formatPrice(subtotal)}</span>
               </div>
             </div>
+            <CartQuoteProgress
+              subtotal={subtotal}
+              items={items.map(({ productId, quantity }) => ({ productId, quantity }))}
+            />
+
             <Link href="/odeme" className="btn-primary w-full mt-6 block text-center">Siparişi Tamamla</Link>
           </div>
         </div>

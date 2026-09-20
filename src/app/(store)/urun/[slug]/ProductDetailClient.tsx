@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { FiShoppingCart, FiMessageCircle, FiFileText, FiCheck } from 'react-icons/fi'
@@ -8,6 +8,9 @@ import toast from 'react-hot-toast'
 import CampaignTierTable from '@/components/CampaignTierTable'
 import PriceTierTable from '@/components/PriceTierTable'
 import { getStorageArray } from '@/lib/safeStorage'
+import { formatPrice } from '@/lib/pricing'
+import { calculateB2BPrice, getTaxExcludedPrice } from '@/lib/b2bPricing'
+import { validateAndAdjustQuantity } from '@/lib/orderQuantityValidation'
 import { trackAddToCart, trackWhatsAppClick } from '@/lib/gtm'
 import Link from 'next/link'
 
@@ -46,24 +49,61 @@ export default function ProductDetailClient({ productId, productName, stock, tra
   const router = useRouter()
   const minQty = minOrder && minOrder > 0 ? minOrder : 1
   const [quantity, setQuantity] = useState(minQty)
+
+  // Adet degisimlerinde minimum siparis adedi ve koli kati kurallarini uygular.
+  const applyQuantityRules = (requested: number): number => {
+    const adjusted = validateAndAdjustQuantity(requested, minQty, boxQuantity, true)
+    return adjusted.validQuantity
+  }
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const [isAdded, setIsAdded] = useState(false)
+  // Kurumsal onay durumu: true ise B2B musteriye depo stogu gosterilir.
+  const [isCorporateApproved, setIsCorporateApproved] = useState(false)
+
+  // ADMIN veya APPROVED kurumsal musteri ise seffaf depo stogu gosterilir.
+  useEffect(() => {
+    if (!session?.user) {
+      setIsCorporateApproved(false)
+      return
+    }
+    if ((session.user as { role?: string }).role === 'ADMIN') {
+      setIsCorporateApproved(true)
+      return
+    }
+    let active = true
+    fetch('/api/corporate/application')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { application?: { status?: string } | null } | null) => {
+        if (active) setIsCorporateApproved(data?.application?.status === 'APPROVED')
+      })
+      .catch(() => {
+        if (active) setIsCorporateApproved(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [session])
 
   // Tier tabloları için perakende baz fiyat (karşılaştırma amaçlı)
   const basePriceForTiers = retailPriceTRY ?? priceTRY
 
   const handleAddToCart = () => {
     if (isAddingToCart || isAdded) return
-    
+
+    // Sepete eklemeden once minimum siparis / koli kati kurallarini uygula.
+    const adjusted = validateAndAdjustQuantity(quantity, minQty, boxQuantity, true)
+    const finalQuantity = adjusted.validQuantity
+    if (adjusted.wasAdjusted) setQuantity(finalQuantity)
+
     setIsAddingToCart(true)
     
     // Sepete ekle
     const cart = getStorageArray('cart')
     const existing = cart.find((item: any) => item.productId === productId)
     if (existing) {
-      existing.quantity += quantity
+      existing.quantity += finalQuantity
     } else {
-      cart.push({ productId, quantity })
+      cart.push({ productId, quantity: finalQuantity })
     }
     localStorage.setItem('cart', JSON.stringify(cart))
     trackAddToCart(productName, productId, priceTRY)
@@ -97,8 +137,39 @@ export default function ProductDetailClient({ productId, productName, stock, tra
 
   const whatsappMessage = encodeURIComponent(`Merhaba, "${productName}" ürünü hakkında bilgi almak istiyorum.`)
 
+  // B2B çifte fiyat: perakende liste fiyatı ve bayi özel fiyatı
+  const basePrice = retailPriceTRY ?? priceTRY
+  const b2bResult = calculateB2BPrice(basePrice)
+  // Bayi fiyatinin KDV ayristirmasi (KDV haric net + KDV tutari)
+  const b2bTax = getTaxExcludedPrice(b2bResult.b2bPrice)
+
   return (
     <div>
+      {/* B2B Çifte Fiyat — yalnızca onaylı kurumsal müşterilere gösterilir */}
+      {isCorporateApproved && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-5">
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Perakende Liste Fiyatı</span>
+            <span className="text-sm text-gray-400 line-through">
+              {formatPrice(basePrice)} <span className="text-[10px] font-normal">KDV Dahil</span>
+            </span>
+          </div>
+          <div className="mt-3 flex items-baseline gap-2.5 flex-wrap">
+            <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide w-full">Bayi Özel Alış Fiyatı</span>
+            <span className="text-3xl md:text-4xl font-black text-blue-600">
+              {formatPrice(b2bTax.taxExcludedPrice)}
+            </span>
+            <span className="text-sm font-semibold text-gray-500">+ KDV</span>
+          </div>
+          <div className="mt-2 text-xs text-gray-500">
+            KDV (%20): {formatPrice(b2bTax.taxAmount)} | KDV Dahil: {formatPrice(b2bResult.b2bPrice)}
+          </div>
+          <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg">
+            Bayi Kazancınız: {formatPrice(b2bResult.savings)} (%{b2bResult.discountPercent} İskonto)
+          </div>
+        </div>
+      )}
+
       {/* Quick Box Selection */}
       {priceTiers.length > 0 && boxQuantity && boxQuantity > 1 && (
         <div className="flex flex-wrap gap-2 mb-3">
@@ -120,6 +191,35 @@ export default function ProductDetailClient({ productId, productName, stock, tra
         </div>
       )}
 
+      {/* Stok durumu: B2B musteriye seffaf depo stogu, B2C'ye var/tukendi rozeti */}
+      {trackStock && (
+        isCorporateApproved ? (
+          stock > 0 ? (
+            <div className="mb-3 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              Depo Stoğu: {stock} Adet
+            </div>
+          ) : (
+            <div className="mb-3 inline-flex items-center gap-1.5 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 px-3 py-1.5 rounded-lg">
+              <span className="w-2 h-2 rounded-full bg-red-500" />
+              Tükendi
+            </div>
+          )
+        ) : (
+          stock > 0 ? (
+            <div className="mb-3 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              Stokta Var
+            </div>
+          ) : (
+            <div className="mb-3 inline-flex items-center gap-1.5 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 px-3 py-1.5 rounded-lg">
+              <span className="w-2 h-2 rounded-full bg-red-500" />
+              Tükendi
+            </div>
+          )
+        )
+      )}
+
       {/* Minimum sipariş uyarısı */}
       {minQty > 1 && (
         <div className="mb-3 inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg">
@@ -131,19 +231,19 @@ export default function ProductDetailClient({ productId, productName, stock, tra
       <div className="flex items-center gap-3 mb-4">
         <div className="flex items-center border rounded-lg">
           <button
-            onClick={() => setQuantity(Math.max(minQty, quantity - 1))}
+            onClick={() => setQuantity(applyQuantityRules(quantity - 1))}
             className="px-3 py-2 text-gray-600 hover:bg-gray-50"
             aria-label="Azalt"
           >-</button>
           <input
             type="number"
             value={quantity}
-            onChange={(e) => setQuantity(Math.max(minQty, parseInt(e.target.value) || minQty))}
+            onChange={(e) => setQuantity(applyQuantityRules(parseInt(e.target.value, 10)))}
             className="w-16 text-center border-x py-2"
             min={minQty}
           />
           <button
-            onClick={() => setQuantity(quantity + 1)}
+            onClick={() => setQuantity(applyQuantityRules(quantity + 1))}
             className="px-3 py-2 text-gray-600 hover:bg-gray-50"
             aria-label="Artır"
           >+</button>

@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { formatPrice, applySalePrice } from '@/lib/pricing'
+import { calculateB2BPrice, getTaxExcludedPrice } from '@/lib/b2bPricing'
 import { FiShoppingCart, FiEye, FiCheck } from 'react-icons/fi'
 import CampaignBadge from './CampaignBadge'
 import { getStorageArray } from '@/lib/safeStorage'
@@ -29,11 +31,38 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, hasCampaign, campaignLowestPrice, tierLowestPrice }: ProductCardProps) {
   const router = useRouter()
+  const { data: session } = useSession()
   const [isAdding, setIsAdding] = useState(false)
   const [added, setAdded] = useState(false)
+  // Onaylı kurumsal (B2B) müşteri durumu
+  const [isCorporateApproved, setIsCorporateApproved] = useState(false)
   const imageUrl = product.images[0]?.url || '/placeholder.jpg'
   const hasCampaignDiscount = hasCampaign && campaignLowestPrice && campaignLowestPrice < product.priceTRY
   const hasTierDiscount = tierLowestPrice && tierLowestPrice < product.priceTRY
+
+  // B2B müşteri tespiti: ADMIN veya APPROVED kurumsal başvuru
+  useEffect(() => {
+    if (!session?.user) {
+      setIsCorporateApproved(false)
+      return
+    }
+    if ((session.user as { role?: string }).role === 'ADMIN') {
+      setIsCorporateApproved(true)
+      return
+    }
+    let active = true
+    fetch('/api/corporate/application')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { application?: { status?: string } | null } | null) => {
+        if (active) setIsCorporateApproved(data?.application?.status === 'APPROVED')
+      })
+      .catch(() => {
+        if (active) setIsCorporateApproved(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [session])
 
   // En düşük fiyat hangisiyse onu göster
   const bestLowestPrice = Math.min(
@@ -41,6 +70,12 @@ export default function ProductCard({ product, hasCampaign, campaignLowestPrice,
     hasTierDiscount ? tierLowestPrice : Infinity
   )
   const hasAnyDiscount = bestLowestPrice < product.priceTRY
+
+  // B2B müşteri için çifte fiyat hesabı (perakende satış fiyatı üzerinden)
+  const retailSalePrice = applySalePrice(product.priceTRY)
+  const b2bResult = calculateB2BPrice(retailSalePrice)
+  // B2B bayi fiyatı KDV Dahil hesaplandığı için KDV Hariç tutarı da gösterilir
+  const b2bTax = getTaxExcludedPrice(b2bResult.b2bPrice)
 
   return (
     <div className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover-lift">
@@ -74,7 +109,25 @@ export default function ProductCard({ product, hasCampaign, campaignLowestPrice,
 
         <div className="mt-3">
           <div>
-            {hasAnyDiscount ? (
+            {isCorporateApproved ? (
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-gray-400 line-through block">
+                  {formatPrice(retailSalePrice)}
+                </span>
+                <span className="flex items-center gap-2 flex-wrap">
+                  <span className="text-lg font-bold text-blue-600">
+                    {formatPrice(b2bTax.taxExcludedPrice)}
+                  </span>
+                  <span className="text-[10px] font-semibold text-blue-600">+ KDV</span>
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-white bg-blue-600 px-2 py-0.5 rounded-full">
+                    %{b2bResult.discountPercent} Bayi Özel
+                  </span>
+                </span>
+                <span className="text-[10px] font-normal text-gray-400">
+                  KDV Dahil: {formatPrice(b2bResult.b2bPrice)}
+                </span>
+              </div>
+            ) : hasAnyDiscount ? (
               <>
                 <span className="text-xs text-gray-400 line-through block">
                   {formatPrice(applySalePrice(product.priceTRY))}

@@ -29,6 +29,8 @@ export default function Header() {
   const catRef = useRef<HTMLLIElement>(null)
   const brandRef = useRef<HTMLLIElement>(null)
   const [cartCount, setCartCount] = useState(0)
+  // B2B Hizli Siparis baglantisi yalnizca ADMIN veya onayli kurumsal musterilere gosterilir.
+  const [isB2BUser, setIsB2BUser] = useState(false)
 
   useEffect(() => {
     fetch('/api/public/categories').then(r => r.json()).then(setCategories).catch(() => {})
@@ -56,6 +58,30 @@ export default function Header() {
       window.removeEventListener('scroll', handleScroll)
     }
   }, [])
+
+  // Oturum/rol degistikce kurumsal onay durumunu kontrol et (ADMIN ise dogrudan).
+  useEffect(() => {
+    if (!session?.user) {
+      setIsB2BUser(false)
+      return
+    }
+    if ((session.user as { role?: string }).role === 'ADMIN') {
+      setIsB2BUser(true)
+      return
+    }
+    let active = true
+    fetch('/api/corporate/application')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { application?: { status?: string } | null } | null) => {
+        if (active) setIsB2BUser(data?.application?.status === 'APPROVED')
+      })
+      .catch(() => {
+        if (active) setIsB2BUser(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [session])
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -206,6 +232,15 @@ export default function Header() {
                 </li>
               ))}
 
+              {isB2BUser && (
+                <li>
+                  <Link href="/hizli-siparis" className="relative block px-4 py-3 text-white/90 text-sm font-medium hover:text-white hover:bg-white/10 transition-all duration-200 group">
+                    B2B Hızlı Sipariş
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-accent-400 group-hover:w-3/4 transition-all duration-300 rounded-full" />
+                  </Link>
+                </li>
+              )}
+
               {/* Kategoriler Dropdown */}
               <li ref={catRef} className="relative">
                 <button
@@ -310,6 +345,9 @@ export default function Header() {
           <nav className="pb-4">
             <Link href="/" className="block px-5 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 font-medium transition-colors" onClick={() => setMobileOpen(false)}>Ana Sayfa</Link>
             <Link href="/urunler" className="block px-5 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 font-medium transition-colors" onClick={() => setMobileOpen(false)}>Ürünler</Link>
+            {isB2BUser && (
+              <Link href="/hizli-siparis" className="block px-5 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 font-medium transition-colors" onClick={() => setMobileOpen(false)}>B2B Hızlı Sipariş</Link>
+            )}
 
             <button onClick={() => setMobileCatOpen(!mobileCatOpen)} className="w-full flex items-center justify-between px-5 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 font-medium transition-colors">
               Kategoriler
