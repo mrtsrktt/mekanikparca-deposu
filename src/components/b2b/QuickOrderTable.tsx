@@ -12,7 +12,7 @@ import {
 import toast from 'react-hot-toast'
 import { formatPrice } from '@/lib/pricing'
 import { calculateB2BPrice, getTaxExcludedPrice } from '@/lib/b2bPricing'
-import { DEALER_TYPE_LABELS, type DealerType } from '@/lib/dealerDiscount'
+import { DEALER_TYPE_LABELS, type DealerType } from '@/lib/dealerTypeShared'
 import { validateAndAdjustQuantity } from '@/lib/orderQuantityValidation'
 import { getStorageArray } from '@/lib/safeStorage'
 

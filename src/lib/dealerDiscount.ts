@@ -12,9 +12,12 @@
  */
 import 'server-only'
 import type { PrismaClient } from '@prisma/client'
+import { type DealerType, isDealerType, DEALER_TYPE_LABELS } from './dealerTypeShared'
 
-/** Bayi turleri. DB enum'u ile birebir eslesir. */
-export type DealerType = 'WHOLESALER' | 'SERVICE'
+// Bayi turu sabitleri client-safe modulde yasar; burada yeniden disa aktarilir
+// ki sunucu tarafi tek noktadan import edebilsin.
+export type { DealerType }
+export { isDealerType, DEALER_TYPE_LABELS }
 
 /** Ayar anahtarlari. */
 export const DEALER_DISCOUNT_KEYS: Record<DealerType, string> = {
@@ -26,17 +29,6 @@ export const DEALER_DISCOUNT_KEYS: Record<DealerType, string> = {
 export const DEFAULT_DEALER_DISCOUNTS: Record<DealerType, number> = {
   WHOLESALER: 25,
   SERVICE: 15,
-}
-
-/** Turlerin Turkce etiketleri (UI icin tek kaynak). */
-export const DEALER_TYPE_LABELS: Record<DealerType, string> = {
-  WHOLESALER: 'Toptancı',
-  SERVICE: 'Servis',
-}
-
-/** Gecerli bir bayi turu mu? */
-export function isDealerType(value: unknown): value is DealerType {
-  return value === 'WHOLESALER' || value === 'SERVICE'
 }
 
 /**
