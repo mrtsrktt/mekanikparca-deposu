@@ -38,6 +38,17 @@ export class DecisionConflictError extends Error {
 }
 
 /**
+ * Gelen bayi turu degerini guvenli bicimde dogrular.
+ *
+ * Yalnizca tam olarak 'WHOLESALER' veya 'SERVICE' kabul edilir; diger tum
+ * degerler (bos, gecersiz metin, sayi, nesne, null) null'a cevrilir.
+ * Boylece formdan gelen serbest metin DB enum'una yazilmaz.
+ */
+function normalizeDealerType(value: unknown): 'WHOLESALER' | 'SERVICE' | null {
+  return value === 'WHOLESALER' || value === 'SERVICE' ? value : null
+}
+
+/**
  * Yonetici karari girdisi.
  */
 export type DecideCorporateApplicationInput = {
@@ -49,6 +60,14 @@ export type DecideCorporateApplicationInput = {
   toStatus: unknown
   /** Red / onay kaldirma icin bosluktan olusmayan gerekce ZORUNLUDUR. */
   reason?: string | null
+  /**
+   * Onay aninda atanacak bayi turu (WHOLESALER | SERVICE).
+   *
+   * Yalnizca APPROVED gecisinde kullanilir. Admin, basvurudaki turu
+   * degistirebilir veya hic secilmemisse burada belirleyebilir. Bos/gecersiz
+   * ise mevcut basvuru turu korunur; o da yoksa tur atanmaz.
+   */
+  dealerType?: unknown
 }
 
 export type DecideCorporateApplicationResult =
@@ -108,10 +127,10 @@ export async function decideCorporateApplication(
         throw new AdminNotAuthorizedError()
       }
 
-      // 2b) Basvuruyu oku; yalnizca id ve mevcut durum secilir.
+      // 2b) Basvuruyu oku; id, mevcut durum, sahibi ve talep edilen bayi turu.
       const application = await tx.corporateApplication.findUnique({
         where: { id: applicationId },
-        select: { id: true, status: true },
+        select: { id: true, status: true, userId: true, dealerType: true },
       })
       if (!application) {
         throw new ApplicationNotFoundError()
@@ -146,6 +165,35 @@ export async function decideCorporateApplication(
       })
       if (updated.count !== 1) {
         throw new DecisionConflictError()
+      }
+
+      // 2d-2) ONAY gecisinde bayi turu atanir.
+      //
+      // Kural: admin'in gonderdigi tur > basvurudaki tur. Admin, basvurandaki
+      // secimi degistirebilir; hic secilmemisse burada belirleyebilir. Ikisi de
+      // yoksa tur ATANMAZ (bayi indirimden yararlanamaz, perakende fiyat gorur).
+      //
+      // Yalnizca APPROVED gecisinde uygulanir; REJECTED/REVOKED turu degistirmez.
+      if (validated.toStatus === 'APPROVED') {
+        const requested = normalizeDealerType(input.dealerType)
+        const existing = normalizeDealerType(application.dealerType)
+        const effectiveDealerType = requested ?? existing
+
+        if (effectiveDealerType !== null) {
+          // 2d-2a) Basvurudaki turu adminin onayladigi degerle sabitle.
+          await tx.corporateApplication.update({
+            where: { id: application.id },
+            data: { dealerType: effectiveDealerType },
+          })
+
+          // 2d-2b) Kullaniciya bayi turunu ata. Indirim orani bu turun
+          //        SiteSetting ayarindan TUREV olarak okunur; burada
+          //        oran SAKLANMAZ ki admin panelinden topluca degistirilebilsin.
+          await tx.user.update({
+            where: { id: application.userId },
+            data: { dealerType: effectiveDealerType },
+          })
+        }
       }
 
       // 2e) Gecmis olayi. Hatasi bu sonuca DONUSTURULMEZ; yukari tasinir ve

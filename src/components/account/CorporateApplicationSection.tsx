@@ -27,6 +27,7 @@ type CorporateApplicationSummary = {
 }
 
 type FormState = {
+  dealerType: '' | 'WHOLESALER' | 'SERVICE'
   companyName: string
   taxNumber: string
   taxOffice: string
@@ -37,6 +38,7 @@ type FormState = {
 }
 
 const EMPTY_FORM: FormState = {
+  dealerType: '',
   companyName: '',
   taxNumber: '',
   taxOffice: '',
@@ -45,6 +47,20 @@ const EMPTY_FORM: FormState = {
   authorizedPerson: '',
   applicationNote: '',
 }
+
+// Bayi turu secenekleri: onaylandiginda tur bazli indirim uygulanir.
+const DEALER_TYPE_OPTIONS: { value: 'WHOLESALER' | 'SERVICE'; label: string; hint: string }[] = [
+  {
+    value: 'WHOLESALER',
+    label: 'Toptancı',
+    hint: 'Yüksek adetli toptan alım yapan bayiler için daha yüksek iskonto.',
+  },
+  {
+    value: 'SERVICE',
+    label: 'Servis',
+    hint: 'Montaj/servis hizmeti veren bayiler için standart iskonto.',
+  },
+]
 
 const REQUIRED_FIELDS: { key: keyof FormState; label: string }[] = [
   { key: 'companyName', label: 'Firma Adı' },
@@ -145,6 +161,12 @@ export default function CorporateApplicationSection() {
   }
 
   const handleSubmit = async () => {
+    // Bayi turu zorunludur: indirim orani bu ture gore belirlenir.
+    if (form.dealerType !== 'WHOLESALER' && form.dealerType !== 'SERVICE') {
+      toast.error('Bayi türü seçimi zorunludur.')
+      return
+    }
+
     // Istemci tarafi basit zorunlu alan dogrulamasi.
     for (const field of REQUIRED_FIELDS) {
       if (form[field.key].trim().length === 0) {
@@ -156,6 +178,7 @@ export default function CorporateApplicationSection() {
     setSubmitting(true)
     try {
       const body: Record<string, string> = {
+        dealerType: form.dealerType,
         companyName: form.companyName.trim(),
         taxNumber: form.taxNumber.trim(),
         taxOffice: form.taxOffice.trim(),
@@ -303,6 +326,42 @@ export default function CorporateApplicationSection() {
               doldurun. Başvurunuz yönetici onayına gönderilecektir.
             </p>
           )}
+
+          {/* Bayi turu secimi: onaylandiginda indirim orani bu ture gore uygulanir. */}
+          <div className="md:col-span-2">
+            <label className="block text-xs font-medium text-gray-600 mb-2">
+              Bayi Türü <span className="text-red-500">*</span>
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {DEALER_TYPE_OPTIONS.map((opt) => {
+                const selected = form.dealerType === opt.value
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => updateField('dealerType', opt.value)}
+                    className={
+                      'text-left rounded-lg border p-3 transition-colors ' +
+                      (selected
+                        ? 'border-purple-500 bg-purple-50 ring-1 ring-purple-500'
+                        : 'border-gray-200 hover:border-gray-300')
+                    }
+                  >
+                    <span className="flex items-center gap-2">
+                      <span
+                        className={
+                          'w-4 h-4 rounded-full border flex-shrink-0 ' +
+                          (selected ? 'border-purple-500 bg-purple-500' : 'border-gray-300')
+                        }
+                      />
+                      <span className="text-sm font-medium">{opt.label}</span>
+                    </span>
+                    <span className="block mt-1 text-xs text-gray-500 ml-6">{opt.hint}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

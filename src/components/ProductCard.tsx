@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { formatPrice, applySalePrice } from '@/lib/pricing'
 import { calculateB2BPrice, getTaxExcludedPrice } from '@/lib/b2bPricing'
+import { DEALER_TYPE_LABELS, type DealerType } from '@/lib/dealerDiscount'
 import { FiShoppingCart, FiEye, FiCheck } from 'react-icons/fi'
 import CampaignBadge from './CampaignBadge'
 import { getStorageArray } from '@/lib/safeStorage'
@@ -34,30 +35,29 @@ export default function ProductCard({ product, hasCampaign, campaignLowestPrice,
   const { data: session } = useSession()
   const [isAdding, setIsAdding] = useState(false)
   const [added, setAdded] = useState(false)
-  // Onaylı kurumsal (B2B) müşteri durumu
-  const [isCorporateApproved, setIsCorporateApproved] = useState(false)
+  // Onaylı bayi bilgisi: tür + indirim oranı. null ise bayi değil.
+  const [dealer, setDealer] = useState<{ dealerType: DealerType; discountPercent: number } | null>(null)
+  const isCorporateApproved = dealer !== null
   const imageUrl = product.images[0]?.url || '/placeholder.jpg'
   const hasCampaignDiscount = hasCampaign && campaignLowestPrice && campaignLowestPrice < product.priceTRY
   const hasTierDiscount = tierLowestPrice && tierLowestPrice < product.priceTRY
 
-  // B2B müşteri tespiti: ADMIN veya APPROVED kurumsal başvuru
+  // Bayi bilgisi tespiti: admin panelinden atanan tür + güncel indirim oranı.
+  // Oran SiteSetting'ten okunur; admin değiştirince sayfa yenilendiğinde yeni
+  // oran görünür (endpoint cache'siz).
   useEffect(() => {
     if (!session?.user) {
-      setIsCorporateApproved(false)
-      return
-    }
-    if ((session.user as { role?: string }).role === 'ADMIN') {
-      setIsCorporateApproved(true)
+      setDealer(null)
       return
     }
     let active = true
-    fetch('/api/corporate/application')
+    fetch('/api/corporate/dealer-info')
       .then((r) => (r.ok ? r.json() : null))
-      .then((data: { application?: { status?: string } | null } | null) => {
-        if (active) setIsCorporateApproved(data?.application?.status === 'APPROVED')
+      .then((data: { dealer?: { dealerType: DealerType; discountPercent: number } | null } | null) => {
+        if (active) setDealer(data?.dealer ?? null)
       })
       .catch(() => {
-        if (active) setIsCorporateApproved(false)
+        if (active) setDealer(null)
       })
     return () => {
       active = false
@@ -71,9 +71,11 @@ export default function ProductCard({ product, hasCampaign, campaignLowestPrice,
   )
   const hasAnyDiscount = bestLowestPrice < product.priceTRY
 
-  // B2B müşteri için çifte fiyat hesabı (perakende satış fiyatı üzerinden)
+  // B2B müşteri için çifte fiyat hesabı (perakende satış fiyatı üzerinden).
+  // İndirim oranı bayi türüne göre admin ayarından gelir; bayi değilse
+  // 0 verilir ve indirim uygulanmaz.
   const retailSalePrice = applySalePrice(product.priceTRY)
-  const b2bResult = calculateB2BPrice(retailSalePrice)
+  const b2bResult = calculateB2BPrice(retailSalePrice, dealer?.discountPercent ?? 0)
   // B2B bayi fiyatı KDV Dahil hesaplandığı için KDV Hariç tutarı da gösterilir
   const b2bTax = getTaxExcludedPrice(b2bResult.b2bPrice)
 
@@ -120,7 +122,7 @@ export default function ProductCard({ product, hasCampaign, campaignLowestPrice,
                   </span>
                   <span className="text-[10px] font-semibold text-blue-600">+ KDV</span>
                   <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-white bg-blue-600 px-2 py-0.5 rounded-full">
-                    %{b2bResult.discountPercent} Bayi Özel
+                    %{b2bResult.discountPercent} {dealer ? DEALER_TYPE_LABELS[dealer.dealerType] : 'Bayi Özel'}
                   </span>
                 </span>
                 <span className="text-[10px] font-normal text-gray-400">

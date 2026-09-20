@@ -11,7 +11,8 @@ import {
 } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import { formatPrice } from '@/lib/pricing'
-import { getTaxExcludedPrice } from '@/lib/b2bPricing'
+import { calculateB2BPrice, getTaxExcludedPrice } from '@/lib/b2bPricing'
+import { DEALER_TYPE_LABELS, type DealerType } from '@/lib/dealerDiscount'
 import { validateAndAdjustQuantity } from '@/lib/orderQuantityValidation'
 import { getStorageArray } from '@/lib/safeStorage'
 
@@ -36,7 +37,24 @@ export default function QuickOrderTable() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [quantities, setQuantities] = useState<Record<string, number>>({})
+  // Onaylı bayi bilgisi: tür + güncel indirim oranı (SiteSetting'ten okunur).
+  const [dealer, setDealer] = useState<{ dealerType: DealerType; discountPercent: number } | null>(null)
   const abortRef = useRef<AbortController | null>(null)
+
+  useEffect(() => {
+    let active = true
+    fetch('/api/corporate/dealer-info')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { dealer?: { dealerType: DealerType; discountPercent: number } | null } | null) => {
+        if (active) setDealer(data?.dealer ?? null)
+      })
+      .catch(() => {
+        if (active) setDealer(null)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   useEffect(() => {
     const q = query.trim()
@@ -180,7 +198,9 @@ export default function QuickOrderTable() {
                 const minOrder = p.minOrder ?? 1
                 const boxQty = p.boxQuantity
                 const outOfStock = p.stock <= 0
-                const taxBreakdown = getTaxExcludedPrice(p.priceTRY)
+                // Bayi indirimi uygulanmis fiyat; bayi degilse indirim 0'dir.
+                const b2b = calculateB2BPrice(p.priceTRY, dealer?.discountPercent ?? 0)
+                const taxBreakdown = getTaxExcludedPrice(b2b.b2bPrice)
                 return (
                   <tr key={p.id} className="hover:bg-gray-50/70">
                     <td className="px-3 py-2 font-mono text-xs text-gray-700 whitespace-nowrap">
@@ -210,7 +230,12 @@ export default function QuickOrderTable() {
                         <span className="text-[10px] text-gray-500 font-normal">+ KDV</span>
                       </div>
                       <div className="text-[10px] text-gray-400">
-                        KDV Dahil: {formatPrice(p.priceTRY)}
+                        KDV Dahil: {formatPrice(b2b.b2bPrice)}
+                        {dealer && b2b.discountPercent > 0 && (
+                          <span className="ml-1 text-blue-600 font-medium">
+                            (%{b2b.discountPercent} {DEALER_TYPE_LABELS[dealer.dealerType]})
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td className="px-3 py-2">

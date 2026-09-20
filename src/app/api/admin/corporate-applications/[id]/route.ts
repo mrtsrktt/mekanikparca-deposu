@@ -1,4 +1,4 @@
-﻿import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
@@ -98,9 +98,9 @@ export async function PATCH(
     return NextResponse.json({ error: 'Başvuru bulunamadı' }, { status: 404 })
   }
 
-  let body: { toStatus?: unknown; reason?: unknown }
+  let body: { toStatus?: unknown; reason?: unknown; dealerType?: unknown }
   try {
-    body = (await req.json()) as { toStatus?: unknown; reason?: unknown }
+    body = (await req.json()) as { toStatus?: unknown; reason?: unknown; dealerType?: unknown }
   } catch {
     return NextResponse.json({ error: 'Geçersiz istek gövdesi' }, { status: 400 })
   }
@@ -113,6 +113,9 @@ export async function PATCH(
       applicationId: params.id,
       toStatus: body?.toStatus,
       reason,
+      // Admin, onay aninda bayi turunu belirler/degistirir. Gecersiz veya
+      // bos ise servis mevcut basvuru turunu korur.
+      dealerType: body?.dealerType,
     })
 
     if (result.ok) {

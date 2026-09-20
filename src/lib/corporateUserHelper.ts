@@ -19,6 +19,12 @@
 import 'server-only'
 import type { PrismaClient } from '@prisma/client'
 import { isCorporateApplicationEnabled } from './featureFlags'
+import {
+  getDealerInfo,
+  type DealerInfo,
+} from './dealerDiscount'
+
+export type { DealerInfo }
 
 /**
  * Kullanicinin ONAYLI (APPROVED) bir kurumsal basvurusu olup olmadigini doner.
@@ -53,5 +59,51 @@ export async function isApprovedCorporateUser(
     // Hata durumunda guvenli sekilde false don; ayrinti LOGLANMAZ ve akis
     // kesilmez.
     return false
+  }
+}
+
+/**
+ * Kullanicinin onayli bayi bilgisini doner (tur + indirim orani).
+ *
+ * - Onayli kurumsal basvurusu olmayan, turu atanmamis veya gecersiz
+ *   kullanicilar icin null doner.
+ * - Indirim orani `SiteSetting`'ten okunur; ayar yoksa modul ici varsayilan
+ *   kullanilir (bkz. dealerDiscount).
+ * - Ozellik bayragi kapaliysa DB'ye dokunulmaz ve null doner (fail-closed).
+ * - Hata durumunda null doner; ayrinti LOGLANMAZ ve akis kesilmez.
+ *
+ * @param prisma Disaridan verilen PrismaClient.
+ * @param userId Kontrol edilecek kullanici ID'si.
+ */
+export async function getApprovedDealerInfo(
+  prisma: PrismaClient,
+  userId: string
+): Promise<DealerInfo | null> {
+  // 1) Ozellik bayragi: kapaliysa DB'ye hic dokunmadan null don.
+  if (!isCorporateApplicationEnabled()) {
+    return null
+  }
+
+  // 2) Girdi dogrulamasi.
+  if (typeof userId !== 'string' || userId.trim().length === 0) {
+    return null
+  }
+
+  // 3) Once onayli basvuru var mi? Yoksa bayi degildir.
+  try {
+    const application = await prisma.corporateApplication.findFirst({
+      where: { userId, status: 'APPROVED' },
+      select: { id: true },
+    })
+    if (application === null) return null
+  } catch {
+    return null
+  }
+
+  // 4) Tur ve indirim oranini coz.
+  try {
+    return await getDealerInfo(prisma, userId)
+  } catch {
+    return null
   }
 }

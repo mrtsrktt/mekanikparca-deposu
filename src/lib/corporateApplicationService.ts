@@ -217,6 +217,9 @@ export async function createCorporateApplication(
             companyPhone: toJsonInput(encrypted.companyPhone),
             authorizedPerson: toJsonInput(encrypted.authorizedPerson),
             applicationNote: data.applicationNote ?? null,
+            // Bayi turu istege baglidir; atanmamissa null kalir ve admin
+            // onay sirasinda secer.
+            dealerType: data.dealerType ?? null,
           },
           select: {
             id: true,

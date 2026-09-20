@@ -14,6 +14,9 @@ model User {
   name          String
   phone         String?
   role          String    @default("CUSTOMER") // ADMIN, CUSTOMER
+  // Onaylı bayi ise türü; değilse null (indirim uygulanmaz).
+  // İndirim ORANI burada tutulmaz; SiteSetting'teki tür bazlı ayardan okunur.
+  dealerType    DealerType?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   orders        Order[]
@@ -304,6 +307,14 @@ model GiftCampaignGroup {
   @@index([campaignId])
 }
 
+// Bayi türü. İndirim oranı bu enum'a göre SiteSetting'ten okunur:
+//   WHOLESALER -> dealer_discount_wholesaler (varsayılan %25)
+//   SERVICE    -> dealer_discount_service    (varsayılan %15)
+enum DealerType {
+  WHOLESALER
+  SERVICE
+}
+
 // Kurumsal başvuru durumu. APPROVED yalnızca başvurunun onayıdır;
 // fiyat, limit, ödeme veya mevcut yetkileri değiştirmez.
 enum CorporateApplicationStatus {
@@ -327,6 +338,10 @@ model CorporateApplication {
   companyAddress   Json
   companyPhone     Json
   authorizedPerson Json
+
+  // Başvuruda talep edilen bayi türü. Onaylandığında User.dealerType'a kopyalanır.
+  // Opsiyonel: eski kayıtlarda null olabilir.
+  dealerType DealerType?
 
   applicationNote String?
   submittedAt     DateTime  @default(now())

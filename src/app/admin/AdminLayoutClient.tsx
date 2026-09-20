@@ -8,7 +8,7 @@ import { redirect } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import {
   FiGrid, FiPackage, FiFolder, FiTag, FiShoppingCart, FiUsers,
-  FiDollarSign, FiFileText, FiSettings, FiArrowLeft, FiSearch, FiGift, FiBriefcase
+  FiDollarSign, FiFileText, FiSettings, FiArrowLeft, FiSearch, FiGift, FiBriefcase, FiTruck
 } from 'react-icons/fi'
 
 const menuItems = [
@@ -21,6 +21,7 @@ const menuItems = [
   { href: '/admin/hediye-kampanyalari', label: 'Hediye Kampanyaları', icon: FiGift },
   { href: '/admin/teklifler', label: 'Teklif Talepleri', icon: FiFileText, badgeKey: 'pendingQuotes' },
   { href: '/admin/kurumsal-basvurular', label: 'Kurumsal Başvurular', icon: FiBriefcase },
+  { href: '/admin/bayiler', label: 'Bayiler', icon: FiTruck },
   { href: '/admin/doviz', label: 'Döviz Kurları', icon: FiDollarSign },
   { href: '/admin/blog', label: 'Blog', icon: FiFileText },
   { href: '/admin/seo', label: 'SEO', icon: FiSearch },

@@ -5,6 +5,13 @@ import toast from 'react-hot-toast'
 import { FiEye, FiCheck, FiX, FiRotateCcw, FiRefreshCw, FiXCircle } from 'react-icons/fi'
 
 type Status = 'PENDING' | 'APPROVED' | 'REJECTED' | 'REVOKED'
+type DealerType = 'WHOLESALER' | 'SERVICE'
+
+// Bayi turu secenekleri ve Turkce etiketleri.
+const DEALER_TYPE_LABELS: Record<DealerType, string> = {
+  WHOLESALER: 'Toptancı',
+  SERVICE: 'Servis',
+}
 
 type ApplicationListItem = {
   id: string
@@ -35,6 +42,8 @@ type ApplicationDetail = ApplicationListItem & {
   companyPhone: string
   authorizedPerson: string
   applicationNote: string | null
+  /** Başvuruda talep edilen bayi türü (eski kayıtlarda null olabilir). */
+  dealerType: DealerType | null
   decidedByUser?: { id: string; name: string | null; email: string | null } | null
   events: ApplicationEvent[]
 }
@@ -78,6 +87,9 @@ export default function AdminCorporateApplicationsPage() {
   const [rejectMode, setRejectMode] = useState(false)
   const [revokeMode, setRevokeMode] = useState(false)
   const [reason, setReason] = useState('')
+  // Onay sirasinda admin'in sectigi bayi turu. Basvurudaki tur ile onceden
+  // doldurulur; admin isterse degistirir. null ise sunucu basvurudaki turu korur.
+  const [approveDealerType, setApproveDealerType] = useState<DealerType | null>(null)
 
   const loadList = useCallback(async (status: string) => {
     setListLoading(true)
@@ -135,7 +147,10 @@ export default function AdminCorporateApplicationsPage() {
         return
       }
       const data = await res.json()
-      setDetail(data?.application ?? null)
+      const app = data?.application ?? null
+      setDetail(app)
+      // Onay secicisini basvurudaki tur ile onceden doldur (yoksa bos kalsin).
+      setApproveDealerType(app?.dealerType ?? null)
     } catch {
       toast.error('Sunucu hatası')
     } finally {
@@ -149,6 +164,7 @@ export default function AdminCorporateApplicationsPage() {
     setRejectMode(false)
     setRevokeMode(false)
     setReason('')
+    setApproveDealerType(null)
     loadDetail(id)
   }
 
@@ -158,16 +174,28 @@ export default function AdminCorporateApplicationsPage() {
     setRejectMode(false)
     setRevokeMode(false)
     setReason('')
+    setApproveDealerType(null)
   }
 
-  async function submitDecision(toStatus: Status, decisionReason: string | null) {
+  async function submitDecision(
+    toStatus: Status,
+    decisionReason: string | null,
+    decisionDealerType?: DealerType
+  ) {
     if (!detailId) return
     setActionLoading(true)
     try {
+      // Bayi turu YALNIZCA onay kararinda gonderilir. Admin, basvurudaki
+      // turu degistirebilir veya hic secilmemisse burada belirleyebilir.
+      const payload: Record<string, unknown> = { toStatus, reason: decisionReason }
+      if (toStatus === 'APPROVED' && decisionDealerType) {
+        payload.dealerType = decisionDealerType
+      }
+
       const res = await fetch(`/api/admin/corporate-applications/${detailId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ toStatus, reason: decisionReason }),
+        body: JSON.stringify(payload),
       })
 
       if (res.status === 401) {
@@ -211,7 +239,9 @@ export default function AdminCorporateApplicationsPage() {
   }
 
   function handleApprove() {
-    submitDecision('APPROVED', null)
+    // Onayda admin'in sectigi tur gonderilir; secilmemisse undefined kalir ve
+    // sunucu basvurudaki mevcut turu korur.
+    submitDecision('APPROVED', null, approveDealerType ?? undefined)
   }
 
   function handleReject() {
@@ -374,6 +404,54 @@ export default function AdminCorporateApplicationsPage() {
                       <dd className="font-medium whitespace-pre-wrap">{detail.applicationNote || '-'}</dd>
                     </div>
                   </dl>
+                </div>
+
+                {/* Bayi turu: basvuruda secilen tur gosterilir. Onay bekleyen
+                    basvurularda admin bu turu degistirebilir veya hic
+                    secilmemisse burada belirleyebilir. */}
+                <div>
+                  <h3 className="font-semibold mb-2">Bayi Türü</h3>
+                  {detail.status === 'PENDING' ? (
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap gap-3">
+                        {(['WHOLESALER', 'SERVICE'] as DealerType[]).map((dt) => (
+                          <label
+                            key={dt}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer text-sm transition-colors ${
+                              approveDealerType === dt
+                                ? 'border-primary-500 bg-primary-50 text-primary-700'
+                                : 'border-gray-300 hover:bg-gray-50'
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="dealerType"
+                              value={dt}
+                              checked={approveDealerType === dt}
+                              onChange={() => setApproveDealerType(dt)}
+                              disabled={actionLoading}
+                              className="accent-primary-500"
+                            />
+                            {DEALER_TYPE_LABELS[dt]}
+                          </label>
+                        ))}
+                      </div>
+                      {!approveDealerType && (
+                        <p className="text-xs text-amber-600">
+                          Tür seçilmedi. Onaylarsanız başvurudaki mevcut tür (yoksa Servis) uygulanır.
+                        </p>
+                      )}
+                      {detail.dealerType && approveDealerType !== detail.dealerType && (
+                        <p className="text-xs text-gray-500">
+                          Başvuruda talep edilen tür: <strong>{DEALER_TYPE_LABELS[detail.dealerType]}</strong> — onayda değiştirildi.
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-gray-600">
+                      {detail.dealerType ? DEALER_TYPE_LABELS[detail.dealerType] : 'Atanmadı'}
+                    </div>
+                  )}
                 </div>
 
                 {detail.user && (

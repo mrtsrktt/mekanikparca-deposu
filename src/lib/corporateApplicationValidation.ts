@@ -23,6 +23,12 @@
  */
 import 'server-only'
 import { z } from 'zod'
+import { DEALER_TYPES, isDealerTypeInput } from './dealerTypeShared'
+
+// Bayi turu sabitleri paylasilan modulden yeniden disa aktarilir; boylece
+// mevcut import yollari degismeden calismaya devam eder.
+export { DEALER_TYPES, isDealerTypeInput }
+export type { DealerTypeInput } from './dealerTypeShared'
 
 export const CORPORATE_APPLICATION_TEXT_LIMITS = {
   companyName: 200,
@@ -94,6 +100,17 @@ export const corporateApplicationInputSchema = z
           message: `Not en fazla ${CORPORATE_APPLICATION_TEXT_LIMITS.applicationNote} karakter olabilir.`,
         }
       )
+      .optional(),
+    // Bayi turu istege baglidir: bos/atanmamis birakilirsa admin onay
+    // sirasinda secer. Gecersiz bir deger gonderilirse acikca reddedilir.
+    dealerType: z
+      .union([z.enum(DEALER_TYPES), z.literal(''), z.null(), z.undefined()], {
+        errorMap: () => ({
+          message:
+            'Bayi turu yalnizca WHOLESALER veya SERVICE olabilir.',
+        }),
+      })
+      .transform((value) => (isDealerTypeInput(value) ? value : undefined))
       .optional(),
   })
   .strict()

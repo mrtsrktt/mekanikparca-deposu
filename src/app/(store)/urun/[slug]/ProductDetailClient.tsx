@@ -10,6 +10,7 @@ import PriceTierTable from '@/components/PriceTierTable'
 import { getStorageArray } from '@/lib/safeStorage'
 import { formatPrice } from '@/lib/pricing'
 import { calculateB2BPrice, getTaxExcludedPrice } from '@/lib/b2bPricing'
+import { DEALER_TYPE_LABELS, type DealerType } from '@/lib/dealerDiscount'
 import { validateAndAdjustQuantity } from '@/lib/orderQuantityValidation'
 import { trackAddToCart, trackWhatsAppClick } from '@/lib/gtm'
 import Link from 'next/link'
@@ -57,27 +58,25 @@ export default function ProductDetailClient({ productId, productName, stock, tra
   }
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const [isAdded, setIsAdded] = useState(false)
-  // Kurumsal onay durumu: true ise B2B musteriye depo stogu gosterilir.
-  const [isCorporateApproved, setIsCorporateApproved] = useState(false)
+  // Onaylı bayi bilgisi: tür + güncel indirim oranı. null ise bayi değil.
+  const [dealer, setDealer] = useState<{ dealerType: DealerType; discountPercent: number } | null>(null)
+  const isCorporateApproved = dealer !== null
 
-  // ADMIN veya APPROVED kurumsal musteri ise seffaf depo stogu gosterilir.
+  // Bayi ise şeffaf depo stoğu ve bayi fiyatı gösterilir. Oran SiteSetting'ten
+  // okunur; admin değiştirince sayfa yenilendiğinde yeni oran görünür.
   useEffect(() => {
     if (!session?.user) {
-      setIsCorporateApproved(false)
-      return
-    }
-    if ((session.user as { role?: string }).role === 'ADMIN') {
-      setIsCorporateApproved(true)
+      setDealer(null)
       return
     }
     let active = true
-    fetch('/api/corporate/application')
+    fetch('/api/corporate/dealer-info')
       .then((r) => (r.ok ? r.json() : null))
-      .then((data: { application?: { status?: string } | null } | null) => {
-        if (active) setIsCorporateApproved(data?.application?.status === 'APPROVED')
+      .then((data: { dealer?: { dealerType: DealerType; discountPercent: number } | null } | null) => {
+        if (active) setDealer(data?.dealer ?? null)
       })
       .catch(() => {
-        if (active) setIsCorporateApproved(false)
+        if (active) setDealer(null)
       })
     return () => {
       active = false
@@ -139,7 +138,7 @@ export default function ProductDetailClient({ productId, productName, stock, tra
 
   // B2B çifte fiyat: perakende liste fiyatı ve bayi özel fiyatı
   const basePrice = retailPriceTRY ?? priceTRY
-  const b2bResult = calculateB2BPrice(basePrice)
+  const b2bResult = calculateB2BPrice(basePrice, dealer?.discountPercent ?? 0)
   // Bayi fiyatinin KDV ayristirmasi (KDV haric net + KDV tutari)
   const b2bTax = getTaxExcludedPrice(b2bResult.b2bPrice)
 
@@ -165,7 +164,7 @@ export default function ProductDetailClient({ productId, productName, stock, tra
             KDV (%20): {formatPrice(b2bTax.taxAmount)} | KDV Dahil: {formatPrice(b2bResult.b2bPrice)}
           </div>
           <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg">
-            Bayi Kazancınız: {formatPrice(b2bResult.savings)} (%{b2bResult.discountPercent} İskonto)
+            {dealer ? DEALER_TYPE_LABELS[dealer.dealerType] : 'Bayi'} Kazancınız: {formatPrice(b2bResult.savings)} (%{b2bResult.discountPercent} İskonto)
           </div>
         </div>
       )}
