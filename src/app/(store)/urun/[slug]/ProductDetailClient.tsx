@@ -9,7 +9,7 @@ import CampaignTierTable from '@/components/CampaignTierTable'
 import PriceTierTable from '@/components/PriceTierTable'
 import { getStorageArray } from '@/lib/safeStorage'
 import { formatPrice } from '@/lib/pricing'
-import { calculateB2BPrice, getTaxExcludedPrice } from '@/lib/b2bPricing'
+import { calculateB2BPrice } from '@/lib/b2bPricing'
 import { DEALER_BADGE_LABELS, type DealerType } from '@/lib/dealerTypeShared'
 import { validateAndAdjustQuantity } from '@/lib/orderQuantityValidation'
 import { trackAddToCart, trackWhatsAppClick } from '@/lib/gtm'
@@ -139,9 +139,6 @@ export default function ProductDetailClient({ productId, productName, stock, tra
   // B2B çifte fiyat: perakende liste fiyatı ve bayi özel fiyatı
   const basePrice = retailPriceTRY ?? priceTRY
   const b2bResult = calculateB2BPrice(basePrice, dealer?.discountPercent ?? 0)
-  // Bayi fiyatinin KDV ayristirmasi (KDV haric net + KDV tutari)
-  const b2bTax = getTaxExcludedPrice(b2bResult.b2bPrice)
-
   return (
     <div>
       {/* B2B Çifte Fiyat — yalnızca onaylı kurumsal müşterilere gösterilir */}
@@ -150,12 +147,9 @@ export default function ProductDetailClient({ productId, productName, stock, tra
           <div className="flex items-baseline gap-2.5 flex-wrap">
             <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide w-full">Bayi Özel Alış Fiyatı</span>
             <span className="text-3xl md:text-4xl font-black text-blue-600">
-              {formatPrice(b2bTax.taxExcludedPrice)}
+              {formatPrice(b2bResult.b2bPrice)}
             </span>
             <span className="text-sm font-semibold text-gray-500">+ KDV</span>
-          </div>
-          <div className="mt-2 text-xs text-gray-500">
-            KDV (%20): {formatPrice(b2bTax.taxAmount)} | KDV Dahil: {formatPrice(b2bResult.b2bPrice)}
           </div>
           <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg">
             {DEALER_BADGE_LABELS[dealer?.dealerType ?? 'WHOLESALER']} Kazancınız: {formatPrice(b2bResult.savings)} (%{b2bResult.discountPercent} İskonto)
