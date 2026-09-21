@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { getActiveCampaignsForProduct } from '@/lib/campaignPricing'
 import { getPriceTiersForProduct } from '@/lib/tierPricing'
 import { resolveBestPrice } from '@/lib/bestPrice'
-import { applySalePrice } from '@/lib/pricing'
+import { applySalePrice, convertToTRY } from '@/lib/pricing'
 import { calculateB2BPrice } from '@/lib/b2bPricing'
 import { getDealerInfo } from '@/lib/dealerDiscount'
 import bcrypt from 'bcryptjs'
@@ -94,6 +94,34 @@ export async function POST(req: NextRequest) {
     const dealer = await getDealerInfo(prisma, userId)
     const dealerDiscountPercent = dealer?.discountPercent ?? 0
 
+    // Kabul edilmiş teklif fiyatları — istemciden GELEN FİYATA ASLA GÜVENİLMEZ.
+    // Yalnızca bu kullanıcıya ait, QUOTED/ACCEPTED durumundaki tekliflerin satırları
+    // quoteId ile eşleştirilir ve teklifin kendi para birimi/kuru üzerinden TRY'ye çevrilir.
+    const quoteIds: string[] = Array.from(
+      new Set<string>(
+        items
+          .map((i: any) => i.quoteId)
+          .filter((v: any): v is string => typeof v === 'string' && v.length > 0)
+      )
+    )
+    const acceptedQuotePrices = new Map<string, number>() // `${quoteId}:${productId}` → TRY birim fiyat
+    if (quoteIds.length > 0) {
+      const quotes = await prisma.quoteRequest.findMany({
+        where: { id: { in: quoteIds }, userId, status: { in: ['QUOTED', 'ACCEPTED'] } },
+        include: { items: true },
+      })
+      for (const q of quotes) {
+        const rates = { USD: q.exchangeRateUSD, EUR: q.exchangeRateEUR }
+        for (const qi of q.items) {
+          if (qi.unitPrice == null) continue
+          acceptedQuotePrices.set(
+            `${q.id}:${qi.productId}`,
+            convertToTRY(Number(qi.unitPrice), q.currency || 'TRY', rates)
+          )
+        }
+      }
+    }
+
     let totalAmount = 0
     const orderItems: { productId: string; quantity: number; unitPrice: number; total: number }[] = []
 
@@ -113,8 +141,12 @@ export async function POST(req: NextRequest) {
       const bestPrice = resolveBestPrice(product.priceTRY, item.quantity, campaigns, priceTiers, boxQuantity)
       // Taban fiyata %20 KDV + %4 PayTR komisyonu ekle (sitede gösterilen satış fiyatı)
       const retailSalePrice = applySalePrice(bestPrice.finalUnitPriceTRY)
-      // Bayi indirimini uygula — bayi değilse indirim 0, fiyat değişmez
-      const unitPrice = calculateB2BPrice(retailSalePrice, dealerDiscountPercent).b2bPrice
+      // Öncelik sırası: (1) kabul edilmiş teklif fiyatı, (2) bayi indirimi, (3) perakende.
+      // Teklif fiyatı yalnızca sunucuda doğrulanan eşleşmeden gelir; istemci fiyatı yok sayılır.
+      const quotedPrice = item.quoteId ? acceptedQuotePrices.get(`${item.quoteId}:${product.id}`) : undefined
+      const unitPrice = quotedPrice != null
+        ? quotedPrice
+        : calculateB2BPrice(retailSalePrice, dealerDiscountPercent).b2bPrice
 
       const total = unitPrice * item.quantity
       totalAmount += total

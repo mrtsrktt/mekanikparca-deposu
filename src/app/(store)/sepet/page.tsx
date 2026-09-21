@@ -15,6 +15,8 @@ interface CartItem {
   quantity: number
   product?: any
   campaignPrice?: any
+  quotedUnitPrice?: number
+  quoteId?: string
 }
 
 export default function CartPage() {
@@ -108,7 +110,7 @@ export default function CartPage() {
     if (adjusted.wasAdjusted) quantity = adjusted.validQuantity
     const updated = items.map(i => i.productId === productId ? { ...i, quantity } : i)
     setItems(updated)
-    localStorage.setItem('cart', JSON.stringify(updated.map(({ productId, quantity }) => ({ productId, quantity }))))
+    localStorage.setItem('cart', JSON.stringify(updated.map(({ productId, quantity, quotedUnitPrice, quoteId }) => ({ productId, quantity, ...(quotedUnitPrice != null ? { quotedUnitPrice, quoteId } : {}) }))))
     window.dispatchEvent(new Event('cart-updated')) // sepet ikonundaki sayı güncellensin
 
     // Recalculate campaign prices
@@ -133,7 +135,7 @@ export default function CartPage() {
   const removeItem = (productId: string) => {
     const updated = items.filter(i => i.productId !== productId)
     setItems(updated)
-    localStorage.setItem('cart', JSON.stringify(updated.map(({ productId, quantity }) => ({ productId, quantity }))))
+    localStorage.setItem('cart', JSON.stringify(updated.map(({ productId, quantity, quotedUnitPrice, quoteId }) => ({ productId, quantity, ...(quotedUnitPrice != null ? { quotedUnitPrice, quoteId } : {}) }))))
     window.dispatchEvent(new Event('cart-updated')) // sepet ikonundaki sayı güncellensin
   }
 
@@ -146,17 +148,28 @@ export default function CartPage() {
     return item.product?.retailPriceTRY ?? item.product?.priceTRY ?? 0
   }
 
-  // Bayi indirimi uygulanmış birim fiyat — sepet toplamı ve ödeme bunu kullanır
+  // Bayi indirimi uygulanmış birim fiyat — sepet toplamı ve ödeme bunu kullanır.
+  // Tekliften gelen (admin onaylı) birim fiyat varsa o önceliklidir.
   const getUnitPrice = (item: CartItem) =>
-    calculateB2BPrice(getRetailUnitPrice(item), dealerDiscountPercent).b2bPrice
+    item.quotedUnitPrice != null
+      ? item.quotedUnitPrice
+      : calculateB2BPrice(getRetailUnitPrice(item), dealerDiscountPercent).b2bPrice
 
   // Liste (indirimsiz) birim fiyat — üstü çizili gösterim ve ara toplam için.
   const getOriginalPrice = (item: CartItem) => {
+    if (item.quotedUnitPrice != null) {
+      // Teklif fiyatı, liste fiyatından yüksekse üstü çizili gösterim anlamsız olur.
+      const list = item.product?.retailPriceTRY ?? item.product?.priceTRY ?? 0
+      return Math.max(list, item.quotedUnitPrice)
+    }
     if (item.campaignPrice?.originalPrice != null) return item.campaignPrice.originalPrice
     return item.product?.retailPriceTRY ?? item.product?.priceTRY ?? 0
   }
 
-  const getDiscountLabel = (item: CartItem): { type: 'campaign' | 'tier' | null; label: string } => {
+  const getDiscountLabel = (item: CartItem): { type: 'campaign' | 'tier' | 'quote' | null; label: string } => {
+    if (item.quotedUnitPrice != null) {
+      return { type: 'quote', label: '📝 Teklif Fiyatı' }
+    }
     if (!item.campaignPrice || item.campaignPrice.source === 'base') return { type: null, label: '' }
 
     if (item.campaignPrice.source === 'tier' && item.campaignPrice.appliedPriceTier) {

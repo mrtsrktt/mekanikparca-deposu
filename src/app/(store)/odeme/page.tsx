@@ -16,6 +16,10 @@ interface CartItem {
   product?: any
   unitPrice?: number
   campaignPrice?: any
+  // Admin teklifinde verilen birim fiyat (TRY'ye çevrilmiş). Doluysa bayi indirimi
+  // yerine bu fiyat kullanılır — teklif fiyatı sepette/ödeme/PayTR'de korunur.
+  quotedUnitPrice?: number
+  quoteId?: string
 }
 
 interface Address {
@@ -194,16 +198,24 @@ export default function OdemePage() {
   }
 
   // Bayi indirimi uygulanmış birim fiyat — ödeme tutarı ve PayTR token'ı ile birebir uyumlu.
-  const getUnitPrice = (item: CartItem) =>
-    calculateB2BPrice(getRetailUnitPrice(item), dealerDiscountPercent).b2bPrice
-
-  // Liste (indirimsiz) birim fiyat — üstü çizili gösterim ve ara toplam için.
-  const getOriginalPrice = (item: CartItem) => {
-    if (item.campaignPrice?.originalPrice != null) return item.campaignPrice.originalPrice
-    return item.product?.retailPriceTRY ?? item.product?.priceTRY ?? 0
+  // Teklif kabul edilmişse (quotedUnitPrice) admin'in verdiği fiyat önceliklidir.
+  const getUnitPrice = (item: CartItem) => {
+    if (item.quotedUnitPrice != null) return item.quotedUnitPrice
+    return calculateB2BPrice(getRetailUnitPrice(item), dealerDiscountPercent).b2bPrice
   }
 
-  const getDiscountLabel = (item: CartItem): { type: 'campaign' | 'tier' | null; label: string } => {
+  // Liste (indirimsiz) birim fiyat — üstü çizili gösterim ve ara toplam için.
+  // Teklif fiyatı varsa üstü çizili gösterim liste fiyatı olur (teklif < liste varsayımı).
+  const getOriginalPrice = (item: CartItem) => {
+    const listPrice = item.campaignPrice?.originalPrice != null
+      ? item.campaignPrice.originalPrice
+      : (item.product?.retailPriceTRY ?? item.product?.priceTRY ?? 0)
+    if (item.quotedUnitPrice != null) return Math.max(listPrice, item.quotedUnitPrice)
+    return listPrice
+  }
+
+  const getDiscountLabel = (item: CartItem): { type: 'campaign' | 'tier' | 'quote' | null; label: string } => {
+    if (item.quotedUnitPrice != null) return { type: 'quote', label: '📝 Teklif Fiyatı' }
     if (!item.campaignPrice || item.campaignPrice.source === 'base') return { type: null, label: '' }
 
     if (item.campaignPrice.source === 'tier' && item.campaignPrice.appliedPriceTier) {
@@ -251,7 +263,7 @@ export default function OdemePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: items.map(i => ({ productId: i.productId, quantity: i.quantity, unitPrice: getUnitPrice(i) })),
+          items: items.map(i => ({ productId: i.productId, quantity: i.quantity, unitPrice: getUnitPrice(i), quoteId: i.quoteId || null })),
           addressId: isGuest ? null : selectedAddressId,
           guest: isGuest ? guestInfo : null,
           notes,
@@ -491,7 +503,7 @@ export default function OdemePage() {
                   </div>
                   {hasDiscount && (
                     <div className="flex justify-between text-xs mt-0.5">
-                      <span className={`${discount.type === 'campaign' ? 'text-red-500' : 'text-orange-500'}`}>
+                      <span className={`${discount.type === 'campaign' ? 'text-red-500' : discount.type === 'quote' ? 'text-blue-600' : 'text-orange-500'}`}>
                         {discount.label}
                       </span>
                       <span className="text-gray-400 line-through">

@@ -6,7 +6,7 @@ import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { FiArrowLeft, FiDownload, FiShoppingCart } from 'react-icons/fi'
-import { formatPrice, convertFromTRY } from '@/lib/pricing'
+import { formatPrice, convertFromTRY, convertToTRY } from '@/lib/pricing'
 
 const currencySymbol = (c: string) => (c === 'USD' ? '$' : c === 'EUR' ? '€' : '₺')
 
@@ -60,10 +60,18 @@ export default function QuoteDetailPage({ params }: { params: { id: string } }) 
 
   const handleAcceptAndLoadCart = () => {
     try {
-      const items = (quote.items || []).map((i: any) => ({
-        productId: i.productId,
-        quantity: i.quantity,
-      }))
+      const items = (quote.items || []).map((i: any) => {
+        const entry: { productId: string; quantity: number; quotedUnitPrice?: number; quoteId?: string } = {
+          productId: i.productId,
+          quantity: i.quantity,
+        }
+        // Admin'in teklifte verdiği indirimli birim fiyatı sepete taşı (TRY'ye çevirerek).
+        if (i.unitPrice != null) {
+          entry.quotedUnitPrice = convertToTRY(Number(i.unitPrice), quoteCurrency, rates)
+          entry.quoteId = quote.id
+        }
+        return entry
+      })
       if (items.length === 0) {
         toast.error('Teklifte sepete eklenecek ürün bulunamadı.')
         return
