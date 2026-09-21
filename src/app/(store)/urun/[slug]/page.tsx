@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import { formatPrice, applySalePrice } from '@/lib/pricing'
+import { applySalePrice } from '@/lib/pricing'
 import { getActiveCampaignsForProduct } from '@/lib/campaignPricing'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -219,21 +219,6 @@ export default async function ProductDetailPage({ params }: Props) {
             <p className="text-sm text-gray-500 mb-4">Stok Kodu: {productWithConvertedPrice.sku}</p>
           )}
 
-          {/* Pricing — satış fiyatı (%20 KDV + %4 PayTR komisyonu dahil) */}
-          <div className="bg-gray-50 rounded-xl p-6 mb-6">
-            <div className="flex items-baseline gap-2.5 flex-wrap">
-              <span className="text-3xl md:text-4xl font-black text-primary-500">
-                {formatPrice(productWithConvertedPrice.priceTRY)}
-              </span>
-              <span className="text-sm font-semibold text-gray-500">KDV Dahildir</span>
-              {productWithConvertedPrice.hasTierDiscount && (
-                <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
-                  Toplu alımda daha uygun
-                </span>
-              )}
-            </div>
-          </div>
-
           {/* Stock */}
           <div className="mb-6 flex flex-wrap items-center gap-3">
             {(productWithConvertedPrice as any).trackStock === false ? (
@@ -255,6 +240,7 @@ export default async function ProductDetailPage({ params }: Props) {
             trackStock={(productWithConvertedPrice as any).trackStock}
             priceTRY={productWithConvertedPrice.priceTRY}
             retailPriceTRY={productWithConvertedPrice.retailPriceTRY ?? productWithConvertedPrice.priceTRY}
+            hasTierDiscount={productWithConvertedPrice.hasTierDiscount}
             campaigns={campaignsData}
             boxQuantity={product.boxQuantity}
             priceTiers={priceTiersData}

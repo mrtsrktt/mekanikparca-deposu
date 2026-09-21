@@ -39,13 +39,14 @@ interface Props {
   trackStock?: boolean
   priceTRY: number
   retailPriceTRY?: number
+  hasTierDiscount?: boolean
   campaigns?: CampaignInfo[]
   boxQuantity?: number | null
   priceTiers?: PriceTierInfo[]
   minOrder?: number
 }
 
-export default function ProductDetailClient({ productId, productName, stock, trackStock = true, priceTRY, retailPriceTRY, campaigns = [], boxQuantity, priceTiers = [], minOrder = 1 }: Props) {
+export default function ProductDetailClient({ productId, productName, stock, trackStock = true, priceTRY, retailPriceTRY, hasTierDiscount = false, campaigns = [], boxQuantity, priceTiers = [], minOrder = 1 }: Props) {
   const { data: session } = useSession()
   const router = useRouter()
   const minQty = minOrder && minOrder > 0 ? minOrder : 1
@@ -141,9 +142,34 @@ export default function ProductDetailClient({ productId, productName, stock, tra
   const b2bResult = calculateB2BPrice(basePrice, dealer?.discountPercent ?? 0)
   return (
     <div>
+      {/* Perakende fiyat — bayi değilse normal gösterim, bayi ise üstü çizili
+          referans fiyat olarak bayi bloğunun üstünde gösterilir. */}
+      {!isCorporateApproved && (
+        <div className="bg-gray-50 rounded-xl p-6 mb-6">
+          <div className="flex items-baseline gap-2.5 flex-wrap">
+            <span className="text-3xl md:text-4xl font-black text-primary-500">
+              {formatPrice(priceTRY)}
+            </span>
+            <span className="text-sm font-semibold text-gray-500">KDV Dahildir</span>
+            {hasTierDiscount && (
+              <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                Toplu alımda daha uygun
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* B2B Çifte Fiyat — yalnızca onaylı kurumsal müşterilere gösterilir */}
       {isCorporateApproved && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-5">
+          {/* Bayide perakende liste fiyatı referans olarak üstü çizili gösterilir */}
+          <div className="flex items-baseline gap-2 mb-1.5">
+            <span className="text-sm font-semibold text-gray-400 line-through">
+              {formatPrice(basePrice)}
+            </span>
+            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Perakende</span>
+          </div>
           <div className="flex items-baseline gap-2.5 flex-wrap">
             <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide w-full">Bayi Özel Alış Fiyatı</span>
             <span className="text-3xl md:text-4xl font-black text-blue-600">
