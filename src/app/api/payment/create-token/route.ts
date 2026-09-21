@@ -6,6 +6,8 @@ import { getActiveCampaignsForProduct } from '@/lib/campaignPricing'
 import { getPriceTiersForProduct } from '@/lib/tierPricing'
 import { resolveBestPrice } from '@/lib/bestPrice'
 import { applySalePrice } from '@/lib/pricing'
+import { calculateB2BPrice } from '@/lib/b2bPricing'
+import { getDealerInfo } from '@/lib/dealerDiscount'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 
@@ -87,6 +89,11 @@ export async function POST(req: NextRequest) {
       where: { id: { in: productIds }, isActive: true },
     })
 
+    // Bayi indirimi — oturum sahibinin bayi tipi/özel oranı (yoksa null → perakende fiyat).
+    // Sunucu tarafında çözülür; istemciden gelen hiçbir indirim değerine güvenilmez.
+    const dealer = await getDealerInfo(prisma, userId)
+    const dealerDiscountPercent = dealer?.discountPercent ?? 0
+
     let totalAmount = 0
     const orderItems: { productId: string; quantity: number; unitPrice: number; total: number }[] = []
 
@@ -105,7 +112,9 @@ export async function POST(req: NextRequest) {
       const { tiers: priceTiers, boxQuantity } = await getPriceTiersForProduct(product.id)
       const bestPrice = resolveBestPrice(product.priceTRY, item.quantity, campaigns, priceTiers, boxQuantity)
       // Taban fiyata %20 KDV + %4 PayTR komisyonu ekle (sitede gösterilen satış fiyatı)
-      const unitPrice = applySalePrice(bestPrice.finalUnitPriceTRY)
+      const retailSalePrice = applySalePrice(bestPrice.finalUnitPriceTRY)
+      // Bayi indirimini uygula — bayi değilse indirim 0, fiyat değişmez
+      const unitPrice = calculateB2BPrice(retailSalePrice, dealerDiscountPercent).b2bPrice
 
       const total = unitPrice * item.quantity
       totalAmount += total

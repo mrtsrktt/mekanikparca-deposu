@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { FiTrash2, FiShoppingBag } from 'react-icons/fi'
 import { formatPrice } from '@/lib/pricing'
+import { calculateB2BPrice } from '@/lib/b2bPricing'
 import { getStorageArray } from '@/lib/safeStorage'
 import { validateAndAdjustQuantity } from '@/lib/orderQuantityValidation'
 import CartQuoteProgress from '@/components/cart/CartQuoteProgress'
@@ -19,6 +20,21 @@ interface CartItem {
 export default function CartPage() {
   const [items, setItems] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [dealerDiscountPercent, setDealerDiscountPercent] = useState(0)
+
+  // Bayi indirim oranını oturumdan çek (yoksa 0 → perakende fiyat)
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/corporate/dealer-info')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled && data?.dealer?.discountPercent != null) {
+          setDealerDiscountPercent(data.dealer.discountPercent)
+        }
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
 
   const loadCart = useCallback(async () => {
     const cart = getStorageArray('cart')
@@ -124,10 +140,15 @@ export default function CartPage() {
   // Birim fiyat: adede göre hesaplanmış fiyatı (calculate/resolveBestPrice) kullan.
   // item.product.priceTRY en UCUZ kademe fiyatıdır (adetten bağımsız) — birim fiyat olarak kullanılmaz,
   // aksi halde 1 adet alımda bile koli/kademe fiyatı görünür ve ödeme tutarıyla uyuşmaz.
-  const getUnitPrice = (item: CartItem) => {
+  // Kampanya/kademe sonrası perakende satış fiyatı (bayi indirimi henüz uygulanmadı)
+  const getRetailUnitPrice = (item: CartItem) => {
     if (item.campaignPrice?.discountedPrice != null) return item.campaignPrice.discountedPrice
     return item.product?.retailPriceTRY ?? item.product?.priceTRY ?? 0
   }
+
+  // Bayi indirimi uygulanmış birim fiyat — sepet toplamı ve ödeme bunu kullanır
+  const getUnitPrice = (item: CartItem) =>
+    calculateB2BPrice(getRetailUnitPrice(item), dealerDiscountPercent).b2bPrice
 
   // Liste (indirimsiz) birim fiyat — üstü çizili gösterim ve ara toplam için.
   const getOriginalPrice = (item: CartItem) => {

@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { formatPrice } from '@/lib/pricing'
+import { calculateB2BPrice } from '@/lib/b2bPricing'
 import { getStorageArray } from '@/lib/safeStorage'
 import toast from 'react-hot-toast'
 import { FiMapPin, FiPlus, FiCheck } from 'react-icons/fi'
@@ -47,6 +48,21 @@ export default function OdemePage() {
   // Misafir ödemesi (kayıt olmadan devam et)
   const [isGuest, setIsGuest] = useState(false)
   const [guestInfo, setGuestInfo] = useState({ fullName: '', email: '', phone: '', city: '', district: '', address: '', zipCode: '' })
+  const [dealerDiscountPercent, setDealerDiscountPercent] = useState(0)
+
+  // Bayi indirim oranını oturumdan çek (yoksa 0 → perakende fiyat)
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/corporate/dealer-info')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled && data?.dealer?.discountPercent != null) {
+          setDealerDiscountPercent(data.dealer.discountPercent)
+        }
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
 
   const loadData = useCallback(async () => {
     const cart = getStorageArray('cart')
@@ -171,10 +187,15 @@ export default function OdemePage() {
   // Birim fiyat: adede göre hesaplanmış fiyatı (calculate/resolveBestPrice) kullan.
   // item.product.priceTRY en UCUZ kademe fiyatıdır (adetten bağımsız) — birim fiyat olarak kullanılmaz,
   // aksi halde 1 adet alımda bile koli/kademe fiyatı görünür ve PayTR tutarıyla uyuşmaz.
-  const getUnitPrice = (item: CartItem) => {
+  // Perakende birim fiyat (kampanya uygulanmışsa kampanya fiyatı, yoksa liste fiyatı).
+  const getRetailUnitPrice = (item: CartItem) => {
     if (item.campaignPrice?.discountedPrice != null) return item.campaignPrice.discountedPrice
     return item.product?.retailPriceTRY ?? item.product?.priceTRY ?? 0
   }
+
+  // Bayi indirimi uygulanmış birim fiyat — ödeme tutarı ve PayTR token'ı ile birebir uyumlu.
+  const getUnitPrice = (item: CartItem) =>
+    calculateB2BPrice(getRetailUnitPrice(item), dealerDiscountPercent).b2bPrice
 
   // Liste (indirimsiz) birim fiyat — üstü çizili gösterim ve ara toplam için.
   const getOriginalPrice = (item: CartItem) => {
