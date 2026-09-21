@@ -165,7 +165,7 @@ export default function ProductDetailClient({ productId, productName, stock, tra
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-5">
           {/* Bayide perakende liste fiyatı referans olarak üstü çizili gösterilir */}
           <div className="flex items-baseline gap-2 mb-1.5">
-            <span className="text-sm font-semibold text-gray-400 line-through">
+            <span className="text-xl md:text-2xl font-semibold text-gray-400 line-through">
               {formatPrice(basePrice)}
             </span>
             <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Perakende</span>
