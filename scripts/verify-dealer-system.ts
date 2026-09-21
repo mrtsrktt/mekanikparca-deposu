@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SALT OKUNUR dogrulama scripti.
  *
  * Amac: canli (Neon) veritabaninda iki katmanli bayi sisteminin verisini
@@ -7,6 +7,35 @@
  * Calistirma: npx tsx --conditions=react-server scripts/verify-dealer-system.ts
  */
 import { PrismaClient } from '@prisma/client'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+
+// .env dosyasini elle yukle (tsx otomatik yuklemez). Sadece eksik degiskenler set edilir.
+function loadDotEnv(): void {
+  for (const file of ['.env', '.env.local']) {
+    try {
+      const content = readFileSync(resolve(process.cwd(), file), 'utf8')
+      for (const rawLine of content.split(/\r?\n/)) {
+        const line = rawLine.trim()
+        if (!line || line.startsWith('#')) continue
+        const eq = line.indexOf('=')
+        if (eq < 0) continue
+        const key = line.slice(0, eq).trim()
+        let value = line.slice(eq + 1).trim()
+        if (
+          (value.startsWith('"') && value.endsWith('"')) ||
+          (value.startsWith("'") && value.endsWith("'"))
+        ) {
+          value = value.slice(1, -1)
+        }
+        if (key && process.env[key] === undefined) process.env[key] = value
+      }
+    } catch {
+      // dosya yoksa yoksay
+    }
+  }
+}
+loadDotEnv()
 import {
   resolveDiscountPercent,
   DEFAULT_DEALER_DISCOUNTS,
@@ -156,12 +185,11 @@ async function main() {
   // ---------------------------------------------------------------- 6
   console.log('\n[6] Ozellik bayragi (kurumsal basvuru aktif mi?)')
   line()
-  const flag = await prisma.siteSetting.findUnique({
-    where: { key: 'ENABLE_CORPORATE_APPLICATION' },
-    select: { value: true },
-  })
-  console.log(`  ENABLE_CORPORATE_APPLICATION = ${flag?.value ?? '(yok)'}`)
-  const enabled = flag?.value === 'true' || flag?.value === '1'
+  // Uygulama bu bayragi process.env uzerinden okur (bkz. src/lib/featureFlags.ts).
+  // SiteSetting tablosunda tutulmaz; bu yuzden burada env kontrol edilir.
+  const envFlag = process.env.ENABLE_CORPORATE_APPLICATION
+  console.log(`  ENABLE_CORPORATE_APPLICATION (env) = ${envFlag ?? '(yok)'}`)
+  const enabled = typeof envFlag === 'string' && envFlag.trim().toLowerCase() === 'true'
   if (!enabled) {
     fail('ozellik bayragi kapali -> /api/corporate/dealer-info 404 doner, indirim uygulanmaz')
   } else {
