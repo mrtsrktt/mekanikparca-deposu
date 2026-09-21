@@ -10,7 +10,7 @@ import PriceTierTable from '@/components/PriceTierTable'
 import { getStorageArray } from '@/lib/safeStorage'
 import { formatPrice } from '@/lib/pricing'
 import { calculateB2BPrice, getTaxExcludedPrice } from '@/lib/b2bPricing'
-import { DEALER_TYPE_LABELS, type DealerType } from '@/lib/dealerTypeShared'
+import { DEALER_BADGE_LABELS, type DealerType } from '@/lib/dealerTypeShared'
 import { validateAndAdjustQuantity } from '@/lib/orderQuantityValidation'
 import { trackAddToCart, trackWhatsAppClick } from '@/lib/gtm'
 import Link from 'next/link'
@@ -164,7 +164,7 @@ export default function ProductDetailClient({ productId, productName, stock, tra
             KDV (%20): {formatPrice(b2bTax.taxAmount)} | KDV Dahil: {formatPrice(b2bResult.b2bPrice)}
           </div>
           <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg">
-            {dealer ? DEALER_TYPE_LABELS[dealer.dealerType] : 'Bayi'} Kazancınız: {formatPrice(b2bResult.savings)} (%{b2bResult.discountPercent} İskonto)
+            {DEALER_BADGE_LABELS[dealer?.dealerType ?? 'WHOLESALER']} Kazancınız: {formatPrice(b2bResult.savings)} (%{b2bResult.discountPercent} İskonto)
           </div>
         </div>
       )}

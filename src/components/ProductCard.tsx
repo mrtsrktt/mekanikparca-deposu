@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { formatPrice, applySalePrice } from '@/lib/pricing'
 import { calculateB2BPrice, getTaxExcludedPrice } from '@/lib/b2bPricing'
-import { DEALER_TYPE_LABELS, type DealerType } from '@/lib/dealerTypeShared'
+import { DEALER_BADGE_LABELS, type DealerType } from '@/lib/dealerTypeShared'
 import { FiShoppingCart, FiEye, FiCheck } from 'react-icons/fi'
 import CampaignBadge from './CampaignBadge'
 import { getStorageArray } from '@/lib/safeStorage'
@@ -122,7 +122,7 @@ export default function ProductCard({ product, hasCampaign, campaignLowestPrice,
                   </span>
                   <span className="text-[10px] font-semibold text-blue-600">+ KDV</span>
                   <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-white bg-blue-600 px-2 py-0.5 rounded-full">
-                    %{b2bResult.discountPercent} {dealer ? DEALER_TYPE_LABELS[dealer.dealerType] : 'Bayi Özel'}
+                    %{b2bResult.discountPercent} {dealer ? DEALER_BADGE_LABELS[dealer.dealerType] : 'İndirim'}
                   </span>
                 </span>
                 <span className="text-[10px] font-normal text-gray-400">

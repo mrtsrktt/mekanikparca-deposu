@@ -37,3 +37,14 @@ export const DEALER_TYPE_LABELS: Record<DealerType, string> = {
   WHOLESALER: 'Toptancı',
   SERVICE: 'Servis',
 }
+
+/**
+ * Urun rozetlerinde gosterilen metin. Bayi turunun ADI yerine indirim
+ * vurgusu yapilir: "Toptancı" -> "%25 İndirim", "Servis" -> "%15 İndirim".
+ * (Yuzde degeri rozet icinde ayrica yazildigi icin burada tekrar edilmez;
+ * yalnizca "İndirim" kelimesi kullanilir.)
+ */
+export const DEALER_BADGE_LABELS: Record<DealerType, string> = {
+  WHOLESALER: 'İndirim',
+  SERVICE: 'İndirim',
+}

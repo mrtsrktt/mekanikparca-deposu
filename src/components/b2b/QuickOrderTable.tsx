@@ -12,7 +12,7 @@ import {
 import toast from 'react-hot-toast'
 import { formatPrice } from '@/lib/pricing'
 import { calculateB2BPrice, getTaxExcludedPrice } from '@/lib/b2bPricing'
-import { DEALER_TYPE_LABELS, type DealerType } from '@/lib/dealerTypeShared'
+import { DEALER_BADGE_LABELS, type DealerType } from '@/lib/dealerTypeShared'
 import { validateAndAdjustQuantity } from '@/lib/orderQuantityValidation'
 import { getStorageArray } from '@/lib/safeStorage'
 
@@ -233,7 +233,7 @@ export default function QuickOrderTable() {
                         KDV Dahil: {formatPrice(b2b.b2bPrice)}
                         {dealer && b2b.discountPercent > 0 && (
                           <span className="ml-1 text-blue-600 font-medium">
-                            (%{b2b.discountPercent} {DEALER_TYPE_LABELS[dealer.dealerType]})
+                            (%{b2b.discountPercent} {DEALER_BADGE_LABELS[dealer.dealerType]})
                           </span>
                         )}
                       </div>
