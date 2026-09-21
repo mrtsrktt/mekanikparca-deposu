@@ -125,9 +125,6 @@ export default function ProductCard({ product, hasCampaign, campaignLowestPrice,
                     %{b2bResult.discountPercent} {dealer ? DEALER_BADGE_LABELS[dealer.dealerType] : 'İndirim'}
                   </span>
                 </span>
-                <span className="text-[10px] font-normal text-gray-400">
-                  KDV Dahil: {formatPrice(b2bResult.b2bPrice)}
-                </span>
               </div>
             ) : hasAnyDiscount ? (
               <>
