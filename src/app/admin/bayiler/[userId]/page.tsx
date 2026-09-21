@@ -43,6 +43,7 @@ interface DealerDetail {
     phone: string | null
     dealerType: DealerType
     discountPercent: number
+    customDiscountPercent: number | null
     createdAt: string
   }
   company: Record<string, string | null> | null
@@ -99,6 +100,11 @@ export default function AdminDealerDetailPage() {
   const [saveError, setSaveError] = useState<string | null>(null)
   const [saveOk, setSaveOk] = useState<string | null>(null)
 
+  const [customInput, setCustomInput] = useState('')
+  const [savingCustom, setSavingCustom] = useState(false)
+  const [customError, setCustomError] = useState<string | null>(null)
+  const [customOk, setCustomOk] = useState<string | null>(null)
+
   const load = useCallback(async () => {
     if (!userId) {
       setError('Bayi bulunamadı')
@@ -116,6 +122,11 @@ export default function AdminDealerDetailPage() {
       const next = data as DealerDetail
       setDetail(next)
       if (next.dealer?.dealerType) setSelectedType(next.dealer.dealerType)
+      setCustomInput(
+        typeof next.dealer?.customDiscountPercent === 'number'
+          ? String(next.dealer.customDiscountPercent)
+          : ''
+      )
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Bayi yüklenemedi')
       setDetail(null)
@@ -164,6 +175,68 @@ export default function AdminDealerDetailPage() {
     } finally {
       setSaving(false)
     }
+  }
+
+  const saveCustom = async (nextValue: number | null) => {
+    if (!detail) return
+    setSavingCustom(true)
+    setCustomError(null)
+    setCustomOk(null)
+    try {
+      const res = await fetch(`/api/admin/dealers/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customDiscountPercent: nextValue }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Kaydedilemedi')
+
+      const serverCustom =
+        typeof data.dealer?.customDiscountPercent === 'number'
+          ? data.dealer.customDiscountPercent
+          : null
+      const serverEffective =
+        typeof data.dealer?.discountPercent === 'number'
+          ? data.dealer.discountPercent
+          : detail.dealer.discountPercent
+
+      setDetail((prev) =>
+        prev
+          ? {
+              ...prev,
+              dealer: {
+                ...prev.dealer,
+                customDiscountPercent: serverCustom,
+                discountPercent: serverEffective,
+              },
+            }
+          : prev
+      )
+      setCustomInput(serverCustom === null ? '' : String(serverCustom))
+      setCustomOk(
+        nextValue === null
+          ? 'Özel indirim kaldırıldı. Bayi türü oranı geçerli.'
+          : 'Özel indirim kaydedildi. Yeni oran sonraki fiyatlandırmada geçerli.'
+      )
+    } catch (err) {
+      setCustomError(err instanceof Error ? err.message : 'Kaydedilemedi')
+    } finally {
+      setSavingCustom(false)
+    }
+  }
+
+  const handleSaveCustom = () => {
+    const raw = customInput.trim()
+    if (!raw) {
+      setCustomError('Bir oran girin veya özel indirimi kaldırın.')
+      return
+    }
+    const parsed = Number(raw.replace(',', '.'))
+    if (!Number.isFinite(parsed) || parsed < 0 || parsed > 100) {
+      setCustomError('Oran 0 ile 100 arasında bir sayı olmalıdır.')
+      return
+    }
+    void saveCustom(parsed)
   }
 
   const formatDate = (value: string | null) => {
@@ -305,6 +378,79 @@ export default function AdminDealerDetailPage() {
                 {saveOk}
               </div>
             )}
+
+            {/* Özel indirim oranı */}
+            <div className="mt-6 border-t border-gray-100 pt-5">
+              <h3 className="text-sm font-semibold text-gray-900">
+                Özel İndirim Oranı
+              </h3>
+              <p className="mt-1 text-sm text-gray-600">
+                Bu bayi için tür bazlı oranı geçersiz kılar. Boş bırakılırsa
+                bayi türünün varsayılan oranı (%{dealer.dealerType === 'WHOLESALER' ? '25' : '15'})
+                uygulanır. Yalnızca bundan sonraki fiyatlandırmayı etkiler.
+              </p>
+
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700">%</span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    step="0.01"
+                    value={customInput}
+                    onChange={(e) => {
+                      setCustomInput(e.target.value)
+                      setCustomOk(null)
+                      setCustomError(null)
+                    }}
+                    placeholder="Örn. 30"
+                    className="w-28 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleSaveCustom}
+                  disabled={savingCustom}
+                  className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {savingCustom ? 'Kaydediliyor...' : 'Kaydet'}
+                </button>
+
+                {dealer.customDiscountPercent !== null && (
+                  <button
+                    type="button"
+                    onClick={() => void saveCustom(null)}
+                    disabled={savingCustom}
+                    className="rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Özel indirimi kaldır
+                  </button>
+                )}
+              </div>
+
+              <p className="mt-3 text-sm text-gray-700">
+                Geçerli oran:{' '}
+                <span className="font-semibold text-gray-900">
+                  %{dealer.discountPercent}
+                </span>{' '}
+                {dealer.customDiscountPercent !== null
+                  ? '(özel indirim)'
+                  : '(bayi türü varsayılanı)'}
+              </p>
+
+              {customError && (
+                <div className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  {customError}
+                </div>
+              )}
+              {customOk && (
+                <div className="mt-3 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                  {customOk}
+                </div>
+              )}
+            </div>
           </section>
 
           {/* Firma bilgisi */}
@@ -474,6 +620,11 @@ export default function AdminDealerDetailPage() {
                 <dt className="text-gray-600">İndirim Oranı</dt>
                 <dd className="font-semibold text-gray-900">
                   %{dealer.discountPercent}
+                  {dealer.customDiscountPercent !== null && (
+                    <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                      Özel
+                    </span>
+                  )}
                 </dd>
               </div>
               <div className="flex justify-between">
@@ -492,11 +643,12 @@ export default function AdminDealerDetailPage() {
               </div>
             </dl>
             <p className="mt-4 border-t border-gray-100 pt-3 text-xs text-gray-500">
-              İndirim oranı bayi türüne göre global olarak{' '}
+              Tür bazlı varsayılan oranlar{' '}
               <a href="/admin/ayarlar" className="text-blue-600 hover:underline">
                 Ayarlar
               </a>{' '}
-              sayfasından yönetilir.
+              sayfasından yönetilir. Bu bayiye özel oran tanımlanmışsa tür
+              varsayılanını geçersiz kılar.
             </p>
           </section>
 

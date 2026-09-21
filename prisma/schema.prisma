@@ -17,6 +17,9 @@ model User {
   // Onaylı bayi ise türü; değilse null (indirim uygulanmaz).
   // İndirim ORANI burada tutulmaz; SiteSetting'teki tür bazlı ayardan okunur.
   dealerType    DealerType?
+  // Kişiye özel indirim oranı (yüzde). Doluysa tür bazlı ayarı GEÇERSİZ KILAR.
+  // null ise tür bazlı ayar (SiteSetting) veya modül varsayılanı kullanılır.
+  customDiscountPercent Float?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   orders        Order[]

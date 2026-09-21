@@ -67,14 +67,24 @@ export function parseDiscountPercent(raw: unknown): number | null {
  *
  * Saf fonksiyon: DB cagrisi yapmaz, test edilebilir.
  *
+ * Oncelik sirasi:
+ *   1) customDiscountPercent dolu ve gecerliyse -> o kullanilir (kisiye ozel).
+ *   2) Aksi halde SiteSetting'teki tur bazli ayar.
+ *   3) O da yok/gecersizse modul ici varsayilan.
+ *
  * @param settings SiteSetting key -> value haritasi.
  * @param dealerType Bayi turu.
+ * @param customDiscountPercent Kisiye ozel oran (yoksa null/undefined).
  * @returns Uygulanacak indirim orani (yuzde).
  */
 export function resolveDiscountPercent(
   settings: Record<string, string | undefined>,
-  dealerType: DealerType
+  dealerType: DealerType,
+  customDiscountPercent?: number | null
 ): number {
+  const custom = parseDiscountPercent(customDiscountPercent)
+  if (custom !== null) return custom
+
   const key = DEALER_DISCOUNT_KEYS[dealerType]
   const parsed = parseDiscountPercent(settings[key])
   return parsed ?? DEFAULT_DEALER_DISCOUNTS[dealerType]
@@ -105,7 +115,7 @@ export async function getDealerInfo(
   try {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { dealerType: true },
+      select: { dealerType: true, customDiscountPercent: true },
     })
     if (!user || !isDealerType(user.dealerType)) return null
 
@@ -120,7 +130,8 @@ export async function getDealerInfo(
       dealerType,
       discountPercent: resolveDiscountPercent(
         { [settingKey]: setting?.value },
-        dealerType
+        dealerType,
+        user.customDiscountPercent
       ),
     }
   } catch {

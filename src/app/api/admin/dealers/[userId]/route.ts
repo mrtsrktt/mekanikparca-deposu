@@ -81,6 +81,7 @@ export async function GET(
         email: true,
         phone: true,
         dealerType: true,
+        customDiscountPercent: true,
         createdAt: true,
       },
     })
@@ -140,7 +141,17 @@ export async function GET(
       }
     }
 
-    const discountPercent = await resolveDiscount(dealerType)
+    // Tur bazli varsayilan ile kisiye ozel orani ayri ayri coz; arayuz
+    // ikisini karsilastirabilsin.
+    const typeDiscountPercent = await resolveDiscount(dealerType)
+    const customDiscountPercent =
+      user.customDiscountPercent !== null &&
+      Number.isFinite(user.customDiscountPercent) &&
+      user.customDiscountPercent >= 0
+        ? Math.min(user.customDiscountPercent, 100)
+        : null
+    const discountPercent =
+      customDiscountPercent !== null ? customDiscountPercent : typeDiscountPercent
 
     // Siparisler: tarihsel tutarlar DEGISTIRILMEZ, oldugu gibi gosterilir.
     const orders = await prisma.order.findMany({
@@ -182,6 +193,8 @@ export async function GET(
           phone: user.phone,
           dealerType,
           discountPercent,
+          typeDiscountPercent,
+          customDiscountPercent,
           createdAt: user.createdAt,
         },
         company,
@@ -211,11 +224,15 @@ export async function GET(
 /**
  * PATCH /api/admin/dealers/[userId]
  *
- * Bayinin turunu degistirir. Yalnizca `dealerType` alani kabul edilir.
+ * Bayinin turunu ve/veya kisiye ozel indirim oranini degistirir.
  *
- * - Gecerli degerler: 'WHOLESALER' | 'SERVICE' | null (bayilik kaldirilir).
- * - Degisiklik YALNIZCA bundan sonraki fiyatlandirmayi etkiler; gecmis
- *   siparis/teklif tutarlari degismez.
+ * Kabul edilen alanlar (en az biri gonderilmelidir):
+ * - `dealerType`: 'WHOLESALER' | 'SERVICE' | null (bayilik kaldirilir).
+ * - `customDiscountPercent`: 0..100 | null (null = ozel oran kaldirilir,
+ *   tur bazli varsayilana donulur).
+ *
+ * Degisiklik YALNIZCA bundan sonraki fiyatlandirmayi etkiler; gecmis
+ * siparis/teklif tutarlari degismez.
  */
 export async function PATCH(
   req: Request,
@@ -228,29 +245,66 @@ export async function PATCH(
     return NextResponse.json({ error: 'Bayi bulunamadı' }, { status: 404 })
   }
 
-  let body: { dealerType?: unknown }
+  let body: { dealerType?: unknown; customDiscountPercent?: unknown }
   try {
-    body = (await req.json()) as { dealerType?: unknown }
+    body = (await req.json()) as {
+      dealerType?: unknown
+      customDiscountPercent?: unknown
+    }
   } catch {
     return NextResponse.json({ error: 'Geçersiz istek gövdesi' }, { status: 400 })
   }
 
-  // `dealerType` acikca gonderilmis olmalidir. null = bayiligi kaldir.
-  if (!('dealerType' in body)) {
+  const hasType = 'dealerType' in body
+  const hasCustom = 'customDiscountPercent' in body
+  if (!hasType && !hasCustom) {
     return NextResponse.json(
-      { error: 'dealerType alanı zorunludur' },
+      { error: 'dealerType veya customDiscountPercent alanı zorunludur' },
       { status: 400 }
     )
   }
 
-  const raw = body.dealerType
-  if (raw !== null && !isDealerType(raw)) {
-    return NextResponse.json(
-      { error: 'Geçersiz bayi türü' },
-      { status: 400 }
-    )
+  // --- dealerType dogrulama ---
+  let nextType: DealerType | null | undefined = undefined
+  if (hasType) {
+    const raw = body.dealerType
+    if (raw !== null && !isDealerType(raw)) {
+      return NextResponse.json({ error: 'Geçersiz bayi türü' }, { status: 400 })
+    }
+    nextType = raw === null ? null : raw
   }
-  const nextType: DealerType | null = raw === null ? null : raw
+
+  // --- customDiscountPercent dogrulama ---
+  // null = ozel orani kaldir. Sayisal deger 0..100 araliginda olmalidir.
+  let nextCustom: number | null | undefined = undefined
+  if (hasCustom) {
+    const raw = body.customDiscountPercent
+    if (raw === null) {
+      nextCustom = null
+    } else if (typeof raw === 'number' && Number.isFinite(raw)) {
+      if (raw < 0 || raw > 100) {
+        return NextResponse.json(
+          { error: 'Özel indirim oranı 0 ile 100 arasında olmalıdır' },
+          { status: 400 }
+        )
+      }
+      nextCustom = raw
+    } else if (typeof raw === 'string' && raw.trim().length > 0) {
+      const num = Number(raw.trim())
+      if (!Number.isFinite(num) || num < 0 || num > 100) {
+        return NextResponse.json(
+          { error: 'Özel indirim oranı 0 ile 100 arasında olmalıdır' },
+          { status: 400 }
+        )
+      }
+      nextCustom = num
+    } else {
+      return NextResponse.json(
+        { error: 'Geçersiz özel indirim oranı' },
+        { status: 400 }
+      )
+    }
+  }
 
   try {
     const existing = await prisma.user.findUnique({
@@ -262,16 +316,28 @@ export async function PATCH(
       return NextResponse.json({ error: 'Kullanıcı bulunamadı' }, { status: 404 })
     }
 
+    const data: { dealerType?: DealerType | null; customDiscountPercent?: number | null } = {}
+    if (nextType !== undefined) data.dealerType = nextType
+    if (nextCustom !== undefined) data.customDiscountPercent = nextCustom
+
     const updated = await prisma.user.update({
       where: { id: params.userId },
-      data: { dealerType: nextType },
-      select: { id: true, dealerType: true },
+      data,
+      select: { id: true, dealerType: true, customDiscountPercent: true },
     })
 
+    let typeDiscountPercent = 0
+    if (updated.dealerType && isDealerType(updated.dealerType)) {
+      typeDiscountPercent = await resolveDiscount(updated.dealerType)
+    }
+    const customDiscountPercent =
+      updated.customDiscountPercent !== null &&
+      Number.isFinite(updated.customDiscountPercent) &&
+      updated.customDiscountPercent >= 0
+        ? Math.min(updated.customDiscountPercent, 100)
+        : null
     const discountPercent =
-      updated.dealerType && isDealerType(updated.dealerType)
-        ? await resolveDiscount(updated.dealerType)
-        : 0
+      customDiscountPercent !== null ? customDiscountPercent : typeDiscountPercent
 
     return NextResponse.json(
       {
@@ -279,6 +345,8 @@ export async function PATCH(
           id: updated.id,
           dealerType: updated.dealerType,
           discountPercent,
+          typeDiscountPercent,
+          customDiscountPercent,
         },
       },
       { status: 200 }

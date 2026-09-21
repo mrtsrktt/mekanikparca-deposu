@@ -195,6 +195,60 @@ check('24) resolveDiscountPercent 100 ustu ayari 100e sinirlar', () => {
   )
 })
 
+// --- resolveDiscountPercent: kisiye ozel (custom) gecersiz kilma ---
+
+check('25) custom dolu ise tur ayarini gecersiz kilar', () => {
+  const r = resolveDiscountPercent(
+    { dealer_discount_wholesaler: '30', dealer_discount_service: '18' },
+    'WHOLESALER',
+    40
+  )
+  expectEqual(r, 40, 'custom 40 > ayar 30')
+})
+
+check('26) custom dolu ise varsayilani da gecersiz kilar', () => {
+  expectEqual(resolveDiscountPercent({}, 'SERVICE', 7), 7, 'custom 7 > varsayilan 15')
+})
+
+check('27) custom null/undefined ise tur ayarina duser', () => {
+  expectEqual(
+    resolveDiscountPercent({ dealer_discount_wholesaler: '30' }, 'WHOLESALER', null),
+    30,
+    'null -> ayar'
+  )
+  expectEqual(
+    resolveDiscountPercent({ dealer_discount_wholesaler: '30' }, 'WHOLESALER', undefined),
+    30,
+    'undefined -> ayar'
+  )
+})
+
+check('28) custom 0 gecerli ve tur ayarini gecersiz kilar', () => {
+  expectEqual(
+    resolveDiscountPercent({ dealer_discount_service: '15' }, 'SERVICE', 0),
+    0,
+    'custom 0 indirim yok'
+  )
+})
+
+check('29) custom gecersizse tur ayarina duser', () => {
+  expectEqual(
+    resolveDiscountPercent({ dealer_discount_wholesaler: '30' }, 'WHOLESALER', NaN),
+    30,
+    'NaN -> ayar'
+  )
+  expectEqual(
+    resolveDiscountPercent({ dealer_discount_wholesaler: '30' }, 'WHOLESALER', -5),
+    30,
+    'negatif -> ayar'
+  )
+  expectEqual(
+    resolveDiscountPercent({ dealer_discount_wholesaler: '30' }, 'WHOLESALER', 150),
+    100,
+    '150 -> 100e sinirlanir (gecerli sayilir)'
+  )
+})
+
 // --- Ozet ---
 
 console.log('')

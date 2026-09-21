@@ -27,6 +27,7 @@ export async function GET() {
       email: true,
       phone: true,
       dealerType: true,
+      customDiscountPercent: true,
       createdAt: true,
       _count: { select: { orders: true, quotes: true } },
     },
@@ -59,20 +60,34 @@ export async function GET() {
     return parse(settingMap[key], DEFAULT_DEALER_DISCOUNTS[dealerType])
   }
 
-  const result = users.map((u) => ({
-    id: u.id,
-    name: u.name,
-    email: u.email,
-    phone: u.phone,
-    dealerType: u.dealerType,
-    discountPercent:
+  // Kisiye ozel oran gecerliyse tur bazli orani gecersiz kilar.
+  const parseCustom = (raw: number | null): number | null => {
+    if (raw === null || raw === undefined) return null
+    if (!Number.isFinite(raw) || raw < 0) return null
+    return Math.min(raw, 100)
+  }
+
+  const result = users.map((u) => {
+    const custom = parseCustom(u.customDiscountPercent)
+    const typeDiscount =
       u.dealerType === 'WHOLESALER' || u.dealerType === 'SERVICE'
         ? discountFor(u.dealerType)
-        : 0,
-    orderCount: u._count.orders,
-    quoteCount: u._count.quotes,
-    createdAt: u.createdAt,
-  }))
+        : 0
+    return {
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      phone: u.phone,
+      dealerType: u.dealerType,
+      discountPercent: custom !== null ? custom : typeDiscount,
+      // Tur bazli varsayilan; admin arayuzunde karsilastirma icin doner.
+      typeDiscountPercent: typeDiscount,
+      customDiscountPercent: custom,
+      orderCount: u._count.orders,
+      quoteCount: u._count.quotes,
+      createdAt: u.createdAt,
+    }
+  })
 
   return NextResponse.json({ dealers: result })
 }
