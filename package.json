@@ -11,7 +11,9 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "npx tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "test": "tsx --conditions=react-server src/lib/b2bPricing.test.ts && tsx --conditions=react-server src/lib/dealerDiscount.test.ts",
+    "verify:dealer": "tsx --conditions=react-server scripts/verify-dealer-system.ts"
   },
   "dependencies": {
     "@next/third-parties": "^14.2.35",
