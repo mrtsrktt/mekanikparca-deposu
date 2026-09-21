@@ -147,13 +147,7 @@ export default function ProductDetailClient({ productId, productName, stock, tra
       {/* B2B Çifte Fiyat — yalnızca onaylı kurumsal müşterilere gösterilir */}
       {isCorporateApproved && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-5">
-          <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Perakende Liste Fiyatı</span>
-            <span className="text-sm text-gray-400 line-through">
-              {formatPrice(basePrice)} <span className="text-[10px] font-normal">KDV Dahil</span>
-            </span>
-          </div>
-          <div className="mt-3 flex items-baseline gap-2.5 flex-wrap">
+          <div className="flex items-baseline gap-2.5 flex-wrap">
             <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide w-full">Bayi Özel Alış Fiyatı</span>
             <span className="text-3xl md:text-4xl font-black text-blue-600">
               {formatPrice(b2bTax.taxExcludedPrice)}
