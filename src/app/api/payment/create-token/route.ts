@@ -6,7 +6,7 @@ import { getActiveCampaignsForProduct } from '@/lib/campaignPricing'
 import { getPriceTiersForProduct } from '@/lib/tierPricing'
 import { resolveBestPrice } from '@/lib/bestPrice'
 import { applySalePrice, convertToTRY } from '@/lib/pricing'
-import { calculateB2BPrice } from '@/lib/b2bPricing'
+import { calculateB2BPrice, getB2BPriceForProduct } from '@/lib/b2bPricing'
 import { getDealerInfo } from '@/lib/dealerDiscount'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
@@ -146,7 +146,7 @@ export async function POST(req: NextRequest) {
       const quotedPrice = item.quoteId ? acceptedQuotePrices.get(`${item.quoteId}:${product.id}`) : undefined
       const unitPrice = quotedPrice != null
         ? quotedPrice
-        : calculateB2BPrice(retailSalePrice, dealerDiscountPercent).b2bPrice
+        : getB2BPriceForProduct(product, dealer?.dealerType, retailSalePrice).b2bPrice
 
       const total = unitPrice * item.quantity
       totalAmount += total

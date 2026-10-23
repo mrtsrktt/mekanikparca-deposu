@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { formatPrice, applySalePrice } from '@/lib/pricing'
-import { calculateB2BPrice, getTaxExcludedPrice } from '@/lib/b2bPricing'
+import { calculateB2BPrice, getB2BPriceForProduct, getTaxExcludedPrice } from '@/lib/b2bPricing'
 import { DEALER_BADGE_LABELS, type DealerType } from '@/lib/dealerTypeShared'
 import { FiShoppingCart, FiEye, FiCheck } from 'react-icons/fi'
 import CampaignBadge from './CampaignBadge'
@@ -18,6 +18,8 @@ interface ProductCardProps {
     name: string
     slug: string
     priceTRY: number
+    wholesalerPriceTRY?: number | null
+    servicePriceTRY?: number | null
     images: { url: string; alt?: string | null }[]
     brand?: { name: string } | null
     category?: { name: string } | null
@@ -75,7 +77,7 @@ export default function ProductCard({ product, hasCampaign, campaignLowestPrice,
   // İndirim oranı bayi türüne göre admin ayarından gelir; bayi değilse
   // 0 verilir ve indirim uygulanmaz.
   const retailSalePrice = applySalePrice(product.priceTRY)
-  const b2bResult = calculateB2BPrice(retailSalePrice, dealer?.discountPercent ?? 0)
+  const b2bResult = dealer ? getB2BPriceForProduct(product, dealer.dealerType, retailSalePrice) : { b2bPrice: retailSalePrice, savings: 0, discountPercent: 0 }
   // B2B bayi fiyatı KDV Dahil hesaplandığı için KDV Hariç tutarı da gösterilir
   const b2bTax = getTaxExcludedPrice(b2bResult.b2bPrice)
 
@@ -111,7 +113,7 @@ export default function ProductCard({ product, hasCampaign, campaignLowestPrice,
 
         <div className="mt-3">
           <div>
-            {isCorporateApproved ? (
+            {isCorporateApproved && b2bResult.savings > 0 ? (
               <div className="flex flex-col gap-1">
                 <span className="text-xs text-gray-400 line-through block">
                   {formatPrice(retailSalePrice)}

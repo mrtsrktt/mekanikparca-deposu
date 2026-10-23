@@ -9,10 +9,9 @@ export const dynamic = 'force-dynamic'
  * GET /api/admin/dealers
  *
  * Bayi (dealerType atanmis) kullanicilari listeler. Her kayit icin tur,
- * uygulanacak indirim orani ve siparis/teklif sayilari doner.
+ * cari limit, indirim orani ve siparis/teklif sayilari doner.
  *
  * - Yalnizca ADMIN erisir.
- * - Indirim oranlari SiteSetting'ten okunur; ayar yoksa varsayilan kullanilir.
  * - Turu olmayan (dealerType=null) kullanicilar listelenmez.
  */
 export async function GET() {
@@ -27,6 +26,7 @@ export async function GET() {
       email: true,
       phone: true,
       dealerType: true,
+      creditLimit: true,
       customDiscountPercent: true,
       createdAt: true,
       _count: { select: { orders: true, quotes: true } },
@@ -34,7 +34,6 @@ export async function GET() {
     orderBy: { createdAt: 'desc' },
   })
 
-  // Indirim oranlarini tek sorguda coz.
   const keys = [
     DEALER_DISCOUNT_KEYS.WHOLESALER,
     DEALER_DISCOUNT_KEYS.SERVICE,
@@ -60,7 +59,6 @@ export async function GET() {
     return parse(settingMap[key], DEFAULT_DEALER_DISCOUNTS[dealerType])
   }
 
-  // Kisiye ozel oran gecerliyse tur bazli orani gecersiz kilar.
   const parseCustom = (raw: number | null): number | null => {
     if (raw === null || raw === undefined) return null
     if (!Number.isFinite(raw) || raw < 0) return null
@@ -79,8 +77,8 @@ export async function GET() {
       email: u.email,
       phone: u.phone,
       dealerType: u.dealerType,
+      creditLimit: u.creditLimit ?? 0,
       discountPercent: custom !== null ? custom : typeDiscount,
-      // Tur bazli varsayilan; admin arayuzunde karsilastirma icin doner.
       typeDiscountPercent: typeDiscount,
       customDiscountPercent: custom,
       orderCount: u._count.orders,

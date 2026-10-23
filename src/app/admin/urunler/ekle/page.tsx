@@ -17,6 +17,8 @@ export default function AddProductPage() {
   const [form, setForm] = useState({
     name: '', slug: '', sku: '', description: '', technicalDetails: '',
     priceCurrency: 'TRY', priceOriginal: 0,
+    wholesalerPriceOriginal: '' as string | number,
+    servicePriceOriginal: '' as string | number,
     stock: 0, trackStock: true, categoryId: '', brandId: '',
     isActive: true, isFeatured: false,
     metaTitle: '', metaDesc: '', weight: 0, unit: 'Adet', minOrder: 1,
@@ -161,7 +163,7 @@ export default function AddProductPage() {
         {/* Pricing */}
         <div className="card p-6">
           <h2 className="font-semibold text-lg mb-4">Fiyatlandırma</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Para Birimi</label>
               <select className="input-field" value={form.priceCurrency} onChange={(e) => update('priceCurrency', e.target.value)}>
@@ -173,6 +175,28 @@ export default function AddProductPage() {
             <div>
               <label className="block text-sm font-medium mb-1">Fiyat *</label>
               <input type="number" step="any" required className="input-field" value={form.priceOriginal} onChange={(e) => update('priceOriginal', parseFloat(e.target.value) || 0)} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Toptancı Fiyatı ({form.priceCurrency})</label>
+              <input
+                type="number"
+                step="any"
+                className="input-field"
+                value={form.wholesalerPriceOriginal}
+                placeholder="Örn: 150"
+                onChange={(e) => update('wholesalerPriceOriginal', e.target.value === '' ? '' : parseFloat(e.target.value))}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Servis Fiyatı ({form.priceCurrency})</label>
+              <input
+                type="number"
+                step="any"
+                className="input-field"
+                value={form.servicePriceOriginal}
+                placeholder="Örn: 175"
+                onChange={(e) => update('servicePriceOriginal', e.target.value === '' ? '' : parseFloat(e.target.value))}
+              />
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">

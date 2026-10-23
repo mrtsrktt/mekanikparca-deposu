@@ -4,6 +4,7 @@
  * Bu modul mevcut pricing.ts motorundan bagimsizdir; perakende fiyati
  * uzerinden B2B (kurumsal) iskontolu fiyat hesaplar.
  */
+import { applySalePrice } from './pricing'
 
 /** Varsayilan B2B iskonto orani (yuzde). */
 export const DEFAULT_B2B_DISCOUNT_PERCENT = 10
@@ -62,6 +63,50 @@ export function calculateB2BPrice(
     b2bPrice,
     savings,
     discountPercent: appliedPercent,
+  }
+}
+
+export interface ProductB2BPrices {
+  priceTRY?: number
+  wholesalerPriceTRY?: number | null
+  servicePriceTRY?: number | null
+}
+
+/**
+ * Bir ürün için bayi türüne göre manuel veya standart fiyatı çözümler.
+ *
+ * - Eğer bayi türü 'WHOLESALER' ise ve ürünün wholesalerPriceTRY değeri varsa:
+ *   applySalePrice(wholesalerPriceTRY)
+ * - Eğer bayi türü 'SERVICE' ise ve ürünün servicePriceTRY değeri varsa:
+ *   applySalePrice(servicePriceTRY)
+ * - Eğer ürüne özel fiyat girilmemişse (null/boşsa): Standart perakende fiyatı geçerli olur.
+ */
+export function getB2BPriceForProduct(
+  product: ProductB2BPrices,
+  dealerType?: string | null,
+  fallbackRetailSalePrice?: number
+): B2BPriceResult {
+  const retail =
+    fallbackRetailSalePrice ?? (product.priceTRY != null ? applySalePrice(product.priceTRY) : 0)
+
+  if (dealerType === 'WHOLESALER' && product.wholesalerPriceTRY != null && product.wholesalerPriceTRY > 0) {
+    const b2bPrice = applySalePrice(product.wholesalerPriceTRY)
+    const savings = Math.max(0, round2(retail - b2bPrice))
+    const discountPercent = retail > 0 ? round2((savings / retail) * 100) : 0
+    return { b2bPrice, savings, discountPercent }
+  }
+
+  if (dealerType === 'SERVICE' && product.servicePriceTRY != null && product.servicePriceTRY > 0) {
+    const b2bPrice = applySalePrice(product.servicePriceTRY)
+    const savings = Math.max(0, round2(retail - b2bPrice))
+    const discountPercent = retail > 0 ? round2((savings / retail) * 100) : 0
+    return { b2bPrice, savings, discountPercent }
+  }
+
+  return {
+    b2bPrice: retail,
+    savings: 0,
+    discountPercent: 0,
   }
 }
 

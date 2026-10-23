@@ -1,8 +1,13 @@
-const { Client } = require('pg');
 const fs = require('fs');
 const path = require('path');
 
-const DATABASE_URL = "postgresql://neondb_owner:npg_N7pomAlP4hcG@ep-lively-wave-ai1wtmy2-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require";
+const DATABASE_URL = process.env.DATABASE_URL;
+if (!DATABASE_URL) {
+  console.error('DATABASE_URL ortam değişkeni bulunamadı.');
+  process.exit(1);
+}
+
+const { Client } = require('pg');
 
 async function migrate() {
   const client = new Client({ connectionString: DATABASE_URL });

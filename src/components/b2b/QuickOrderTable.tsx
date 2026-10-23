@@ -11,7 +11,7 @@ import {
 } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import { formatPrice } from '@/lib/pricing'
-import { calculateB2BPrice, getTaxExcludedPrice } from '@/lib/b2bPricing'
+import { calculateB2BPrice, getB2BPriceForProduct, getTaxExcludedPrice } from '@/lib/b2bPricing'
 import { DEALER_BADGE_LABELS, type DealerType } from '@/lib/dealerTypeShared'
 import { validateAndAdjustQuantity } from '@/lib/orderQuantityValidation'
 import { getStorageArray } from '@/lib/safeStorage'
@@ -22,6 +22,8 @@ type QuickOrderProduct = {
   sku: string | null
   slug: string
   priceTRY: number
+  wholesalerPriceTRY?: number | null
+  servicePriceTRY?: number | null
   stock: number
   minOrder?: number | null
   boxQuantity?: number | null
@@ -199,7 +201,7 @@ export default function QuickOrderTable() {
                 const boxQty = p.boxQuantity
                 const outOfStock = p.stock <= 0
                 // Bayi indirimi uygulanmis fiyat; bayi degilse indirim 0'dir.
-                const b2b = calculateB2BPrice(p.priceTRY, dealer?.discountPercent ?? 0)
+                const b2b = getB2BPriceForProduct(p, dealer?.dealerType, p.priceTRY)
                 const taxBreakdown = getTaxExcludedPrice(b2b.b2bPrice)
                 return (
                   <tr key={p.id} className="hover:bg-gray-50/70">

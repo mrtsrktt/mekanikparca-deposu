@@ -240,6 +240,8 @@ export default async function ProductDetailPage({ params }: Props) {
             trackStock={(productWithConvertedPrice as any).trackStock}
             priceTRY={productWithConvertedPrice.priceTRY}
             retailPriceTRY={productWithConvertedPrice.retailPriceTRY ?? productWithConvertedPrice.priceTRY}
+            wholesalerPriceTRY={product.wholesalerPriceTRY}
+            servicePriceTRY={product.servicePriceTRY}
             hasTierDiscount={productWithConvertedPrice.hasTierDiscount}
             campaigns={campaignsData}
             boxQuantity={product.boxQuantity}

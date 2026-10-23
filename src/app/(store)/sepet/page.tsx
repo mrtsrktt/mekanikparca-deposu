@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { FiTrash2, FiShoppingBag } from 'react-icons/fi'
 import { formatPrice } from '@/lib/pricing'
-import { calculateB2BPrice } from '@/lib/b2bPricing'
+import { calculateB2BPrice, getB2BPriceForProduct } from '@/lib/b2bPricing'
 import { getStorageArray } from '@/lib/safeStorage'
 import { validateAndAdjustQuantity } from '@/lib/orderQuantityValidation'
 import CartQuoteProgress from '@/components/cart/CartQuoteProgress'
@@ -23,6 +23,7 @@ export default function CartPage() {
   const [items, setItems] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
   const [dealerDiscountPercent, setDealerDiscountPercent] = useState(0)
+  const [dealerType, setDealerType] = useState<string | null>(null)
 
   // Bayi indirim oranını oturumdan çek (yoksa 0 → perakende fiyat)
   useEffect(() => {
@@ -30,8 +31,9 @@ export default function CartPage() {
     fetch('/api/corporate/dealer-info')
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (!cancelled && data?.dealer?.discountPercent != null) {
-          setDealerDiscountPercent(data.dealer.discountPercent)
+        if (!cancelled && data?.dealer) {
+          if (data.dealer.dealerType) setDealerType(data.dealer.dealerType)
+          if (data.dealer.discountPercent != null) setDealerDiscountPercent(data.dealer.discountPercent)
         }
       })
       .catch(() => {})
@@ -150,10 +152,14 @@ export default function CartPage() {
 
   // Bayi indirimi uygulanmış birim fiyat — sepet toplamı ve ödeme bunu kullanır.
   // Tekliften gelen (admin onaylı) birim fiyat varsa o önceliklidir.
-  const getUnitPrice = (item: CartItem) =>
-    item.quotedUnitPrice != null
-      ? item.quotedUnitPrice
-      : calculateB2BPrice(getRetailUnitPrice(item), dealerDiscountPercent).b2bPrice
+  const getUnitPrice = (item: CartItem) => {
+    if (item.quotedUnitPrice != null) return item.quotedUnitPrice
+    const retail = getRetailUnitPrice(item)
+    if (dealerType && item.product) {
+      return getB2BPriceForProduct(item.product, dealerType, retail).b2bPrice
+    }
+    return retail
+  }
 
   // Liste (indirimsiz) birim fiyat — üstü çizili gösterim ve ara toplam için.
   const getOriginalPrice = (item: CartItem) => {

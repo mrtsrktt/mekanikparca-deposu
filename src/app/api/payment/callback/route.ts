@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import crypto from 'crypto'
 
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       return new NextResponse('FAILED', { status: 400 })
     }
 
-    const order = await (prisma as any).order.findUnique({ where: { paytrMerchantOid: merchantOid } })
+    const order = await prisma.order.findUnique({ where: { paytrMerchantOid: merchantOid } })
     if (!order) {
       console.error('Order not found for merchantOid:', merchantOid)
       return new NextResponse('OK')
@@ -34,16 +34,35 @@ export async function POST(req: NextRequest) {
 
     console.log('Order found:', { orderId: order.id, currentPaymentStatus: order.paymentStatus })
 
+    // İdempotensi kontrolü: İşlem zaten yapılmışsa doğrudan OK dön
+    if (order.paymentStatus === 'PAID') {
+      console.log('Order already marked as PAID (idempotent request):', order.id)
+      return new NextResponse('OK')
+    }
+
+    // Ödeme tutar doğrulaması (tutar manipülasyonu engeli)
+    const expectedAmountKurus = Math.round(order.totalAmount * 100)
+    const receivedAmountKurus = Number(totalAmount)
+
+    if (receivedAmountKurus !== expectedAmountKurus) {
+      console.error('PayTR callback amount mismatch:', {
+        orderId: order.id,
+        expectedAmountKurus,
+        receivedAmountKurus,
+      })
+      return new NextResponse('FAILED', { status: 400 })
+    }
+
     if (status === 'success') {
-      await (prisma as any).order.update({ 
-        where: { id: order.id }, 
-        data: { paymentStatus: 'PAID', status: 'CONFIRMED' } 
+      await prisma.order.update({
+        where: { id: order.id },
+        data: { paymentStatus: 'PAID', status: 'CONFIRMED' },
       })
       console.log('Order updated to PAID:', order.id)
     } else {
-      await (prisma as any).order.update({ 
-        where: { id: order.id }, 
-        data: { paymentStatus: 'FAILED', status: 'CANCELLED' } 
+      await prisma.order.update({
+        where: { id: order.id },
+        data: { paymentStatus: 'FAILED', status: 'CANCELLED' },
       })
       console.log('Order updated to FAILED:', order.id)
     }

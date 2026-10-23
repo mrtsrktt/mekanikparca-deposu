@@ -7,8 +7,8 @@ import Link from 'next/link'
  * Admin > Bayiler
  *
  * `dealerType` atanmis (onayli bayi) kullanicilari listeler. Her satirda
- * firma/yetkili bilgisi, bayi turu, uygulanan indirim orani ve siparis/teklif
- * sayilari gosterilir. Detay ve tur degisikligi icin satirdaki baglantiya
+ * firma/yetkili bilgisi, bayi turu, tanimli cari limit ve siparis/teklif
+ * sayilari gosterilir. Detay ve limit/tur degisikligi icin satirdaki baglantiya
  * gidilir.
  */
 
@@ -25,7 +25,7 @@ interface DealerRow {
   email: string | null
   phone: string | null
   dealerType: DealerType | null
-  discountPercent: number
+  creditLimit?: number | null
   orderCount: number
   quoteCount: number
   createdAt: string
@@ -97,15 +97,7 @@ export default function AdminDealersPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Bayiler</h1>
         <p className="mt-1 text-sm text-gray-600">
-          Onaylı bayiler, bayi türleri ve uygulanan indirim oranları. İndirim
-          oranları{' '}
-          <Link
-            href="/admin/ayarlar"
-            className="font-medium text-blue-600 hover:underline"
-          >
-            Ayarlar
-          </Link>{' '}
-          sayfasından değiştirilir.
+          Onaylı bayiler, bayi türleri ve tanımlı cari hesap limitleri.
         </p>
       </div>
 
@@ -183,7 +175,7 @@ export default function AdminDealersPage() {
                   Bayi Türü
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-600">
-                  İndirim
+                  Cari Limit
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-600">
                   Sipariş
@@ -251,7 +243,9 @@ export default function AdminDealersPage() {
                     )}
                   </td>
                   <td className="px-4 py-3 text-right text-sm font-semibold text-gray-900">
-                    %{d.discountPercent}
+                    {d.creditLimit && d.creditLimit > 0
+                      ? `${d.creditLimit.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} ₺`
+                      : '-'}
                   </td>
                   <td className="px-4 py-3 text-right text-sm text-gray-700">
                     {d.orderCount}

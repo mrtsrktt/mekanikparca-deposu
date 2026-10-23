@@ -9,7 +9,7 @@ import CampaignTierTable from '@/components/CampaignTierTable'
 import PriceTierTable from '@/components/PriceTierTable'
 import { getStorageArray } from '@/lib/safeStorage'
 import { formatPrice } from '@/lib/pricing'
-import { calculateB2BPrice } from '@/lib/b2bPricing'
+import { calculateB2BPrice, getB2BPriceForProduct } from '@/lib/b2bPricing'
 import { DEALER_BADGE_LABELS, type DealerType } from '@/lib/dealerTypeShared'
 import { validateAndAdjustQuantity } from '@/lib/orderQuantityValidation'
 import { trackAddToCart, trackWhatsAppClick } from '@/lib/gtm'
@@ -39,6 +39,8 @@ interface Props {
   trackStock?: boolean
   priceTRY: number
   retailPriceTRY?: number
+  wholesalerPriceTRY?: number | null
+  servicePriceTRY?: number | null
   hasTierDiscount?: boolean
   campaigns?: CampaignInfo[]
   boxQuantity?: number | null
@@ -46,7 +48,7 @@ interface Props {
   minOrder?: number
 }
 
-export default function ProductDetailClient({ productId, productName, stock, trackStock = true, priceTRY, retailPriceTRY, hasTierDiscount = false, campaigns = [], boxQuantity, priceTiers = [], minOrder = 1 }: Props) {
+export default function ProductDetailClient({ productId, productName, stock, trackStock = true, priceTRY, retailPriceTRY, wholesalerPriceTRY, servicePriceTRY, hasTierDiscount = false, campaigns = [], boxQuantity, priceTiers = [], minOrder = 1 }: Props) {
   const { data: session } = useSession()
   const router = useRouter()
   const minQty = minOrder && minOrder > 0 ? minOrder : 1
@@ -139,12 +141,13 @@ export default function ProductDetailClient({ productId, productName, stock, tra
 
   // B2B çifte fiyat: perakende liste fiyatı ve bayi özel fiyatı
   const basePrice = retailPriceTRY ?? priceTRY
-  const b2bResult = calculateB2BPrice(basePrice, dealer?.discountPercent ?? 0)
+  const b2bResult = dealer ? getB2BPriceForProduct({ priceTRY, wholesalerPriceTRY, servicePriceTRY }, dealer.dealerType, basePrice) : { b2bPrice: basePrice, savings: 0, discountPercent: 0 }
+  const hasB2BDiscount = isCorporateApproved && b2bResult.savings > 0
   return (
     <div>
       {/* Perakende fiyat — bayi değilse normal gösterim, bayi ise üstü çizili
           referans fiyat olarak bayi bloğunun üstünde gösterilir. */}
-      {!isCorporateApproved && (
+      {(!isCorporateApproved || !hasB2BDiscount) && (
         <div className="bg-gray-50 rounded-xl p-6 mb-6">
           <div className="flex items-baseline gap-2.5 flex-wrap">
             <span className="text-3xl md:text-4xl font-black text-primary-500">
@@ -160,8 +163,8 @@ export default function ProductDetailClient({ productId, productName, stock, tra
         </div>
       )}
 
-      {/* B2B Çifte Fiyat — yalnızca onaylı kurumsal müşterilere gösterilir */}
-      {isCorporateApproved && (
+      {/* B2B Çifte Fiyat — yalnızca onaylı kurumsal müşterilere ve indirimli fiyata sahipse gösterilir */}
+      {hasB2BDiscount && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-5">
           {/* Bayide perakende liste fiyatı referans olarak üstü çizili gösterilir */}
           <div className="flex items-baseline gap-2 mb-1.5">

@@ -39,42 +39,118 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json()
-    const { name, slug, sku, description, technicalDetails, priceCurrency, priceOriginal,
-      stock, trackStock, categoryId, brandId, isActive, isFeatured, metaTitle, metaDesc, weight, unit, minOrder, freeShipping, images, videos, documents,
-      boxQuantity, priceTiers } = body
-
-    // Calculate TRY price
-    let priceTRY = priceOriginal
-    if (priceCurrency !== 'TRY') {
-      const rateRecord = await prisma.currencyRate.findUnique({ where: { currency: priceCurrency } })
-      if (rateRecord) {
-        priceTRY = priceOriginal * rateRecord.rate
-      }
-    }
+    const {
+      name,
+      slug,
+      sku,
+      description,
+      technicalDetails,
+      priceCurrency,
+      priceOriginal,
+      wholesalerPriceOriginal,
+      servicePriceOriginal,
+      stock,
+      trackStock,
+      categoryId,
+      brandId,
+      isActive,
+      isFeatured,
+      metaTitle,
+      metaDesc,
+      weight,
+      unit,
+      minOrder,
+      freeShipping,
+      images,
+      videos,
+      documents,
+      boxQuantity,
+      priceTiers,
+    } = body
 
     // Döviz kuru (kademe fiyatları için de kullanılacak)
-    const currencyRate = priceCurrency !== 'TRY'
-      ? (await prisma.currencyRate.findUnique({ where: { currency: priceCurrency } }))?.rate || 1
-      : 1
+    const currencyRate =
+      priceCurrency !== 'TRY'
+        ? (await prisma.currencyRate.findUnique({ where: { currency: priceCurrency } }))?.rate || 1
+        : 1
+
+    let priceTRY = priceOriginal * currencyRate
+
+    const numWholesalerOriginal =
+      wholesalerPriceOriginal != null && wholesalerPriceOriginal !== ''
+        ? Number(wholesalerPriceOriginal)
+        : null
+    const wholesalerPriceTRY =
+      numWholesalerOriginal != null && !isNaN(numWholesalerOriginal)
+        ? numWholesalerOriginal * currencyRate
+        : null
+
+    const numServiceOriginal =
+      servicePriceOriginal != null && servicePriceOriginal !== ''
+        ? Number(servicePriceOriginal)
+        : null
+    const servicePriceTRY =
+      numServiceOriginal != null && !isNaN(numServiceOriginal)
+        ? numServiceOriginal * currencyRate
+        : null
 
     const createData: any = {
-      name, slug, sku, description, technicalDetails, priceCurrency, priceOriginal, priceTRY,
-      stock, trackStock: trackStock ?? true,
-      categoryId: categoryId || null, brandId: brandId || null,
-      isActive: isActive ?? true, isFeatured: isFeatured ?? false,
+      name,
+      slug,
+      sku,
+      description,
+      technicalDetails,
+      priceCurrency,
+      priceOriginal,
+      priceTRY,
+      wholesalerPriceOriginal: numWholesalerOriginal,
+      wholesalerPriceTRY,
+      servicePriceOriginal: numServiceOriginal,
+      servicePriceTRY,
+      stock,
+      trackStock: trackStock ?? true,
+      categoryId: categoryId || null,
+      brandId: brandId || null,
+      isActive: isActive ?? true,
+      isFeatured: isFeatured ?? false,
       freeShipping: freeShipping ?? false,
-      metaTitle, metaDesc, weight, unit, minOrder: minOrder || 1,
+      metaTitle,
+      metaDesc,
+      weight,
+      unit,
+      minOrder: minOrder || 1,
       boxQuantity: boxQuantity || null,
-      images: images?.length ? { create: images.map((img: any, i: number) => ({ url: img.url, alt: img.alt, sortOrder: i })) } : undefined,
+      images: images?.length
+        ? {
+            create: images.map((img: any, i: number) => ({
+              url: img.url,
+              alt: img.alt,
+              sortOrder: i,
+            })),
+          }
+        : undefined,
     }
-    
+
     // Only add videos/documents if tables exist
     try {
       if (videos?.length) {
-        createData.videos = { create: videos.map((vid: any, i: number) => ({ url: vid.url, title: vid.title, sortOrder: i })) }
+        createData.videos = {
+          create: videos.map((vid: any, i: number) => ({
+            url: vid.url,
+            title: vid.title,
+            sortOrder: i,
+          })),
+        }
       }
       if (documents?.length) {
-        createData.documents = { create: documents.map((doc: any, i: number) => ({ url: doc.url, title: doc.title, fileSize: doc.fileSize, sortOrder: i })) }
+        createData.documents = {
+          create: documents.map((doc: any, i: number) => ({
+            url: doc.url,
+            title: doc.title,
+            fileSize: doc.fileSize,
+            sortOrder: i,
+          })),
+        }
       }
     } catch (e) {
       // Tables don't exist yet, skip
@@ -93,11 +169,12 @@ export async function POST(req: Request) {
           minQuantity: tier.minQuantity,
           unitPrice: tier.unitPrice,
           unitPriceTRY: priceCurrency === 'TRY' ? tier.unitPrice : tier.unitPrice * currencyRate,
-        }))
+        })),
       })
     }
 
     revalidateStorefront()
+
     return NextResponse.json(product)
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })

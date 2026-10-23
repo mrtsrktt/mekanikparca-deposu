@@ -7,6 +7,7 @@ import {
   DEFAULT_DEALER_DISCOUNTS,
   isDealerType,
 } from '@/lib/dealerDiscount'
+import { calculateCreditStatus } from '@/lib/corporateCreditService'
 import type { DealerType } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
@@ -54,8 +55,8 @@ async function resolveDiscount(dealerType: DealerType): Promise<number> {
 /**
  * GET /api/admin/dealers/[userId]
  *
- * Tek bir bayinin detayini doner: kullanici bilgisi, cozulmus firma bilgisi
- * (son basvurudan), uygulanacak indirim orani, siparisler ve teklifler.
+ * Tek bir bayinin detayini doner: kullanici bilgisi, cari limit ve bakiye,
+ * cozulmus firma bilgisi (son basvurudan), siparisler ve teklifler.
  *
  * - Yalnizca ADMIN erisir.
  * - `dealerType` null ise 404 doner (bu kullanici bayi degil).
@@ -81,6 +82,7 @@ export async function GET(
         email: true,
         phone: true,
         dealerType: true,
+        creditLimit: true,
         customDiscountPercent: true,
         createdAt: true,
       },
@@ -91,6 +93,21 @@ export async function GET(
     }
 
     const dealerType = user.dealerType
+
+    // Cari limit ve kullanilan bakiye hesabi
+    const unpaid = await prisma.order.aggregate({
+      where: {
+        userId: user.id,
+        paymentMethod: 'CARI',
+        paymentStatus: 'PENDING',
+        status: { not: 'CANCELLED' },
+      },
+      _sum: { totalAmount: true },
+    })
+
+    const creditLimit = user.creditLimit ?? 0
+    const usedCredit = unpaid._sum.totalAmount ?? 0
+    const creditStatus = calculateCreditStatus(creditLimit, usedCredit, 0)
 
     // Firma bilgisi: en son karar verilmis (APPROVED/REJECTED) basvuru.
     // Sifreli alanlar yalnizca burada cozulur.
@@ -141,8 +158,7 @@ export async function GET(
       }
     }
 
-    // Tur bazli varsayilan ile kisiye ozel orani ayri ayri coz; arayuz
-    // ikisini karsilastirabilsin.
+    // Tur bazli varsayilan ile kisiye ozel orani ayri ayri coz
     const typeDiscountPercent = await resolveDiscount(dealerType)
     const customDiscountPercent =
       user.customDiscountPercent !== null &&
@@ -162,6 +178,7 @@ export async function GET(
         orderNumber: true,
         status: true,
         paymentStatus: true,
+        paymentMethod: true,
         totalAmount: true,
         currency: true,
         companyName: true,
@@ -192,6 +209,9 @@ export async function GET(
           email: user.email,
           phone: user.phone,
           dealerType,
+          creditLimit: creditStatus.creditLimit,
+          usedCredit: creditStatus.usedCredit,
+          availableCredit: creditStatus.availableCredit,
           discountPercent,
           typeDiscountPercent,
           customDiscountPercent,
@@ -204,6 +224,7 @@ export async function GET(
           orderNumber: o.orderNumber,
           status: o.status,
           paymentStatus: o.paymentStatus,
+          paymentMethod: o.paymentMethod,
           totalAmount: o.totalAmount,
           currency: o.currency,
           companyName: o.companyName,
@@ -224,15 +245,12 @@ export async function GET(
 /**
  * PATCH /api/admin/dealers/[userId]
  *
- * Bayinin turunu ve/veya kisiye ozel indirim oranini degistirir.
+ * Bayinin turunu, cari limitini ve/veya ozel indirim oranini degistirir.
  *
  * Kabul edilen alanlar (en az biri gonderilmelidir):
+ * - `creditLimit`: number | string | null (0 veya daha buyuk olmali)
  * - `dealerType`: 'WHOLESALER' | 'SERVICE' | null (bayilik kaldirilir).
- * - `customDiscountPercent`: 0..100 | null (null = ozel oran kaldirilir,
- *   tur bazli varsayilana donulur).
- *
- * Degisiklik YALNIZCA bundan sonraki fiyatlandirmayi etkiler; gecmis
- * siparis/teklif tutarlari degismez.
+ * - `customDiscountPercent`: 0..100 | null
  */
 export async function PATCH(
   req: Request,
@@ -245,11 +263,16 @@ export async function PATCH(
     return NextResponse.json({ error: 'Bayi bulunamadı' }, { status: 404 })
   }
 
-  let body: { dealerType?: unknown; customDiscountPercent?: unknown }
+  let body: {
+    dealerType?: unknown
+    customDiscountPercent?: unknown
+    creditLimit?: unknown
+  }
   try {
     body = (await req.json()) as {
       dealerType?: unknown
       customDiscountPercent?: unknown
+      creditLimit?: unknown
     }
   } catch {
     return NextResponse.json({ error: 'Geçersiz istek gövdesi' }, { status: 400 })
@@ -257,9 +280,11 @@ export async function PATCH(
 
   const hasType = 'dealerType' in body
   const hasCustom = 'customDiscountPercent' in body
-  if (!hasType && !hasCustom) {
+  const hasCreditLimit = 'creditLimit' in body
+
+  if (!hasType && !hasCustom && !hasCreditLimit) {
     return NextResponse.json(
-      { error: 'dealerType veya customDiscountPercent alanı zorunludur' },
+      { error: 'En az bir güncellenecek alan belirtilmelidir (creditLimit, dealerType)' },
       { status: 400 }
     )
   }
@@ -275,7 +300,6 @@ export async function PATCH(
   }
 
   // --- customDiscountPercent dogrulama ---
-  // null = ozel orani kaldir. Sayisal deger 0..100 araliginda olmalidir.
   let nextCustom: number | null | undefined = undefined
   if (hasCustom) {
     const raw = body.customDiscountPercent
@@ -306,6 +330,37 @@ export async function PATCH(
     }
   }
 
+  // --- creditLimit dogrulama ---
+  let nextCreditLimit: number | undefined = undefined
+  if (hasCreditLimit) {
+    const raw = body.creditLimit
+    if (raw === null || (typeof raw === 'string' && raw.trim() === '')) {
+      nextCreditLimit = 0
+    } else if (typeof raw === 'number' && Number.isFinite(raw)) {
+      if (raw < 0) {
+        return NextResponse.json(
+          { error: 'Cari limit 0 veya daha büyük olmalıdır' },
+          { status: 400 }
+        )
+      }
+      nextCreditLimit = Math.round(raw * 100) / 100
+    } else if (typeof raw === 'string') {
+      const parsed = Number(raw.trim().replace(',', '.'))
+      if (!Number.isFinite(parsed) || parsed < 0) {
+        return NextResponse.json(
+          { error: 'Cari limit 0 veya daha büyük bir sayı olmalıdır' },
+          { status: 400 }
+        )
+      }
+      nextCreditLimit = Math.round(parsed * 100) / 100
+    } else {
+      return NextResponse.json(
+        { error: 'Geçersiz cari limit değeri' },
+        { status: 400 }
+      )
+    }
+  }
+
   try {
     const existing = await prisma.user.findUnique({
       where: { id: params.userId },
@@ -316,14 +371,24 @@ export async function PATCH(
       return NextResponse.json({ error: 'Kullanıcı bulunamadı' }, { status: 404 })
     }
 
-    const data: { dealerType?: DealerType | null; customDiscountPercent?: number | null } = {}
+    const data: {
+      dealerType?: DealerType | null
+      customDiscountPercent?: number | null
+      creditLimit?: number
+    } = {}
     if (nextType !== undefined) data.dealerType = nextType
     if (nextCustom !== undefined) data.customDiscountPercent = nextCustom
+    if (nextCreditLimit !== undefined) data.creditLimit = nextCreditLimit
 
     const updated = await prisma.user.update({
       where: { id: params.userId },
       data,
-      select: { id: true, dealerType: true, customDiscountPercent: true },
+      select: {
+        id: true,
+        dealerType: true,
+        customDiscountPercent: true,
+        creditLimit: true,
+      },
     })
 
     let typeDiscountPercent = 0
@@ -339,11 +404,30 @@ export async function PATCH(
     const discountPercent =
       customDiscountPercent !== null ? customDiscountPercent : typeDiscountPercent
 
+    // Guncel bakiye durumu
+    const unpaid = await prisma.order.aggregate({
+      where: {
+        userId: updated.id,
+        paymentMethod: 'CARI',
+        paymentStatus: 'PENDING',
+        status: { not: 'CANCELLED' },
+      },
+      _sum: { totalAmount: true },
+    })
+    const creditStatus = calculateCreditStatus(
+      updated.creditLimit ?? 0,
+      unpaid._sum.totalAmount ?? 0,
+      0
+    )
+
     return NextResponse.json(
       {
         dealer: {
           id: updated.id,
           dealerType: updated.dealerType,
+          creditLimit: creditStatus.creditLimit,
+          usedCredit: creditStatus.usedCredit,
+          availableCredit: creditStatus.availableCredit,
           discountPercent,
           typeDiscountPercent,
           customDiscountPercent,

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
-import { FiPercent } from 'react-icons/fi'
 
 const settingKeys = [
   { key: 'site_name', label: 'Site Adı', type: 'text' },
@@ -15,25 +14,6 @@ const settingKeys = [
   { key: 'instagram', label: 'Instagram URL', type: 'text' },
   { key: 'twitter', label: 'Twitter URL', type: 'text' },
   { key: 'google_analytics', label: 'Google Analytics ID', type: 'text' },
-]
-
-/**
- * Bayi turu bazli indirim oranlari.
- * Anahtarlar src/lib/dealerDiscount.ts ile ayni olmalidir.
- */
-const DEALER_DISCOUNT_KEYS = [
-  {
-    key: 'dealer_discount_wholesaler',
-    label: 'Toptancı Bayi İndirimi',
-    fallback: '25',
-    hint: 'Toptancı bayilerin ürün fiyatlarına uygulanacak iskonto oranı.',
-  },
-  {
-    key: 'dealer_discount_service',
-    label: 'Servis Bayi İndirimi',
-    fallback: '15',
-    hint: 'Servis bayilerinin ürün fiyatlarına uygulanacak iskonto oranı.',
-  },
 ]
 
 export default function AdminSettingsPage() {
@@ -69,22 +49,6 @@ export default function AdminSettingsPage() {
     } catch {
       toast.error('Ayar kaydedilemedi.')
     }
-  }
-
-  const saveDiscount = async (key: string) => {
-    const raw = (settings[key] ?? '').trim()
-    const numeric = Number(raw)
-
-    if (raw.length === 0) {
-      toast.error('İndirim oranı boş bırakılamaz.')
-      return
-    }
-    if (!Number.isFinite(numeric) || numeric < 0 || numeric > 100) {
-      toast.error('İndirim oranı 0 ile 100 arasında olmalıdır.')
-      return
-    }
-
-    await saveSetting(key, String(numeric))
   }
 
   if (loading) {
@@ -126,47 +90,6 @@ export default function AdminSettingsPage() {
                 )}
               </div>
               <button onClick={() => saveSetting(s.key, settings[s.key] || '')} className="btn-primary flex-shrink-0">
-                Kaydet
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Bayi indirim oranlari: onayli bayilerin fiyatlarina bu oranlar uygulanir. */}
-      <div>
-        <div className="flex items-center gap-2 mb-4">
-          <FiPercent className="w-5 h-5 text-purple-500" />
-          <h2 className="text-xl font-bold">Bayi İndirim Oranları</h2>
-        </div>
-        <p className="text-sm text-gray-500 mb-4">
-          Bu oranlar onaylı bayilerin ürün fiyatlarına otomatik uygulanır. Değişiklik
-          kaydedildiğinde bayi, sayfayı yenilediğinde güncel fiyatları görür.
-        </p>
-        <div className="card p-6 space-y-6">
-          {DEALER_DISCOUNT_KEYS.map((d) => (
-            <div key={d.key} className="flex gap-4 items-end">
-              <div className="flex-1">
-                <label className="block text-sm font-medium mb-1">{d.label}</label>
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-500">%</span>
-                  <input
-                    type="number"
-                    min={0}
-                    max={100}
-                    step={1}
-                    className="input-field"
-                    placeholder={d.fallback}
-                    value={settings[d.key] ?? ''}
-                    onChange={(e) => setSettings({ ...settings, [d.key]: e.target.value })}
-                  />
-                </div>
-                <p className="mt-1 text-xs text-gray-500">{d.hint}</p>
-              </div>
-              <button
-                onClick={() => saveDiscount(d.key)}
-                className="btn-primary flex-shrink-0"
-              >
                 Kaydet
               </button>
             </div>

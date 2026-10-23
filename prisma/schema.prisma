@@ -20,6 +20,7 @@ model User {
   // Kişiye özel indirim oranı (yüzde). Doluysa tür bazlı ayarı GEÇERSİZ KILAR.
   // null ise tür bazlı ayar (SiteSetting) veya modül varsayılanı kullanılır.
   customDiscountPercent Float?
+  creditLimit   Float?    @default(0) // Cari kredi limiti (TL)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   orders        Order[]
@@ -82,6 +83,10 @@ model Product {
   priceCurrency   String   @default("TRY") // TRY, USD, EUR
   priceOriginal   Float    // Price in original currency
   priceTRY        Float    // Calculated TRY price
+  wholesalerPriceOriginal Float? // Toptancı fiyatı (orijinal döviz cinsinden)
+  wholesalerPriceTRY      Float? // Toptancı fiyatı (hesaplanan TRY)
+  servicePriceOriginal    Float? // Servis fiyatı (orijinal döviz cinsinden)
+  servicePriceTRY         Float? // Servis fiyatı (hesaplanan TRY)
   stock           Int      @default(0)
   trackStock      Boolean  @default(true)
   categoryId      String?
@@ -142,6 +147,7 @@ model Order {
   user             User        @relation(fields: [userId], references: [id])
   status           String      @default("PENDING") // PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED
   paymentStatus    String      @default("PENDING") // PENDING, PAID, FAILED
+  paymentMethod    String      @default("PAYTR") // PAYTR, CARI
   paytrMerchantOid String?     @unique
   totalAmount      Float
   currency         String      @default("TRY")

@@ -9,14 +9,20 @@ export async function recalculateProductPrices(currency: string, rate: number) {
   for (const product of products) {
     await prisma.product.update({
       where: { id: product.id },
-      data: { priceTRY: product.priceOriginal * rate }
+      data: {
+        priceTRY: product.priceOriginal * rate,
+        wholesalerPriceTRY:
+          product.wholesalerPriceOriginal != null ? product.wholesalerPriceOriginal * rate : null,
+        servicePriceTRY:
+          product.servicePriceOriginal != null ? product.servicePriceOriginal * rate : null,
+      },
     })
 
     // Kademe fiyatlarının TL karşılığını da güncelle
     for (const tier of product.priceTiers) {
       await prisma.priceTier.update({
         where: { id: tier.id },
-        data: { unitPriceTRY: tier.unitPrice * rate }
+        data: { unitPriceTRY: tier.unitPrice * rate },
       })
     }
   }

@@ -4,11 +4,13 @@
  * Calistirma:
  *   npx --no-install tsx src/lib/b2bPricing.test.ts
  */
+import { applySalePrice } from './pricing'
 import {
   calculateB2BPrice,
   DEFAULT_B2B_DISCOUNT_PERCENT,
   B2B_KDV_RATE,
   getTaxExcludedPrice,
+  getB2BPriceForProduct,
 } from './b2bPricing'
 
 let passed = 0
@@ -212,6 +214,41 @@ check('KDV: NaN ve Infinity -> sifir ayristirma', () => {
   expectEqual(inf.taxExcludedPrice, 0, 'Infinity taxExcludedPrice')
   expectEqual(inf.taxAmount, 0, 'Infinity taxAmount')
 })
+
+// --- Urun bazli manuel B2B fiyatlari ---
+
+check('getB2BPriceForProduct: toptanci ozel fiyati uygulanir', () => {
+  const product = { priceTRY: 100, wholesalerPriceTRY: 70, servicePriceTRY: 80 };
+  const r = getB2BPriceForProduct(product, 'WHOLESALER');
+  expectEqual(r.b2bPrice, applySalePrice(70), 'b2bPrice');
+});
+
+check('getB2BPriceForProduct: servis ozel fiyati uygulanir', () => {
+  const product = { priceTRY: 100, wholesalerPriceTRY: 70, servicePriceTRY: 80 };
+  const r = getB2BPriceForProduct(product, 'SERVICE');
+  expectEqual(r.b2bPrice, applySalePrice(80), 'b2bPrice');
+});
+
+check('getB2BPriceForProduct: ozel toptanci fiyati yoksa perakende fiyata duser', () => {
+  const product = { priceTRY: 100, wholesalerPriceTRY: null, servicePriceTRY: 80 };
+  const r = getB2BPriceForProduct(product, 'WHOLESALER');
+  expectEqual(r.b2bPrice, applySalePrice(100), 'b2bPrice');
+  expectEqual(r.savings, 0, 'savings');
+});
+
+check('getB2BPriceForProduct: ozel servis fiyati yoksa perakende fiyata duser', () => {
+  const product = { priceTRY: 100, wholesalerPriceTRY: 70, servicePriceTRY: null };
+  const r = getB2BPriceForProduct(product, 'SERVICE');
+  expectEqual(r.b2bPrice, applySalePrice(100), 'b2bPrice');
+  expectEqual(r.savings, 0, 'savings');
+});
+
+check('getB2BPriceForProduct: bayi girisi yoksa perakende fiyata duser', () => {
+  const product = { priceTRY: 100, wholesalerPriceTRY: 70, servicePriceTRY: 80 };
+  const r = getB2BPriceForProduct(product, null);
+  expectEqual(r.b2bPrice, applySalePrice(100), 'b2bPrice');
+  expectEqual(r.savings, 0, 'savings');
+});
 
 // --- Ozet ---
 

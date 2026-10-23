@@ -2,7 +2,7 @@
  * GET /api/corporate/dealer-info
  *
  * Oturumdaki kullanicinin bayi bilgisini doner:
- *   { dealer: { dealerType, discountPercent } | null }
+ *   { dealer: { dealerType, discountPercent, creditLimit, usedCredit, availableCredit } | null }
  *
  * Kurallar:
  * - Ozellik bayragi kapaliysa 404 (varlik sizdirilmaz).
@@ -18,6 +18,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { isCorporateApplicationEnabled } from '@/lib/featureFlags'
 import { getDealerInfo } from '@/lib/dealerDiscount'
+import { calculateCreditStatus } from '@/lib/corporateCreditService'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,5 +33,42 @@ export async function GET() {
   }
 
   const dealer = await getDealerInfo(prisma, session.user.id)
-  return NextResponse.json({ dealer }, { status: 200 })
+  if (!dealer) {
+    return NextResponse.json({ dealer: null }, { status: 200 })
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { creditLimit: true },
+    })
+
+    const unpaid = await prisma.order.aggregate({
+      where: {
+        userId: session.user.id,
+        paymentMethod: 'CARI',
+        paymentStatus: 'PENDING',
+        status: { not: 'CANCELLED' },
+      },
+      _sum: { totalAmount: true },
+    })
+
+    const creditLimit = user?.creditLimit ?? 0
+    const usedCredit = unpaid._sum.totalAmount ?? 0
+    const creditStatus = calculateCreditStatus(creditLimit, usedCredit, 0)
+
+    return NextResponse.json(
+      {
+        dealer: {
+          ...dealer,
+          creditLimit: creditStatus.creditLimit,
+          usedCredit: creditStatus.usedCredit,
+          availableCredit: creditStatus.availableCredit,
+        },
+      },
+      { status: 200 }
+    )
+  } catch {
+    return NextResponse.json({ dealer }, { status: 200 })
+  }
 }

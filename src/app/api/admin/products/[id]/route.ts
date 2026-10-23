@@ -59,17 +59,59 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
   try {
     const body = await req.json()
-    const { name, slug, sku, description, technicalDetails, priceCurrency, priceOriginal,
-      stock, trackStock, categoryId, brandId, isActive, isFeatured, metaTitle, metaDesc, weight, unit, minOrder, freeShipping, images, videos, documents,
-      boxQuantity, priceTiers } = body
+    const {
+      name,
+      slug,
+      sku,
+      description,
+      technicalDetails,
+      priceCurrency,
+      priceOriginal,
+      wholesalerPriceOriginal,
+      servicePriceOriginal,
+      stock,
+      trackStock,
+      categoryId,
+      brandId,
+      isActive,
+      isFeatured,
+      metaTitle,
+      metaDesc,
+      weight,
+      unit,
+      minOrder,
+      freeShipping,
+      images,
+      videos,
+      documents,
+      boxQuantity,
+      priceTiers,
+    } = body
 
-    let priceTRY = priceOriginal
-    const currencyRate = priceCurrency !== 'TRY'
-      ? (await prisma.currencyRate.findUnique({ where: { currency: priceCurrency } }))?.rate || 1
-      : 1
-    if (priceCurrency !== 'TRY') {
-      priceTRY = priceOriginal * currencyRate
-    }
+    const currencyRate =
+      priceCurrency !== 'TRY'
+        ? (await prisma.currencyRate.findUnique({ where: { currency: priceCurrency } }))?.rate || 1
+        : 1
+
+    let priceTRY = priceOriginal * currencyRate
+
+    const numWholesalerOriginal =
+      wholesalerPriceOriginal != null && wholesalerPriceOriginal !== ''
+        ? Number(wholesalerPriceOriginal)
+        : null
+    const wholesalerPriceTRY =
+      numWholesalerOriginal != null && !isNaN(numWholesalerOriginal)
+        ? numWholesalerOriginal * currencyRate
+        : null
+
+    const numServiceOriginal =
+      servicePriceOriginal != null && servicePriceOriginal !== ''
+        ? Number(servicePriceOriginal)
+        : null
+    const servicePriceTRY =
+      numServiceOriginal != null && !isNaN(numServiceOriginal)
+        ? numServiceOriginal * currencyRate
+        : null
 
     // Delete old images and create new ones
     if (images) {
@@ -94,22 +136,62 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     }
 
     const updateData: any = {
-      name, slug, sku, description, technicalDetails, priceCurrency, priceOriginal, priceTRY,
-      stock, trackStock: trackStock ?? true,
-      categoryId: categoryId || null, brandId: brandId || null,
-      isActive, isFeatured, metaTitle, metaDesc, weight, unit, minOrder,
+      name,
+      slug,
+      sku,
+      description,
+      technicalDetails,
+      priceCurrency,
+      priceOriginal,
+      priceTRY,
+      wholesalerPriceOriginal: numWholesalerOriginal,
+      wholesalerPriceTRY,
+      servicePriceOriginal: numServiceOriginal,
+      servicePriceTRY,
+      stock,
+      trackStock: trackStock ?? true,
+      categoryId: categoryId || null,
+      brandId: brandId || null,
+      isActive,
+      isFeatured,
+      metaTitle,
+      metaDesc,
+      weight,
+      unit,
+      minOrder,
       freeShipping: freeShipping ?? false,
       boxQuantity: boxQuantity || null,
-      images: images?.length ? { create: images.map((img: any, i: number) => ({ url: img.url, alt: img.alt, sortOrder: i })) } : undefined,
+      images: images?.length
+        ? {
+            create: images.map((img: any, i: number) => ({
+              url: img.url,
+              alt: img.alt,
+              sortOrder: i,
+            })),
+          }
+        : undefined,
     }
     
     // Only add videos/documents if tables exist
     try {
       if (videos?.length) {
-        updateData.videos = { create: videos.map((vid: any, i: number) => ({ url: vid.url, title: vid.title, sortOrder: i })) }
+        updateData.videos = {
+          create: videos.map((vid: any, i: number) => ({
+            url: vid.url,
+            title: vid.title,
+            sortOrder: i,
+          })),
+        }
       }
       if (documents?.length) {
-        updateData.documents = { create: documents.map((doc: any, i: number) => ({ url: doc.url, title: doc.title, fileSize: doc.fileSize, sortOrder: i })) }
+        updateData.documents = {
+          create: documents.map((doc: any, i: number) => ({
+            url: doc.url,
+            title: doc.title,
+            fileSize: doc.fileSize,
+            sortOrder: i,
+          })),
+        }
       }
     } catch (e) {
       // Tables don't exist yet, skip
@@ -131,7 +213,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
           minQuantity: tier.minQuantity,
           unitPrice: tier.unitPrice,
           unitPriceTRY: priceCurrency === 'TRY' ? tier.unitPrice : tier.unitPrice * currencyRate,
-        }))
+        })),
       })
     }
 
