@@ -377,7 +377,7 @@ export default function AdminDealerDetailPage() {
               Cari Hesap Limiti (Açık Hesap)
             </h2>
             <p className="mt-1 text-sm text-gray-600">
-              Bu limit dahilinde bayi, ödeme adımında 'Cari Hesabıma Yaz' seçeneğiyle sipariş verebilir.
+              Bu limit dahilinde bayi, ödeme adımında &quot;Cari Hesabıma Yaz&quot; seçeneğiyle sipariş verebilir.
             </p>
 
             <div className="mt-4 flex flex-wrap items-center gap-3">
