@@ -251,7 +251,7 @@ export default function QuoteDetailPage({ params }: { params: { id: string } }) 
                     </td>
                   </tr>
                   <tr className="border-t-2 bg-primary-50">
-                    <td colSpan={4} className="p-3 text-right font-bold text-lg">Teklif Genel Toplam:</td>
+                    <td colSpan={4} className="p-3 text-right font-bold text-lg">Teklif Genel Toplam (KDV Hariç):</td>
                     <td colSpan={2} className="p-3 text-right font-bold text-lg text-primary-500">{formatPrice(quotedTotal, quoteCurrency)}</td>
                   </tr>
                   {quoteCurrency !== 'TRY' && quote[`exchangeRate${quoteCurrency}`] && (
@@ -271,7 +271,7 @@ export default function QuoteDetailPage({ params }: { params: { id: string } }) 
           <div className="print-footer hidden mt-6 pt-4 border-t">
             <p className="text-xs text-gray-500 text-center">
               Bu teklif {new Date(quote.createdAt).toLocaleDateString('tr-TR')} tarihinde düzenlenmiştir.
-              Fiyatlar {quoteCurrency} ({sym}) olup KDV dahildir. Teklif geçerlilik süresi 3 gündür.
+              Fiyatlar {quoteCurrency} ({sym}) olup KDV hariçtir. Teklif geçerlilik süresi 3 gündür.
               {quoteCurrency !== 'TRY' && quote[`exchangeRate${quoteCurrency}`] && (
                 <> Kur: 1 {quoteCurrency} = {quote[`exchangeRate${quoteCurrency}`].toLocaleString('tr-TR')} ₺.</>
               )}

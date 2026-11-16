@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       return {
         productId: item.productId,
         quantity: item.quantity,
-        // Satış fiyatı = taban + %20 KDV + %4 PayTR komisyonu (PayTR tahsilatıyla birebir aynı)
+        // Satış fiyatı = taban + %20 KDV + %2 PayTR komisyonu (PayTR tahsilatıyla birebir aynı)
         originalPrice: applySalePrice(bestPrice.originalPriceTRY),
         discountedPrice: applySalePrice(bestPrice.finalUnitPriceTRY),
         source: bestPrice.source,

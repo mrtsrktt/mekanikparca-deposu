@@ -43,7 +43,7 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
     ? cheapestTierPrice
     : retailPriceTRY
 
-  // Satış fiyatı = taban + %20 KDV + %4 PayTR komisyonu. Kademe fiyatları da çevrilir.
+  // Satış fiyatı = taban + %20 KDV + %2 PayTR komisyonu. Kademe fiyatları da çevrilir.
   // Sepet, ödeme ve PayTR ile birebir aynı tutar.
   return NextResponse.json({
     ...product,

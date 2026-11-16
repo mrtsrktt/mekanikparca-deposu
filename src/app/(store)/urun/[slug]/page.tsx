@@ -47,7 +47,7 @@ export default async function ProductDetailPage({ params }: Props) {
     where: { productId: product.id },
     orderBy: { minQuantity: 'asc' },
   })
-  // Kademe fiyatları da satış fiyatına çevrilir (taban + %20 KDV + %4 PayTR komisyonu)
+  // Kademe fiyatları da satış fiyatına çevrilir (taban + %20 KDV + %2 PayTR komisyonu)
   const priceTiersData = priceTiers.map(t => ({
     minQuantity: t.minQuantity,
     unitPriceTRY: applySalePrice(t.unitPriceTRY),
@@ -62,7 +62,7 @@ export default async function ProductDetailPage({ params }: Props) {
     : priceTRY
   const hasTierDiscount = cheapestTierPrice !== null && cheapestTierPrice < priceTRY
 
-  // Gösterilen ve tahsil edilen fiyat = satış fiyatı (taban × 1,248). PayTR de aynısını çeker.
+  // Gösterilen ve tahsil edilen fiyat = satış fiyatı (taban × 1,224). PayTR de aynısını çeker.
   const productWithConvertedPrice = {
     ...product,
     priceTRY: applySalePrice(displayPrice),

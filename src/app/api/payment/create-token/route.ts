@@ -139,7 +139,7 @@ export async function POST(req: NextRequest) {
       const campaigns = await getActiveCampaignsForProduct(product.id)
       const { tiers: priceTiers, boxQuantity } = await getPriceTiersForProduct(product.id)
       const bestPrice = resolveBestPrice(product.priceTRY, item.quantity, campaigns, priceTiers, boxQuantity)
-      // Taban fiyata %20 KDV + %4 PayTR komisyonu ekle (sitede gösterilen satış fiyatı)
+      // Taban fiyata %20 KDV + %2 PayTR komisyonu ekle (sitede gösterilen satış fiyatı)
       const retailSalePrice = applySalePrice(bestPrice.finalUnitPriceTRY)
       // Öncelik sırası: (1) kabul edilmiş teklif fiyatı, (2) bayi indirimi, (3) perakende.
       // Teklif fiyatı yalnızca sunucuda doğrulanan eşleşmeden gelir; istemci fiyatı yok sayılır.
