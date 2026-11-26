@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin-guard'
 import { revalidateStorefront } from '@/lib/revalidate'
+import { ensureVideoAndDocumentTables } from '@/lib/db-schema-ensure'
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   const { error } = await requireAdmin()
@@ -25,26 +26,28 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       orderBy: { minQuantity: 'asc' },
     })
 
-    // Try to fetch videos and documents, but don't fail if tables don't exist yet
-    let videos = []
-    let documents = []
+    await ensureVideoAndDocumentTables()
+
+    // Videoları ve dökümanları getir
+    let videos: any[] = []
+    let documents: any[] = []
     
     try {
-      videos = await (prisma as any).productVideo.findMany({
+      videos = await prisma.productVideo.findMany({
         where: { productId: params.id },
         orderBy: { sortOrder: 'asc' }
       })
     } catch (e) {
-      // Table doesn't exist yet, ignore
+      console.warn('productVideo findMany error:', e)
     }
     
     try {
-      documents = await (prisma as any).productDocument.findMany({
+      documents = await prisma.productDocument.findMany({
         where: { productId: params.id },
         orderBy: { sortOrder: 'asc' }
       })
     } catch (e) {
-      // Table doesn't exist yet, ignore
+      console.warn('productDocument findMany error:', e)
     }
     
     return NextResponse.json({ ...product, videos, documents, priceTiers })
@@ -118,21 +121,23 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       await prisma.productImage.deleteMany({ where: { productId: params.id } })
     }
     
-    // Try to handle videos and documents, but don't fail if tables don't exist
+    await ensureVideoAndDocumentTables()
+
+    // Videoları ve dökümanları güncelle
     try {
       if (videos) {
-        await (prisma as any).productVideo.deleteMany({ where: { productId: params.id } })
+        await prisma.productVideo.deleteMany({ where: { productId: params.id } })
       }
     } catch (e) {
-      // Table doesn't exist yet
+      console.warn('productVideo deleteMany error:', e)
     }
     
     try {
       if (documents) {
-        await (prisma as any).productDocument.deleteMany({ where: { productId: params.id } })
+        await prisma.productDocument.deleteMany({ where: { productId: params.id } })
       }
     } catch (e) {
-      // Table doesn't exist yet
+      console.warn('productDocument deleteMany error:', e)
     }
 
     const updateData: any = {
@@ -172,29 +177,25 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         : undefined,
     }
     
-    // Only add videos/documents if tables exist
-    try {
-      if (videos?.length) {
-        updateData.videos = {
-          create: videos.map((vid: any, i: number) => ({
-            url: vid.url,
-            title: vid.title,
-            sortOrder: i,
-          })),
-        }
+    // Add videos/documents if provided
+    if (videos?.length) {
+      updateData.videos = {
+        create: videos.map((vid: any, i: number) => ({
+          url: vid.url,
+          title: vid.title,
+          sortOrder: i,
+        })),
       }
-      if (documents?.length) {
-        updateData.documents = {
-          create: documents.map((doc: any, i: number) => ({
-            url: doc.url,
-            title: doc.title,
-            fileSize: doc.fileSize,
-            sortOrder: i,
-          })),
-        }
+    }
+    if (documents?.length) {
+      updateData.documents = {
+        create: documents.map((doc: any, i: number) => ({
+          url: doc.url,
+          title: doc.title,
+          fileSize: doc.fileSize,
+          sortOrder: i,
+        })),
       }
-    } catch (e) {
-      // Tables don't exist yet, skip
     }
 
     // Eski fiyat kademelerini sil ve yenilerini oluştur

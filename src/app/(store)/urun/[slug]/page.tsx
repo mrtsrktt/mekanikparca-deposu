@@ -289,8 +289,8 @@ export default async function ProductDetailPage({ params }: Props) {
             {videos.map((video: any) => (
               <div key={video.id} className="card p-4">
                 <h3 className="font-semibold mb-3">{video.title}</h3>
-                <video controls className="w-full rounded-lg bg-black" preload="metadata">
-                  <source src={video.url} type="video/mp4" />
+                <video controls playsInline className="w-full aspect-video rounded-lg bg-black object-contain" preload="metadata">
+                  <source src={video.url} />
                   Tarayıcınız video oynatmayı desteklemiyor.
                 </video>
                 <a href={video.url} download className="btn-secondary text-sm mt-3 w-full text-center">

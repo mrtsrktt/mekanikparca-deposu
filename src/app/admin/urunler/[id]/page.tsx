@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { FiArrowLeft, FiX, FiUpload, FiFile, FiVideo } from 'react-icons/fi'
+import { FiArrowLeft, FiX, FiUpload, FiFile, FiVideo, FiExternalLink } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import slugify from 'slugify'
+import { upload } from '@vercel/blob/client'
 
 export default function EditProductPage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -15,6 +16,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   const [saving, setSaving] = useState(false)
   const [uploadingImages, setUploadingImages] = useState(false)
   const [uploadingVideos, setUploadingVideos] = useState(false)
+  const [videoProgress, setVideoProgress] = useState<number | null>(null)
   const [uploadingDocs, setUploadingDocs] = useState(false)
   const [form, setForm] = useState({
     name: '', slug: '', sku: '', description: '', technicalDetails: '',
@@ -112,23 +114,53 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
 
   const handleVideoUpload = async (files: FileList | null) => {
     if (!files?.length) return
-    setUploadingVideos(true)
-    try {
-      const fd = new FormData()
-      Array.from(files).forEach(f => fd.append('files', f))
-      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
-      const data = await res.json()
-      if (res.ok && data.files) {
-        const videos = data.files.map((f: any) => ({ url: f.url, title: f.alt || 'Video' }))
-        update('videos', [...form.videos, ...videos])
-        toast.success(`${data.files.length} video yüklendi`)
-      } else {
-        toast.error(data.error || 'Yükleme hatası')
+    const MAX_SIZE = 100 * 1024 * 1024 // 100 MB limit
+    const fileArray = Array.from(files)
+
+    for (const f of fileArray) {
+      if (f.size > MAX_SIZE) {
+        toast.error(`"${f.name}" 100 MB sınırını aşıyor (${(f.size / (1024 * 1024)).toFixed(1)} MB). Lütfen 100 MB altında bir video seçin.`)
+        return
       }
-    } catch {
-      toast.error('Video yüklenirken hata oluştu')
     }
-    setUploadingVideos(false)
+
+    setUploadingVideos(true)
+    setVideoProgress(0)
+
+    try {
+      const uploadedVideos: { url: string; title: string }[] = []
+
+      for (let i = 0; i < fileArray.length; i++) {
+        const file = fileArray[i]
+        const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+        const fileWeight = 100 / fileArray.length
+
+        const blob = await upload(`products/videos/${Date.now()}-${cleanName}`, file, {
+          access: 'public',
+          handleUploadUrl: '/api/admin/upload-video',
+          onUploadProgress: (progress) => {
+            const currentBase = i * fileWeight
+            const currentFileProgress = (progress.percentage * fileWeight) / 100
+            setVideoProgress(Math.min(99, Math.round(currentBase + currentFileProgress)))
+          },
+        })
+
+        uploadedVideos.push({
+          url: blob.url,
+          title: file.name.replace(/\.[^.]+$/, ''),
+        })
+      }
+
+      setVideoProgress(100)
+      update('videos', [...form.videos, ...uploadedVideos])
+      toast.success(`${uploadedVideos.length} video başarıyla yüklendi`)
+    } catch (err: any) {
+      console.error('Video yükleme hatası:', err)
+      toast.error(err.message || 'Video yüklenirken hata oluştu')
+    } finally {
+      setUploadingVideos(false)
+      setVideoProgress(null)
+    }
   }
 
   const handleDocUpload = async (files: FileList | null) => {
@@ -388,7 +420,10 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
 
         {/* Videos */}
         <div className="card p-6">
-          <h2 className="font-semibold text-lg mb-4 flex items-center gap-2"><FiVideo /> Videolar</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-lg flex items-center gap-2"><FiVideo /> Videolar</h2>
+            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">Limit: Maks. 100 MB / video</span>
+          </div>
           {form.videos.length > 0 && (
             <div className="space-y-2 mb-4">
               {form.videos.map((vid, i) => (
@@ -396,20 +431,51 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                   <FiVideo className="w-5 h-5 text-blue-500 flex-shrink-0" />
                   <input type="text" placeholder="Video başlığı" className="input-field text-sm flex-1" value={vid.title}
                     onChange={(e) => { const vids = [...form.videos]; vids[i].title = e.target.value; update('videos', vids) }} />
+                  <a
+                    href={vid.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2.5 py-1.5 rounded transition-colors font-medium flex-shrink-0"
+                    title="Videoyu yeni sekmede aç"
+                  >
+                    <FiExternalLink className="w-3.5 h-3.5" /> Önizle
+                  </a>
                   <button type="button" onClick={() => update('videos', form.videos.filter((_, j) => j !== i))}
-                    className="text-red-500 hover:text-red-700"><FiX className="w-5 h-5" /></button>
+                    className="text-red-500 hover:text-red-700 p-1 flex-shrink-0" title="Videoyu Kaldır"><FiX className="w-5 h-5" /></button>
                 </div>
               ))}
             </div>
           )}
-          <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50/30 transition-colors">
-            <div className="flex flex-col items-center text-gray-500">
-              <FiVideo className="w-6 h-6 mb-1" />
-              <span className="text-sm font-medium">{uploadingVideos ? 'Yükleniyor...' : 'Video yüklemek için tıklayın'}</span>
-              <span className="text-xs text-gray-400">MP4, MOV, AVI</span>
+          <label className="flex flex-col items-center justify-center w-full min-h-[104px] p-4 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50/30 transition-colors">
+            <div className="flex flex-col items-center text-center text-gray-500 w-full max-w-sm">
+              <FiVideo className="w-6 h-6 mb-1 text-blue-500" />
+              {uploadingVideos ? (
+                <div className="w-full flex flex-col items-center">
+                  <span className="text-sm font-medium text-blue-600 mb-1">
+                    {videoProgress !== null ? `Video yükleniyor... %${videoProgress}` : 'Video yükleniyor...'}
+                  </span>
+                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${videoProgress ?? 10}%` }}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <span className="text-sm font-medium text-gray-700">Video yüklemek için tıklayın</span>
+                  <span className="text-xs text-gray-400 mt-0.5">MP4, WebM, MOV, AVI — Doğrudan bulut depolamaya aktarılır</span>
+                </>
+              )}
             </div>
-            <input type="file" accept="video/*" multiple className="hidden" disabled={uploadingVideos}
-              onChange={(e) => { handleVideoUpload(e.target.files); e.target.value = '' }} />
+            <input
+              type="file"
+              accept="video/mp4,video/webm,video/quicktime,video/x-msvideo,video/*"
+              multiple
+              className="hidden"
+              disabled={uploadingVideos}
+              onChange={(e) => { handleVideoUpload(e.target.files); e.target.value = '' }}
+            />
           </label>
         </div>
 

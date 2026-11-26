@@ -10,6 +10,8 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
       category: true,
       brand: true,
       images: { orderBy: { sortOrder: 'asc' } },
+      videos: { orderBy: { sortOrder: 'asc' } },
+      documents: { orderBy: { sortOrder: 'asc' } },
       priceTiers: { orderBy: { unitPriceTRY: 'asc' } },
     },
   })
@@ -22,6 +24,8 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
         category: true,
         brand: true,
         images: { orderBy: { sortOrder: 'asc' } },
+        videos: { orderBy: { sortOrder: 'asc' } },
+        documents: { orderBy: { sortOrder: 'asc' } },
         priceTiers: { orderBy: { unitPriceTRY: 'asc' } },
       },
     })

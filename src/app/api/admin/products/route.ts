@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin-guard'
 import { revalidateStorefront } from '@/lib/revalidate'
+import { ensureVideoAndDocumentTables } from '@/lib/db-schema-ensure'
 
 export async function GET(req: Request) {
   const { error } = await requireAdmin()
@@ -131,29 +132,27 @@ export async function POST(req: Request) {
         : undefined,
     }
 
-    // Only add videos/documents if tables exist
-    try {
-      if (videos?.length) {
-        createData.videos = {
-          create: videos.map((vid: any, i: number) => ({
-            url: vid.url,
-            title: vid.title,
-            sortOrder: i,
-          })),
-        }
+    await ensureVideoAndDocumentTables()
+
+    // Add videos/documents if provided
+    if (videos?.length) {
+      createData.videos = {
+        create: videos.map((vid: any, i: number) => ({
+          url: vid.url,
+          title: vid.title,
+          sortOrder: i,
+        })),
       }
-      if (documents?.length) {
-        createData.documents = {
-          create: documents.map((doc: any, i: number) => ({
-            url: doc.url,
-            title: doc.title,
-            fileSize: doc.fileSize,
-            sortOrder: i,
-          })),
-        }
+    }
+    if (documents?.length) {
+      createData.documents = {
+        create: documents.map((doc: any, i: number) => ({
+          url: doc.url,
+          title: doc.title,
+          fileSize: doc.fileSize,
+          sortOrder: i,
+        })),
       }
-    } catch (e) {
-      // Tables don't exist yet, skip
     }
 
     const product = await prisma.product.create({
