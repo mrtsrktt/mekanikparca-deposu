@@ -200,11 +200,41 @@ export default async function ProductDetailPage({ params }: Props) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Media Gallery */}
-        <ProductMediaGallery 
-          images={productWithConvertedPrice.images.map(img => ({ url: img.url, alt: img.alt || productWithConvertedPrice.name }))}
-          productName={productWithConvertedPrice.name}
-        />
+        {/* Media Gallery & Video */}
+        <div>
+          <ProductMediaGallery 
+            images={productWithConvertedPrice.images.map(img => ({ url: img.url, alt: img.alt || productWithConvertedPrice.name }))}
+            videos={videos}
+            productName={productWithConvertedPrice.name}
+          />
+
+          {/* Quick Dedicated Video Player Card under Gallery */}
+          {videos?.length > 0 && (
+            <div className="mt-6 card p-4 bg-gradient-to-br from-slate-50 to-blue-50/40 border border-blue-100 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-sm text-gray-800 flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse" />
+                  <span>Ürün Tanıtım Videosu</span>
+                </h3>
+                {videos[0].title && (
+                  <span className="text-xs text-gray-500 font-medium">{videos[0].title}</span>
+                )}
+              </div>
+              <div className="rounded-lg overflow-hidden bg-black aspect-video shadow-inner">
+                <video controls playsInline className="w-full h-full object-contain" preload="metadata">
+                  <source src={videos[0].url} />
+                  Tarayıcınız video oynatmayı desteklemiyor.
+                </video>
+              </div>
+              <div className="mt-2.5 flex items-center justify-between text-xs text-gray-500">
+                <span>📹 Yüksek Kalite Tanıtım & Uygulama Videosu</span>
+                <a href={videos[0].url} download className="text-blue-600 hover:underline font-medium">
+                  📥 Videoyu İndir
+                </a>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Product Info */}
         <div>
@@ -281,26 +311,7 @@ export default async function ProductDetailPage({ params }: Props) {
         </div>
       )}
 
-      {/* Videos Section */}
-      {videos?.length > 0 && (
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold mb-6">Ürün Videoları</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {videos.map((video: any) => (
-              <div key={video.id} className="card p-4">
-                <h3 className="font-semibold mb-3">{video.title}</h3>
-                <video controls playsInline className="w-full aspect-video rounded-lg bg-black object-contain" preload="metadata">
-                  <source src={video.url} />
-                  Tarayıcınız video oynatmayı desteklemiyor.
-                </video>
-                <a href={video.url} download className="btn-secondary text-sm mt-3 w-full text-center">
-                  📥 Videoyu İndir
-                </a>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+
 
       {/* Documents Section */}
       {documents?.length > 0 && (
