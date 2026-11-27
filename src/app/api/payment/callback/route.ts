@@ -53,27 +53,15 @@ export async function POST(req: NextRequest) {
       return new NextResponse('FAILED', { status: 400 })
     }
 
-    const installmentDiffKurus = receivedAmountKurus - expectedAmountKurus
-    const installmentNote =
-      installmentDiffKurus > 0
-        ? `PayTR taksitli tahsilat: ${(receivedAmountKurus / 100).toFixed(2)} TL (Vade farkı: +${(installmentDiffKurus / 100).toFixed(2)} TL)`
-        : null
-    const updatedAdminNotes = installmentNote
-      ? order.adminNotes
-        ? `${order.adminNotes}\n${installmentNote}`
-        : installmentNote
-      : order.adminNotes
-
     if (status === 'success') {
       await prisma.order.update({
         where: { id: order.id },
         data: {
           paymentStatus: 'PAID',
           status: 'CONFIRMED',
-          ...(installmentNote ? { adminNotes: updatedAdminNotes } : {}),
         },
       })
-      console.log('Order updated to PAID:', order.id, installmentNote || '')
+      console.log('Order updated to PAID:', order.id)
     } else {
       await prisma.order.update({
         where: { id: order.id },
