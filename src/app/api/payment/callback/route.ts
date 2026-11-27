@@ -40,12 +40,12 @@ export async function POST(req: NextRequest) {
       return new NextResponse('OK')
     }
 
-    // Ödeme tutar doğrulaması (tutar manipülasyonu engeli)
+    // Ödeme tutar doğrulaması (eksik tutar / manipülasyon engeli; taksit vade farkında total_amount büyük olabilir)
     const expectedAmountKurus = Math.round(order.totalAmount * 100)
     const receivedAmountKurus = Number(totalAmount)
 
-    if (receivedAmountKurus !== expectedAmountKurus) {
-      console.error('PayTR callback amount mismatch:', {
+    if (!Number.isFinite(receivedAmountKurus) || receivedAmountKurus < expectedAmountKurus) {
+      console.error('PayTR callback amount mismatch (underpaid or invalid):', {
         orderId: order.id,
         expectedAmountKurus,
         receivedAmountKurus,
@@ -53,12 +53,27 @@ export async function POST(req: NextRequest) {
       return new NextResponse('FAILED', { status: 400 })
     }
 
+    const installmentDiffKurus = receivedAmountKurus - expectedAmountKurus
+    const installmentNote =
+      installmentDiffKurus > 0
+        ? `PayTR taksitli tahsilat: ${(receivedAmountKurus / 100).toFixed(2)} TL (Vade farkı: +${(installmentDiffKurus / 100).toFixed(2)} TL)`
+        : null
+    const updatedAdminNotes = installmentNote
+      ? order.adminNotes
+        ? `${order.adminNotes}\n${installmentNote}`
+        : installmentNote
+      : order.adminNotes
+
     if (status === 'success') {
       await prisma.order.update({
         where: { id: order.id },
-        data: { paymentStatus: 'PAID', status: 'CONFIRMED' },
+        data: {
+          paymentStatus: 'PAID',
+          status: 'CONFIRMED',
+          ...(installmentNote ? { adminNotes: updatedAdminNotes } : {}),
+        },
       })
-      console.log('Order updated to PAID:', order.id)
+      console.log('Order updated to PAID:', order.id, installmentNote || '')
     } else {
       await prisma.order.update({
         where: { id: order.id },
