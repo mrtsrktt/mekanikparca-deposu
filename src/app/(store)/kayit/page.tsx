@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
@@ -10,6 +10,13 @@ export default function RegisterPage() {
   const router = useRouter()
   const [tab, setTab] = useState<'individual' | 'corporate'>('individual')
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    const type = new URLSearchParams(window.location.search).get('type')
+    if (type === 'corporate') {
+      setTab('corporate')
+    }
+  }, [])
 
   // Bireysel Kayıt Formu
   const [individualForm, setIndividualForm] = useState({

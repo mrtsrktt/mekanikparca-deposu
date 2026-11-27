@@ -5,14 +5,33 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { trackWhatsAppClick } from '@/lib/gtm'
 
+const brandBadges = [
+  { name: 'FERNOX', logo: '/images/brands/fernox.png', href: '/urunler?brand=fernox', darkBg: true },
+  { name: 'TESTO', logo: '/images/brands/testo.png', href: '/urunler?brand=testo', darkBg: false },
+  { name: 'MRU', logo: '/images/brands/mru.png', href: '/urunler?brand=mru', darkBg: false },
+  { name: 'REGEN', logo: '/images/brands/regen.png', href: '/urunler?brand=regen', darkBg: false },
+  { name: 'LEGA', logo: '/images/brands/lega.png', href: '/urunler?brand=lega', darkBg: false },
+]
+
 const slides = [
+  {
+    image: '/images/b2b-hero-bg.jpg',
+    title: 'Kurumsal Giriş Yapın,',
+    highlight: 'Bayi Fiyatlarını Anında Görün',
+    desc: 'Yetkili servis ve toptancı hesabınızla giriş yaparak tüm ürünlerde size özel tanımlanan avantajlı B2B fiyatlarından hemen yararlanın.',
+    btnText: 'Kurumsal Giriş Yap',
+    btnLink: '/giris',
+    secondaryBtnText: 'Kurumsal Üye Ol',
+    secondaryBtnLink: '/kayit?type=corporate',
+    hasOverlay: 'b2b' as const,
+  },
   {
     image: '/images/fernox.png',
     title: '',
     desc: '',
     btnText: '',
     btnLink: '/urunler?brand=fernox',
-    hasOverlay: false,
+    hasOverlay: false as const,
   },
   {
     image: '/images/slide-3.png',
@@ -20,7 +39,7 @@ const slides = [
     desc: '',
     btnText: 'WhatsApp ile Yazın',
     btnLink: 'https://wa.me/905326404086?text=Merhaba%2C%20siteniz%20%C3%BCzerinden%20size%20ula%C5%9F%C4%B1yorum.%20Bilgi%20alabilirmiyim',
-    hasOverlay: 'whatsapp',
+    hasOverlay: 'whatsapp' as const,
   },
   {
     image: '/images/slide-4.png',
@@ -28,7 +47,7 @@ const slides = [
     desc: '',
     btnText: '',
     btnLink: '/urunler',
-    hasOverlay: false,
+    hasOverlay: false as const,
   },
 ]
 
@@ -73,7 +92,7 @@ export default function HeroSlider() {
 
   return (
     <div className="relative w-full overflow-hidden bg-[#0f172a]">
-      <div className="relative h-[220px] sm:h-[350px] md:h-[420px] lg:h-[480px]">
+      <div className="relative h-[270px] sm:h-[370px] md:h-[440px] lg:h-[480px]">
         <div
           className="flex h-full relative"
           style={{
@@ -96,23 +115,67 @@ export default function HeroSlider() {
                 priority={slide === slides[0]}
                 sizes="100vw"
               />
-              {/* Overlay'li slide'lar: metin göster */}
-              {slide.hasOverlay === true && (
-                <div className="absolute inset-0 bg-black/30 flex items-center">
-                  <div className="max-w-7xl mx-auto px-4 w-full">
-                    <div className="max-w-xl">
-                      <h2 className="text-lg sm:text-2xl md:text-4xl font-bold text-white mb-2 md:mb-3 drop-shadow-lg">
+              {/* Kurumsal B2B slide */}
+              {slide.hasOverlay === 'b2b' && (
+                <div className="absolute inset-0 bg-gradient-to-r from-[#070b14]/95 via-[#0a1120]/85 to-[#0a1120]/20 flex items-center z-[25]">
+                  <div className="max-w-7xl mx-auto px-5 sm:px-8 w-full">
+                    <div className="max-w-2xl">
+                      <div className="flex items-center gap-2 mb-1.5 sm:mb-3">
+                        <span className="w-1 h-4 sm:h-5 rounded-full bg-amber-400" />
+                        <span className="text-[10px] sm:text-xs font-bold tracking-wider uppercase text-amber-400">
+                          Servis ve Toptancılara Özel B2B Portalı
+                        </span>
+                      </div>
+                      <h2 className="text-lg sm:text-3xl md:text-4xl lg:text-[42px] font-extrabold text-white leading-tight drop-shadow-md">
                         {slide.title}
+                        <span className="block text-amber-400">{(slide as any).highlight}</span>
                       </h2>
-                      <p className="text-xs sm:text-sm md:text-base text-white/90 mb-3 md:mb-5 drop-shadow line-clamp-2 md:line-clamp-none">
+                      <p className="hidden sm:block text-sm md:text-base text-slate-200 mt-2.5 md:mt-3 mb-4 md:mb-5 max-w-xl leading-relaxed">
                         {slide.desc}
                       </p>
-                      <Link
-                        href={slide.btnLink}
-                        className="inline-block bg-amber-500 hover:bg-amber-600 text-white font-semibold px-4 py-2 md:px-6 md:py-3 rounded-lg transition-colors text-sm md:text-base"
-                      >
-                        {slide.btnText}
-                      </Link>
+
+                      {/* Aksiyon Butonları */}
+                      <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 mt-3 sm:mt-0 mb-3 sm:mb-5">
+                        <Link
+                          href={slide.btnLink}
+                          className="inline-flex items-center justify-center bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-900 font-bold px-4 py-2 sm:px-6 sm:py-3 rounded-lg shadow-lg transition-all text-xs sm:text-sm md:text-base"
+                        >
+                          {slide.btnText}
+                        </Link>
+                        {(slide as any).secondaryBtnLink && (
+                          <Link
+                            href={(slide as any).secondaryBtnLink}
+                            className="inline-flex items-center justify-center bg-white/10 hover:bg-white/20 border border-white/35 text-white font-semibold px-4 py-2 sm:px-5 sm:py-3 rounded-lg backdrop-blur-sm transition-all text-xs sm:text-sm md:text-base"
+                          >
+                            {(slide as any).secondaryBtnText}
+                          </Link>
+                        )}
+                      </div>
+
+                      {/* Yetkili Satıcı Markalarımız (Gerçek Logolar) */}
+                      <div>
+                        <p className="hidden md:block text-[10px] font-bold tracking-widest uppercase text-slate-400 mb-2">
+                          Yetkili Satıcısı Olduğumuz Markalar
+                        </p>
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2.5">
+                          {brandBadges.map((b) => (
+                            <Link
+                              key={b.name}
+                              href={b.href}
+                              className={`flex items-center justify-center rounded-md sm:rounded-lg px-2 py-1 sm:px-3 sm:py-1.5 h-7 sm:h-10 md:h-11 transition-transform hover:scale-105 shadow-sm ${
+                                b.darkBg ? 'bg-[#003d7c] border border-sky-400/30' : 'bg-white'
+                              }`}
+                              title={`${b.name} Ürünlerini Gör`}
+                            >
+                              <img
+                                src={b.logo}
+                                alt={b.name}
+                                className="h-4 sm:h-6 md:h-7 w-auto object-contain"
+                              />
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -142,13 +205,13 @@ export default function HeroSlider() {
         </div>
       </div>
 
-      {/* Slide 1: tıklanabilir → Fernox ürünleri */}
-      {active === 0 && (
+      {/* Slide 2: tıklanabilir → Fernox ürünleri */}
+      {active === 1 && (
         <Link href="/urunler?brand=fernox" className="absolute inset-0 z-20 cursor-pointer" aria-label="Fernox Ürünlerini Gör" />
       )}
 
-      {/* Slide 3: tıklanabilir → Ürünler */}
-      {active === 2 && (
+      {/* Slide 4: tıklanabilir → Ürünler */}
+      {active === 3 && (
         <Link href="/urunler" className="absolute inset-0 z-20 cursor-pointer" aria-label="Ürünleri İncele" />
       )}
 
