@@ -40,20 +40,21 @@ export async function POST(req: NextRequest) {
       return new NextResponse('OK')
     }
 
-    // Ödeme tutar doğrulaması (eksik tutar / manipülasyon engeli; taksit vade farkında total_amount büyük olabilir)
-    const expectedAmountKurus = Math.round(order.totalAmount * 100)
-    const receivedAmountKurus = Number(totalAmount)
-
-    if (!Number.isFinite(receivedAmountKurus) || receivedAmountKurus < expectedAmountKurus) {
-      console.error('PayTR callback amount mismatch (underpaid or invalid):', {
-        orderId: order.id,
-        expectedAmountKurus,
-        receivedAmountKurus,
-      })
-      return new NextResponse('FAILED', { status: 400 })
-    }
-
     if (status === 'success') {
+      // Ödeme tutar doğrulaması yalnızca başarılı ödemelerde yapılır (eksik tutar / manipülasyon engeli;
+      // taksit vade farkında total_amount büyük olabilir)
+      const expectedAmountKurus = Math.round(order.totalAmount * 100)
+      const receivedAmountKurus = Number(totalAmount)
+
+      if (!Number.isFinite(receivedAmountKurus) || receivedAmountKurus < expectedAmountKurus) {
+        console.error('PayTR callback amount mismatch (underpaid or invalid):', {
+          orderId: order.id,
+          expectedAmountKurus,
+          receivedAmountKurus,
+        })
+        return new NextResponse('FAILED', { status: 400 })
+      }
+
       await prisma.order.update({
         where: { id: order.id },
         data: {
